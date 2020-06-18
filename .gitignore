@@ -131,3 +131,4 @@ dmypy.json
 # config stuff
 
 config/options.ini
+.idea/
