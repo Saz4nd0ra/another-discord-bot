@@ -5,7 +5,7 @@ from configparser import SafeConfigParser
 
 log = logging.getLogger(__name__)
 
-
+# TODO maybe add a fallback, in case the user forgets to set a setting
 class Config:
     def __init__(self):
         config = SafeConfigParser(interpolation=None)
@@ -25,9 +25,9 @@ class Config:
 
         self.login_token = config.get('Credentials', 'Token')
 
+        # TODO check if the ids are correct, for later checks and so on
         self.owner_id = config.get('IDs', 'OwnerID')
         self.dev_ids = config.get('IDs', 'DevIDs')
-        self.mod_ids = config.get('IDs', 'ModIDs')
 
         self.command_prefix = config.get('Bot', 'CommandPrefix')
 

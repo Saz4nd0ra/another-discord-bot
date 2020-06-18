@@ -11,6 +11,7 @@ except ImportError:
 else:
     asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
+
 @contextlib.contextmanager
 def setup_logging():
     try:
@@ -30,19 +31,22 @@ def setup_logging():
     finally:
         # __exit__
         handlers = log.handlers[:]
-        for hdlr in handlers:
-            hdlr.close()
-            log.removeHandler(hdlr)
+        for handler in handlers:
+            handler.close()
+            log.removeHandler(handler)
+
 
 def run_bot():
     bot = ADB()
     bot.run()
+
 
 def main():
     """Launches the bot."""
     loop = asyncio.get_event_loop()
     with setup_logging():
         run_bot()
+
 
 if __name__ == '__main__':
     main()
