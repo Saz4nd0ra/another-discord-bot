@@ -7,6 +7,7 @@ import json
 import aiohttp
 from collections import Counter
 
+from cogs.utils.json import JSON
 from cogs.utils.config import Config
 c = Config()
 
@@ -21,14 +22,19 @@ initial_extensions = {
 }
 
 
-class ADB(commands.Bot): # using a normal bot, no shards or anything fancy
+class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
     def __init__(self):
         super().__init__(command_prefix=c.command_prefix, description=description)
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        # TODO blacklist
-        self.blacklist = None
+        self.blacklist = JSON('blacklist.json')
+
+        # add cooldown mapping for people who excessively spam commands
+        self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
+
+        # a simple spam counter, when it reaches 5, the user gets banned
+        self._auto_spam_count = Counter()
 
         # load cogs
         for ext in initial_extensions:
@@ -38,10 +44,6 @@ class ADB(commands.Bot): # using a normal bot, no shards or anything fancy
             except Exception as e:
                 log.error('Couldn\'t load %s due to %s . . .' % (ext, e))
 
-    # TODO logging system for spammers
-    async def log_spammers(self):
-        pass
-
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
 
@@ -50,6 +52,17 @@ class ADB(commands.Bot): # using a normal bot, no shards or anything fancy
             await self.blacklist.remove(object_id)
         except KeyError:
             pass
+
+    @property
+    def stats_wh(self):
+        # TODO implement wh_id and wh_token
+        wh_id, wh_token = self.wh.stat_webhook
+        hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        return hook
+
+    # TODO spam logger
+    def log_spam(self, ctx, message):
+        pass
 
     async def process_commands(self, message):
         ctx = await self.get_context(message)
@@ -62,6 +75,19 @@ class ADB(commands.Bot): # using a normal bot, no shards or anything fancy
 
         if ctx.guild is not None and ctx.guild.id in self.blacklist:
             return
+
+        # TODO implement a spam log
+        bucket = self.spam_control.get_bucket(message)
+        current = message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        author_id = message.author.id
+
+        if author_id != c.owner_id:
+            self._auto_spam_count[author_id] += 1
+            if self._auto_spam_count[author_id] >= 5:
+                await self.add_to_blacklist(author_id)
+                del self._auto_spam_count[author_id]
+        else:
+            self._auto_spam_count.pop(author_id, None)
 
         await self.invoke(ctx)
 

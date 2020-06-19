@@ -5,6 +5,7 @@ from configparser import SafeConfigParser
 
 log = logging.getLogger(__name__)
 
+
 # TODO maybe add a fallback, in case the user forgets to set a setting
 class Config:
     def __init__(self):
@@ -31,3 +32,7 @@ class Config:
 
         self.command_prefix = config.get('Bot', 'CommandPrefix')
 
+
+# this will be a fallback config soon
+class Fallback:
+    pass
