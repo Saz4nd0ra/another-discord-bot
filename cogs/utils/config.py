@@ -31,6 +31,8 @@ class Config:
         self.dev_ids = config.get('IDs', 'DevIDs')
 
         self.command_prefix = config.get('Bot', 'CommandPrefix')
+        self.wh_id = config.get('Bot', 'WebhookID')
+        self.wh_token = config.get('Bot', 'WebhookToken')
 
 
 # this will be a fallback config soon

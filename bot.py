@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord import Webhook, RequestsWebhookAdapter
 
 import logging
 import datetime
@@ -55,14 +56,24 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
 
     @property
     def stats_wh(self):
-        # TODO implement wh_id and wh_token
-        wh_id, wh_token = self.wh.stat_webhook
-        hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        hook = discord.Webhook.partial(id=c.wh_id, token=c.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
         return hook
 
-    # TODO spam logger
-    def log_spam(self, ctx, message):
-        pass
+    def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
+        guild_name = getattr(ctx.guild, 'name', 'No Guild (DMs)')
+        guild_id = getattr(ctx.guild, 'id', None)
+        fmt = 'User %s (ID %s) in guild %s (ID %s) spamming, retry_after: %.2fs'
+        log.warning(fmt, message.author, message.author.id, guild_name, guild_id, retry_after)
+        if not autoblock:
+            return
+
+        wh = self.stats_wh
+        embed = discord.Embed(title='Auto-blocked Member', colour=0xDDA453)
+        embed.add_field(name='Member:', value='%s (ID: %s)' % (message.author, message.author.id), inline=False)
+        embed.add_field(name='Guild Info:', value='%s (ID: %s)' % (guild_name, guild_id), inline=False)
+        embed.add_field(name='Channel Info:', value='%s (ID: %s)' % (message.channel, message.channel.id), inline=False)
+        embed.timestamp = datetime.datetime.utcnow()
+        return wh.send(embed=embed)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message)
@@ -76,16 +87,19 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
         if ctx.guild is not None and ctx.guild.id in self.blacklist:
             return
 
-        # TODO implement a spam log
         bucket = self.spam_control.get_bucket(message)
         current = message.created_at.replace(tzinfo=datetime.timezone.utc).timestamp()
+        retry_after = bucket.update_rate_limit(current)
         author_id = message.author.id
-
-        if author_id != c.owner_id:
+        if retry_after and author_id != self.owner_id:
             self._auto_spam_count[author_id] += 1
             if self._auto_spam_count[author_id] >= 5:
                 await self.add_to_blacklist(author_id)
                 del self._auto_spam_count[author_id]
+                await self.log_spammer(ctx, message, retry_after, autoblock=True)
+            else:
+                self.log_spammer(ctx, message, retry_after)
+            return
         else:
             self._auto_spam_count.pop(author_id, None)
 
@@ -95,6 +109,12 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
         if message.author.bot:
             return
         await self.process_commands(message)
+
+    async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = datetime.datetime.utcnow()
+
+        print(f'Ready: %s (ID: %s)' % (self.user, self.user.id))
 
     # starting function for the bot, the bot gets started from launcher.py
 
