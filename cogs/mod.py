@@ -2,6 +2,8 @@ import discord
 from discord.ext import commands
 import logging
 from .utils import checks
+from .utils.formats import Plural
+from collections import Counter
 from .utils.config import Config
 c = Config()
 
@@ -85,15 +87,47 @@ class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def _cleanup_strategy_simple(self, ctx, search):
+        count = 0
+        async for msg in ctx.history(limit=search, before=ctx.message):
+            if msg.author == ctx.me:
+                await msg.delete()
+                count += 1
+        return {'Bot': count}
+
+    async def _cleanup_strategy(self, ctx, search):
+        prefixes = tuple(self.bot.get_guild_prefixes(ctx.guild))  # could be easier if discord didn't suck
+
+        def check(m):
+            return m.author == ctx.me or m.content.startswith(prefixes)
+
+        deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
+        return Counter(m.author.display_name for m in deleted)
+
+    @commands.command()
+    @checks.has_permissions(manage_messages=True)
+    async def cleanup(self, ctx, search=100):
+        """Cleans up the bot's messages from the channel."""
+
+        strategy = self._cleanup_strategy_simple
+        if ctx.me.permissions_in(ctx.channel).manage_messages:
+            strategy = self._cleanup_strategy
+
+        spammers = await strategy(ctx, search)
+        deleted = sum(spammers.values())
+        messages = [f'{deleted} message{" was" if deleted == 1 else "s were"} removed.']
+        if deleted:
+            messages.append('')
+            spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
+            messages.extend(f'- **{author}**: {count}' for author, count in spammers)
+
+        await ctx.send('\n'.join(messages), delete_after=10)
+
     @commands.command()
     @commands.guild_only()
     @checks.has_permissions(ban_members=True)
     async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Bans a member from the server.
-        You can also ban from ID to ban regardless whether they're
-        in the server or not.
-        In order for this to work, the bot must have Ban Member permissions.
-        To use this command you must have Ban Members permission.
         """
 
         if reason is None:
@@ -107,8 +141,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(kick_members=True)
     async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Kicks a member from the server.
-        In order for this to work, the bot must have Kick Member permissions.
-        To use this command you must have Kick Members permission.
         """
 
         if reason is None:
@@ -116,6 +148,33 @@ class Mod(commands.Cog):
 
         await ctx.guild.kick(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
+
+    @commands.command()
+    @commands.guild_only()
+    @checks.has_permissions(ban_members=True)
+    async def multiban(self, ctx, members: commands.Greedy[MemberID], *, reason: ActionReason = None):
+        """Bans multiple members from the server.
+        """
+
+        if reason is None:
+            reason = f'Action done by %s (ID: %s)' % (ctx.author, ctx.author.id)
+
+        total_members = len(members)
+        if total_members == 0:
+            return await ctx.send('Missing members to ban.')
+
+        confirm = await ctx.prompt(f'This will ban **{Plural(total_members):member}**. Are you sure?', reacquire=False)
+        if not confirm:
+            return await ctx.send('Aborting.')
+
+        failed = 0
+        for member in members:
+            try:
+                await ctx.guild.ban(member, reason=reason)
+            except discord.HTTPException:
+                failed += 1
+
+        await ctx.send(f'Banned {total_members - failed}/{total_members} members.')
 
 
 def setup(bot):
