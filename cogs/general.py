@@ -1,6 +1,7 @@
 import logging
 import discord
 from discord.ext import commands
+
 import random
 import humanize
 
@@ -68,7 +69,7 @@ class General(commands.Cog):
             embed.add_field(name='Members:',
                             value=ctx.guild.member_count, inline=True)
             embed.add_field(name='Bots:',
-                            value=findbots, inline=True)
+                            value=str(findbots), inline=True)
             embed.add_field(name='Owner:',
                             value=ctx.guild.owner, inline=True)
             embed.add_field(name='Region:',

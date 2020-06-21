@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
-from discord import Webhook, RequestsWebhookAdapter
+from discord import Webhook
 
 import logging
 import datetime
-import json
 import aiohttp
 from collections import Counter
 
@@ -18,7 +17,8 @@ description = """Put a description there for fucks sake."""
 
 initial_extensions = {
 
-    'cogs.general'
+    'cogs.general',
+    'cogs.mod'
 
 }
 
@@ -56,7 +56,7 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
 
     @property
     def stats_wh(self):
-        hook = discord.Webhook.partial(id=c.wh_id, token=c.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        hook = Webhook.partial(id=c.wh_id, token=c.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
         return hook
 
     def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
