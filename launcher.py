@@ -1,5 +1,4 @@
 import logging
-import discord
 import asyncio
 from bot import ADB
 import contextlib

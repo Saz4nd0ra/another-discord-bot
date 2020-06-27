@@ -9,7 +9,7 @@ from collections import Counter
 
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
-c = Config()
+config = Config()
 
 log = logging.getLogger(__name__)
 
@@ -18,14 +18,15 @@ description = """Put a description there for fucks sake."""
 initial_extensions = {
 
     'cogs.general',
-    'cogs.mod'
+    'cogs.mod',
+    'cogs.music'
 
 }
 
 
 class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
     def __init__(self):
-        super().__init__(command_prefix=c.command_prefix, description=description)
+        super().__init__(command_prefix=config.command_prefix, description=description)
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -56,7 +57,7 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
 
     @property
     def stats_wh(self):
-        hook = Webhook.partial(id=c.wh_id, token=c.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        hook = Webhook.partial(id=config.wh_id, token=config.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
         return hook
 
     def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
@@ -122,6 +123,6 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
     def run(self):
         try:
             print('Starting bot!')
-            super().run(c.login_token, reconnect=True)
+            super().run(config.login_token, reconnect=True)
         except discord.LoginFailure:
             log.error('Login failed, check the token')
