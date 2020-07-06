@@ -17,6 +17,7 @@ class Config:
         confsections = {'Credentials',
                         'IDs',
                         'Bot',
+                        'Music',
                         'etc'}.difference(config.sections())
 
         if confsections:
@@ -33,6 +34,9 @@ class Config:
         self.command_prefix = config.get('Bot', 'CommandPrefix')
         self.wh_id = config.get('Bot', 'WebhookID')
         self.wh_token = config.get('Bot', 'WebhookToken')
+
+        self.vote_skip = config.get('Music', 'VoteSkip')
+        self.skip_ratio = config.get('Music', 'SkipRatio')
 
 
 # this will be a fallback config soon

@@ -6,6 +6,7 @@ import logging
 import math
 from urllib import request
 from .utils.ytdl import Video
+from .utils.config import Config
 
 
 async def audio_playing(ctx):
@@ -14,7 +15,7 @@ async def audio_playing(ctx):
     if client and client.channel and client.source:
         return True
     else:
-        raise commands.CommandError("Not currently playing any audio.")
+        raise commands.CommandError('Not currently playing any audio.')
 
 
 async def in_voice_channel(ctx):
@@ -25,28 +26,27 @@ async def in_voice_channel(ctx):
         return True
     else:
         raise commands.CommandError(
-            "You need to be in the channel to do that.")
+            'You need to be in the channel to do that.')
 
 
 async def is_audio_requester(ctx):
     """Checks that the command sender is the song requester."""
-    music = ctx.bot.get_cog("Music")
+    music = ctx.bot.get_cog('Music')
     state = music.get_state(ctx.guild)
     permissions = ctx.channel.permissions_for(ctx.author)
     if permissions.administrator or state.is_requester(ctx.author):
         return True
     else:
         raise commands.CommandError(
-            "You need to be the song requester to do that.")
+            'You need to be the song requester to do that.')
 
 
-class Music:
+class Music(commands.Cog):
     """Bot commands to help play music."""
 
     def __init__(self, bot):
         self.bot = bot
-        self.config = config[__name__.split(".")[
-            -1]]  # retrieve module name, find config entry
+        self.config = Config()
         self.states = {}
 
     def get_state(self, guild):
@@ -57,7 +57,7 @@ class Music:
             self.states[guild.id] = GuildState()
             return self.states[guild.id]
 
-    @commands.command(aliases=["stop"])
+    @commands.command(aliases=['stop'])
      
     @commands.has_permissions(administrator=True)
     async def leave(self, ctx):
@@ -69,7 +69,7 @@ class Music:
             state.playlist = []
             state.now_playing = None
         else:
-            raise commands.CommandError("Not in a voice channel.")
+            raise commands.CommandError('Not in a voice channel.')
 
     @commands.command()
     @commands.check(audio_playing)
@@ -97,12 +97,6 @@ class Music:
         if volume < 0:
             volume = 0
 
-        max_vol = self.config["max_volume"]
-        if max_vol > -1:  # check if max volume is set
-            # clamp volume to [0, max_vol]
-            if volume > max_vol:
-                volume = max_vol
-
         client = ctx.guild.voice_client
 
         state.volume = float(volume) / 100.0
@@ -119,7 +113,7 @@ class Music:
                 ctx.author).administrator or state.is_requester(ctx.author):
             # immediately skip if requester or admin
             client.stop()
-        elif self.config["vote_skip"]:
+        elif self.config.vote_skip:
             # vote to skip song
             channel = client.channel
             self._vote_skip(channel, ctx.author)
@@ -128,25 +122,25 @@ class Music:
                 member for member in channel.members if not member.bot
             ])  # don't count bots
             required_votes = math.ceil(
-                self.config["vote_skip_ratio"] * users_in_channel)
+                self.config.skip_ratio * users_in_channel)
             await ctx.send(
-                f"{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)"
+                f'{ctx.author.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)'
             )
         else:
-            raise commands.CommandError("Sorry, vote skipping is disabled.")
+            raise commands.CommandError('Sorry, vote skipping is disabled.')
 
     def _vote_skip(self, channel, member):
         """Register a vote for `member` to skip the song playing."""
-        logging.info(f"{member.name} votes to skip")
+        logging.info(f'{member.name} votes to skip')
         state = self.get_state(channel.guild)
         state.skip_votes.add(member)
         users_in_channel = len([
             member for member in channel.members if not member.bot
         ])  # don't count bots
         if (float(len(state.skip_votes)) /
-                users_in_channel) >= self.config["vote_skip_ratio"]:
+                users_in_channel) >= self.config.skip_ratio:
             # enough members have voted to skip, so skip the song
-            logging.info(f"Enough votes, skipping...")
+            logging.info(f'Enough votes, skipping...')
             channel.guild.voice_client.stop()
 
     def _play_song(self, client, state, song):
@@ -170,7 +164,7 @@ class Music:
     async def nowplaying(self, ctx):
         """Displays information about the current song."""
         state = self.get_state(ctx.guild)
-        message = await ctx.send("", embed=state.now_playing.get_embed())
+        message = await ctx.send('', embed=state.now_playing.get_embed())
         await self._add_reaction_controls(message)
 
     @commands.command()
@@ -183,14 +177,14 @@ class Music:
     def _queue_text(self, queue):
         """Returns a block of text describing a given song queue."""
         if len(queue) > 0:
-            message = [f"{len(queue)} songs in queue:"]
+            message = [f'{len(queue)} songs in queue:']
             message += [
-                f"  {index+1}. **{song.title}** (requested by **{song.requested_by.name}**)"
+                f'  {index+1}. **{song.title}** (requested by **{song.requested_by.name}**)'
                 for (index, song) in enumerate(queue)
             ]  # add individual songs
-            return "\n".join(message)
+            return '\n'.join(message)
         else:
-            return "The play queue is empty."
+            return 'The play queue is empty.'
 
     @commands.command()
     @commands.check(audio_playing)
@@ -212,7 +206,7 @@ class Music:
 
             await ctx.send(self._queue_text(state.playlist))
         else:
-            raise commands.CommandError("You must use a valid index.")
+            raise commands.CommandError('You must use a valid index.')
 
     @commands.command()
     async def play(self, ctx, *, url):
@@ -225,13 +219,13 @@ class Music:
             try:
                 video = Video(url, ctx.author)
             except youtube_dl.DownloadError as e:
-                logging.warn(f"Error downloading video: {e}")
+                logging.warn(f'Error downloading video: {e}')
                 await ctx.send(
-                    "There was an error downloading your video, sorry.")
+                    'There was an error downloading your video, sorry.')
                 return
             state.playlist.append(video)
             message = await ctx.send(
-                "Added to queue.", embed=video.get_embed())
+                'Added to queue.', embed=video.get_embed())
             await self._add_reaction_controls(message)
         else:
             if ctx.author.voice != None and ctx.author.voice.channel != None:
@@ -240,16 +234,16 @@ class Music:
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
                     await ctx.send(
-                        "There was an error downloading your video, sorry.")
+                        'There was an error downloading your video, sorry.')
                     return
                 client = await channel.connect()
                 self._play_song(client, state, video)
-                message = await ctx.send("", embed=video.get_embed())
+                message = await ctx.send('', embed=video.get_embed())
                 await self._add_reaction_controls(message)
-                logging.info(f"Now playing '{video.title}'")
+                logging.info(f'Now playing \'{video.title}\'')
             else:
                 raise commands.CommandError(
-                    "You need to be in a voice channel to do that.")
+                    'You need to be in a voice channel to do that.')
 
     async def on_reaction_add(self, reaction, user):
         """Respods to reactions added to the bot's messages, allowing reactions to control playback."""
@@ -263,18 +257,18 @@ class Music:
                 state = self.get_state(guild)
                 if permissions.administrator or (user_in_channel and state.is_requester(user)):
                     client = message.guild.voice_client
-                    if reaction.emoji == "⏯":
+                    if reaction.emoji == '⏯':
                         # pause audio
                         self._pause_audio(client)
-                    elif reaction.emoji == "⏭":
+                    elif reaction.emoji == '⏭':
                         # skip audio
                         client.stop()
-                    elif reaction.emoji == "⏮":
+                    elif reaction.emoji == '⏮':
                         state.playlist.insert(
                             0, state.now_playing
                         )  # insert current song at beginning of playlist
                         client.stop()  # skip ahead
-                elif reaction.emoji == "⏭" and self.config["vote_skip"] and user_in_channel and message.guild.voice_client and message.guild.voice_client.channel:
+                elif reaction.emoji == '⏭' and self.config.vote_skip and user_in_channel and message.guild.voice_client and message.guild.voice_client.channel:
                     # ensure that skip was pressed, that vote skipping is enabled, the user is in the channel, and that the bot is in a voice channel
                     voice_channel = message.guild.voice_client.channel
                     self._vote_skip(voice_channel, user)
@@ -285,14 +279,14 @@ class Music:
                         if not member.bot
                     ])  # don't count bots
                     required_votes = math.ceil(
-                        self.config["vote_skip_ratio"] * users_in_channel)
+                        self.config.skip_ratio * users_in_channel)
                     await channel.send(
-                        f"{user.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)"
+                        f'{user.mention} voted to skip ({len(state.skip_votes)}/{required_votes} votes)'
                     )
 
     async def _add_reaction_controls(self, message):
         """Adds a 'control-panel' of reactions to a message that can be used to control the bot."""
-        CONTROLS = ["⏮", "⏯", "⏭"]
+        CONTROLS = ['⏮', '⏯', '⏭']
         for control in CONTROLS:
             await message.add_reaction(control)
 

@@ -1,3 +1,5 @@
+# TODO make use of new message util to simplify embeds
+
 import logging
 import discord
 from discord.ext import commands
