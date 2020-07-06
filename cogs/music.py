@@ -58,7 +58,6 @@ class Music(commands.Cog):
             return self.states[guild.id]
 
     @commands.command(aliases=['stop'])
-     
     @commands.has_permissions(administrator=True)
     async def leave(self, ctx):
         """Leaves the voice channel, if currently in one."""
@@ -74,7 +73,6 @@ class Music(commands.Cog):
     @commands.command()
     @commands.check(audio_playing)
     @commands.check(in_voice_channel)
-    @commands.check(is_audio_requester)
     async def pause(self, ctx):
         """Pauses any currently playing audio."""
         client = ctx.guild.voice_client
@@ -85,6 +83,20 @@ class Music(commands.Cog):
             client.resume()
         else:
             client.pause()
+
+    @commands.command()
+    @commands.check(audio_playing)
+    @commands.check(in_voice_channel)
+    async def resume(self, ctx):
+        """Resumes paused audio."""
+        client = ctx.guild.voice_client
+        self._pause_audio(client)
+
+    def _pause_audio(self, client):
+        if client.is_playing():
+            client.pause()
+        else:
+            client.resume()
 
     @commands.command()
     @commands.check(audio_playing)
