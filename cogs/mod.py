@@ -1,8 +1,7 @@
 # TODO make use of new message util to simplify embeds
 
-import discord
+import discord, logging
 from discord.ext import commands
-import logging
 from .utils import checks
 from .utils.formats import Plural
 from collections import Counter

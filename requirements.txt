@@ -3,3 +3,4 @@ humanize
 aiohttp
 uvloop
 youtube-dl
+psycopg2

@@ -1,10 +1,6 @@
-import discord
+import discord, logging, datetime, aiohttp
 from discord.ext import commands
 from discord import Webhook
-
-import logging
-import datetime
-import aiohttp
 from collections import Counter
 
 from cogs.utils.json import JSON

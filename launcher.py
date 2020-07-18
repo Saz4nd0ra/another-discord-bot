@@ -1,7 +1,5 @@
-import logging
-import asyncio
+import logging, asyncio, contextlib
 from bot import ADB
-import contextlib
 
 try:
     import uvloop

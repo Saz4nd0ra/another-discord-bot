@@ -1,13 +1,9 @@
 from discord.ext import commands
-import discord
-import asyncio
-import youtube_dl
-import logging
-import math
+import discord, asyncio, youtube_dl, logging, math
 from urllib import request
 from .utils.ytdl import Video
 from .utils.config import Config
-
+from .utils.messages import *
 
 async def audio_playing(ctx):
     """Checks that audio is currently playing before continuing."""
@@ -128,7 +124,7 @@ class Music(commands.Cog):
         elif self.config.vote_skip:
             # vote to skip song
             channel = client.channel
-            self._vote_skip(channel, ctx.author)
+            self._vote_skip(ctx, channel, ctx.author)
             # announce vote
             users_in_channel = len([
                 member for member in channel.members if not member.bot
@@ -141,7 +137,7 @@ class Music(commands.Cog):
         else:
             raise commands.CommandError('Sorry, vote skipping is disabled.')
 
-    def _vote_skip(self, channel, member):
+    async def _vote_skip(self, ctx, channel, member):
         """Register a vote for `member` to skip the song playing."""
         logging.info(f'{member.name} votes to skip')
         state = self.get_state(channel.guild)
@@ -152,7 +148,7 @@ class Music(commands.Cog):
         if (float(len(state.skip_votes)) /
                 users_in_channel) >= self.config.skip_ratio:
             # enough members have voted to skip, so skip the song
-            logging.info(f'Enough votes, skipping...')
+            await ctx.send('Song skipped.')
             channel.guild.voice_client.stop()
 
     def _play_song(self, client, state, song):
@@ -205,6 +201,7 @@ class Music(commands.Cog):
         """Clears the play queue without leaving the channel."""
         state = self.get_state(ctx.guild)
         state.playlist = []
+        await ctx.send('Queue cleared!')
 
     @commands.command()
     @commands.check(audio_playing)
@@ -218,7 +215,8 @@ class Music(commands.Cog):
 
             await ctx.send(self._queue_text(state.playlist))
         else:
-            raise commands.CommandError('You must use a valid index.')
+            logging.error('Invalid Index provided.')
+            await ctx.send('Invalid Index.')
 
     @commands.command()
     async def play(self, ctx, *, url):
@@ -231,9 +229,8 @@ class Music(commands.Cog):
             try:
                 video = Video(url, ctx.author)
             except youtube_dl.DownloadError as e:
-                logging.warn(f'Error downloading video: {e}')
-                await ctx.send(
-                    'There was an error downloading your video, sorry.')
+                logging.error(f'Error downloading video: {e}')
+                await ctx.send('An error occured while downloading your song.')
                 return
             state.playlist.append(video)
             message = await ctx.send(
@@ -245,17 +242,14 @@ class Music(commands.Cog):
                 try:
                     video = Video(url, ctx.author)
                 except youtube_dl.DownloadError as e:
-                    await ctx.send(
-                        'There was an error downloading your video, sorry.')
-                    return
+                    await ctx.send('An error occured while downloading your song.')
                 client = await channel.connect()
                 self._play_song(client, state, video)
                 message = await ctx.send('', embed=video.get_embed())
                 await self._add_reaction_controls(message)
-                logging.info(f'Now playing \'{video.title}\'')
             else:
-                raise commands.CommandError(
-                    'You need to be in a voice channel to do that.')
+                logging.warn('User not in voice channel.')
+                await ctx.send('You have to be in a voice channel to request a song.')
 
     async def on_reaction_add(self, reaction, user):
         """Respods to reactions added to the bot's messages, allowing reactions to control playback."""
