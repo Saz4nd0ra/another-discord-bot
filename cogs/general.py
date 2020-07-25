@@ -49,7 +49,7 @@ class General(commands.Cog):
             inline=False
         )
 
-        await ctx.send(content='ℹ About **%s**' % user.id, embed=embed)
+        await ctx.send(content='**%s**' % user.name, embed=embed)
 
     @commands.group()
     async def server(self, ctx):
@@ -79,7 +79,7 @@ class General(commands.Cog):
             embed.add_field(name='Created:',
                             value=humanize.naturaldate(ctx.guild.created_at),
                             inline=True)
-            await ctx.send(content='ℹ information about **%s**' %
+            await ctx.send(content='**%s**' %
                            ctx.guild.name, embed=embed)
 
     @server.command(name='icon')

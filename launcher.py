@@ -1,4 +1,6 @@
-import logging, asyncio, contextlib
+import logging
+import asyncio
+import contextlib
 from bot import ADB
 
 try:
@@ -40,7 +42,6 @@ def run_bot():
 
 def main():
     """Launches the bot."""
-    loop = asyncio.get_event_loop()
     with setup_logging():
         run_bot()
 

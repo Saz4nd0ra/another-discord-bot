@@ -1,7 +1,10 @@
-import discord, logging, datetime, aiohttp
+from collections import Counter
+import logging
+import datetime
+import aiohttp
+import discord
 from discord.ext import commands
 from discord import Webhook
-from collections import Counter
 
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
@@ -41,6 +44,9 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
                 log.info('Loaded %s' % ext)
             except Exception as e:
                 log.error('Couldn\'t load %s due to %s . . .' % (ext, e))
+
+        if not hasattr(self, 'uptime'):
+            self.uptime = datetime.datetime.utcnow()
 
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
@@ -108,15 +114,13 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
         await self.process_commands(message)
 
     async def on_ready(self):
-        if not hasattr(self, 'uptime'):
-            self.uptime = datetime.datetime.utcnow()
-
-        print(f'Ready: %s (ID: %s)' % (self.user, self.user.id))
+        print('Ready: %s (ID: %s)' % (self.user, self.user.id))
 
     # starting function for the bot, the bot gets started from launcher.py
 
     # TODO make that stuff fancier, by allowing the user to change the token when an error occurs
     def run(self):
+        """Runs the bot."""
         try:
             print('Starting bot!')
             super().run(config.login_token, reconnect=True)
