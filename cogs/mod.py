@@ -1,6 +1,7 @@
 # TODO make use of new message util to simplify embeds
 
-import discord, logging
+import discord
+import logging
 from discord.ext import commands
 from .utils import checks
 from .utils.formats import Plural
@@ -69,11 +70,11 @@ class BannedMember(commands.Converter):
 
 class ActionReason(commands.Converter):
     async def convert(self, ctx, argument):
-        ret = '%s (ID: %s): %s' % (ctx.author, ctx.author.id, argument)
+        ret = f'{ctx.author} (ID: {ctx.author.id}): {argument}'
 
         if len(ret) > 512:
             reason_max = 512 - len(ret) + len(argument)
-            raise commands.BadArgument('Reason is too long (%s/%s)' % (len(argument), reason_max))
+            raise commands.BadArgument(f'Reason is too long ({len(argument)}/{reason_max})')
         return ret
 
 
@@ -132,7 +133,7 @@ class Mod(commands.Cog):
         """
 
         if reason is None:
-            reason = 'Action done by %s (ID: %s)' % (ctx.author, ctx.author.id)
+            reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
 
         await ctx.guild.ban(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
@@ -145,7 +146,7 @@ class Mod(commands.Cog):
         """
 
         if reason is None:
-            reason = 'Action done by %s (ID: %s)' % (ctx.author, ctx.author.id)
+            reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
 
         await ctx.guild.kick(member, reason=reason)
         await ctx.send('\N{OK HAND SIGN}')
@@ -158,7 +159,7 @@ class Mod(commands.Cog):
         """
 
         if reason is None:
-            reason = f'Action done by %s (ID: %s)' % (ctx.author, ctx.author.id)
+            reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
 
         total_members = len(members)
         if total_members == 0:

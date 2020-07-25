@@ -134,3 +134,5 @@ config/options.ini
 .idea/
 
 .vscode/settings.json
+
+logs/spring.log.2020-07-25.0.gz

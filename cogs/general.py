@@ -28,7 +28,7 @@ class General(commands.Cog):
                 if x.id != ctx.guild.default_role.id]
         ) if len(user.roles) > 1 else 'None'
 
-        embed = discord.Embed(colour=user.top_role.colour.value)
+        embed = discord.Embed(colour=discord.Color.blurple())
         embed.set_thumbnail(url=user.avatar_url)
 
         embed.add_field(name='Username:', value=user, inline=True)
@@ -49,7 +49,7 @@ class General(commands.Cog):
             inline=False
         )
 
-        await ctx.send(content='**%s**' % user.name, embed=embed)
+        await ctx.send(content=f'**{user.name}**', embed=embed)
 
     @commands.group()
     async def server(self, ctx):
@@ -57,7 +57,7 @@ class General(commands.Cog):
         if ctx.invoked_subcommand is None:
             findbots = sum(1 for member in ctx.guild.members if member.bot)
 
-            embed = discord.Embed()
+            embed = discord.Embed(color=discord.Color.blurple())
 
             if ctx.guild.icon:
                 embed.set_thumbnail(url=ctx.guild.icon_url)
@@ -113,6 +113,10 @@ class General(commands.Cog):
         else:
             result = random.randint(minimum, maximum)
         await ctx.send(result)
+
+    @commands.command()
+    async def about(self, ctx):
+        """Tells you a bit about the bot!"""
 
 
 def setup(bot):

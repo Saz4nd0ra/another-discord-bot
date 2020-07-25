@@ -3,6 +3,9 @@ import logging
 import datetime
 import aiohttp
 import discord
+import traceback
+import sys
+from cogs.utils.constants import VERSION
 from discord.ext import commands
 from discord import Webhook
 
@@ -18,12 +21,13 @@ initial_extensions = {
 
     'cogs.general',
     'cogs.mod',
-    'cogs.music'
+    'cogs.music',
+    'cogs.help'
 
 }
 
 
-class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
+class ADB(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=config.command_prefix, description=description)
 
@@ -41,12 +45,23 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
         for ext in initial_extensions:
             try:
                 self.load_extension(ext)
-                log.info('Loaded %s' % ext)
+                log.info(f'Loaded {ext}')
             except Exception as e:
-                log.error('Couldn\'t load %s due to %s . . .' % (ext, e))
+                log.error(f'Couldn\'t load {ext} due to {e} . . .')
+                log.error(traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr))
 
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
+
+    async def _embed_gen(self):
+        """Provides a basic template for embeds"""
+        e = discord.Embed(color=discord.Color.blurple())
+        e.set_footer(text='Saz4nd0ra/another-discord-bot ({})'.format(VERSION),
+                     icon_url='https://i.imgur.com/gFHBoZA.png')
+        e.set_author(name='another-discord-bot',
+                     url='https://github.com/Saz4nd0ra/another-discord-bot',
+                     icon_url=self.user.avatar_url)
+        return e
 
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
@@ -65,16 +80,16 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
     def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
         guild_name = getattr(ctx.guild, 'name', 'No Guild (DMs)')
         guild_id = getattr(ctx.guild, 'id', None)
-        fmt = 'User %s (ID %s) in guild %s (ID %s) spamming, retry_after: %.2fs'
+        fmt = 'User %s (ID %s) in guild %r (ID %s) spamming, retry_after: %.2fs'
         log.warning(fmt, message.author, message.author.id, guild_name, guild_id, retry_after)
         if not autoblock:
             return
 
         wh = self.stats_wh
         embed = discord.Embed(title='Auto-blocked Member', colour=0xDDA453)
-        embed.add_field(name='Member:', value='%s (ID: %s)' % (message.author, message.author.id), inline=False)
-        embed.add_field(name='Guild Info:', value='%s (ID: %s)' % (guild_name, guild_id), inline=False)
-        embed.add_field(name='Channel Info:', value='%s (ID: %s)' % (message.channel, message.channel.id), inline=False)
+        embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
+        embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
+        embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
         embed.timestamp = datetime.datetime.utcnow()
         return wh.send(embed=embed)
 
@@ -114,15 +129,21 @@ class ADB(commands.Bot):  # using a normal bot, no shards or anything fancy
         await self.process_commands(message)
 
     async def on_ready(self):
-        print('Ready: %s (ID: %s)' % (self.user, self.user.id))
+        print(f'Ready: {self.user} (ID: {self.user.id})')
+        log.info('Bot ready. ')
 
     # starting function for the bot, the bot gets started from launcher.py
 
     # TODO make that stuff fancier, by allowing the user to change the token when an error occurs
     def run(self):
-        """Runs the bot."""
         try:
-            print('Starting bot!')
             super().run(config.login_token, reconnect=True)
-        except discord.LoginFailure:
-            log.error('Login failed, check the token')
+        finally:
+            with open('logs/prev_events.log', 'w', encoding='utf-8') as fp:
+                for data in self._prev_events:
+                    try:
+                        x = json.dumps(data, ensure_ascii=True, indent=4)
+                    except:
+                        fp.write(f'{data}\n')
+                    else:
+                        fp.write(f'{x}\n')

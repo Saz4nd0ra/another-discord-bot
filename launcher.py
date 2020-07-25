@@ -1,6 +1,7 @@
 import logging
 import asyncio
 import contextlib
+import subprocess
 from bot import ADB
 
 try:
@@ -35,16 +36,21 @@ def setup_logging():
             log.removeHandler(handler)
 
 
+def start_lavalink_node():
+    print('PRE-LOGGING LOGGING: Starting lavalink node.')
+
+    subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
+                     stdout=asyncio.subprocess.PIPE,
+                     stderr=asyncio.subprocess.STDOUT)
+
+
 def run_bot():
+    print('PRE-LOGGING LOGGING: Starting bot, moving to normal logging.')
     bot = ADB()
     bot.run()
 
 
-def main():
-    """Launches the bot."""
-    with setup_logging():
-        run_bot()
-
-
 if __name__ == '__main__':
-    main()
+    setup_logging()
+    start_lavalink_node()
+    run_bot()
