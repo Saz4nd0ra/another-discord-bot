@@ -21,7 +21,7 @@ def setup_logging():
 
         log = logging.getLogger()
         log.setLevel(logging.INFO)
-        handler = logging.FileHandler(filename='bot.log', encoding='utf-8', mode='w')
+        handler = logging.FileHandler(filename='logs/bot.log', encoding='utf-8', mode='w')
         dt_fmt = '%Y-%m-%d %H:%M:%S'
         fmt = logging.Formatter('[{asctime}] [{levelname:<7}] {name}: {message}', dt_fmt, style='{')
         handler.setFormatter(fmt)
@@ -50,7 +50,11 @@ def run_bot():
     bot.run()
 
 
+def main():
+    with setup_logging():
+        start_lavalink_node()
+        run_bot()
+
+
 if __name__ == '__main__':
-    setup_logging()
-    start_lavalink_node()
-    run_bot()
+    main()

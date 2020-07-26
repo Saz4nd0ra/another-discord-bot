@@ -8,6 +8,7 @@ import sys
 from cogs.utils.constants import VERSION
 from discord.ext import commands
 from discord import Webhook
+from cogs.utils import help, context
 
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
@@ -21,17 +22,18 @@ initial_extensions = {
 
     'cogs.general',
     'cogs.mod',
-    'cogs.music',
-    'cogs.help'
+    'cogs.music'
 
 }
 
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix=config.command_prefix, description=description)
+        super().__init__(command_prefix=config.command_prefix, description=description, help_command=help.HelpCommand())
 
         self.session = aiohttp.ClientSession(loop=self.loop)
+
+        self.config = Config()
 
         self.blacklist = JSON('blacklist.json')
 
@@ -52,6 +54,9 @@ class ADB(commands.AutoShardedBot):
 
         if not hasattr(self, 'uptime'):
             self.uptime = datetime.datetime.utcnow()
+
+    async def get_context(self, message: discord.Message, *, cls=context.Context):
+        return await super().get_context(message, cls=cls)
 
     async def _embed_gen(self):
         """Provides a basic template for embeds"""
