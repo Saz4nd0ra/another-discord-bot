@@ -89,46 +89,10 @@ class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
-    async def _cleanup_strategy_simple(self, ctx, search):
-        count = 0
-        async for msg in ctx.history(limit=search, before=ctx.message):
-            if msg.author == ctx.me:
-                await msg.delete()
-                count += 1
-        return {'Bot': count}
-
-    async def _cleanup_strategy(self, ctx, search):
-        prefixes = tuple(self.bot.get_guild_prefixes(ctx.guild))  # could be easier if discord didn't suck
-
-        def check(m):
-            return m.author == ctx.me or m.content.startswith(prefixes)
-
-        deleted = await ctx.channel.purge(limit=search, check=check, before=ctx.message)
-        return Counter(m.author.display_name for m in deleted)
-
-    @commands.command()
-    @checks.has_permissions(manage_messages=True)
-    async def cleanup(self, ctx, search=100):
-        """Cleans up the bot's messages from the channel."""
-
-        strategy = self._cleanup_strategy_simple
-        if ctx.me.permissions_in(ctx.channel).manage_messages:
-            strategy = self._cleanup_strategy
-
-        spammers = await strategy(ctx, search)
-        deleted = sum(spammers.values())
-        messages = [f'{deleted} message{" was" if deleted == 1 else "s were"} removed.']
-        if deleted:
-            messages.append('')
-            spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
-            messages.extend(f'- **{author}**: {count}' for author, count in spammers)
-
-        await ctx.send('\n'.join(messages), delete_after=10)
-
     @commands.command()
     @commands.guild_only()
     @checks.has_permissions(ban_members=True)
-    async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
+    async def ban(self, ctx, member: discord.Member, *, reason: ActionReason = None):
         """Bans a member from the server.
         """
 

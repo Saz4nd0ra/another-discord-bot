@@ -79,7 +79,10 @@ class Paginator(BasePaginator):
 
             try:
 
-                reaction, _ = await self.ctx.bot.wait_for('reaction_add', timeout=300.0, check=lambda r, u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
+                reaction, _ = await self.ctx.bot.wait_for('reaction_add',
+                                                          timeout=300.0,
+                                                          check=lambda r,
+                                                          u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
 
                 if str(reaction.emoji) == '\u23f9':
                     self.looping = False
@@ -167,7 +170,10 @@ class CodeBlockPaginator(BasePaginator):
         while self.looping:
 
             try:
-                reaction, _ = await self.ctx.bot.wait_for('reaction_add', timeout=300.0, check=lambda r, u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
+                reaction, _ = await self.ctx.bot.wait_for('reaction_add',
+                                                          timeout=300.0,
+                                                          check=lambda r,
+                                                          u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
 
                 if str(reaction.emoji) == '\u23f9':
                     self.looping = False
@@ -231,12 +237,12 @@ class EmbedPaginator(BasePaginator):
 
         self.header = kwargs.get('header', '')
         self.footer = kwargs.get('footer', '')
-        self.colour = kwargs.get('colour', discord.Colour.gold())
+        self.color = kwargs.get('color', discord.Color.blurple())
         self.title = kwargs.get('title', '')
         self.image = kwargs.get('image', None)
         self.thumbnail = kwargs.get('thumbnail', None)
 
-        self.embed = discord.Embed(colour=self.colour)
+        self.embed = discord.Embed(color=discord.Color.blurple())
 
         if self.title:
             self.embed.title = self.title
@@ -265,7 +271,10 @@ class EmbedPaginator(BasePaginator):
         while self.looping:
 
             try:
-                reaction, _ = await self.ctx.bot.wait_for('reaction_add', timeout=300.0, check=lambda r, u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
+                reaction, _ = await self.ctx.bot.wait_for('reaction_add',
+                                                          timeout=300.0,
+                                                          check=lambda r,
+                                                          u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
 
                 if str(reaction.emoji) == '\u23f9':
                     self.looping = False
@@ -375,7 +384,6 @@ class EmbedsPaginator:
         while self.looping:
 
             try:
-                # Wait for reactions, check that they are on the same message, from the same author and are in the emoji list.
                 reaction, _ = await self.ctx.bot.wait_for('reaction_add', timeout=300.0, check=lambda r, u: r.message.id == self.message.id and u.id == self.ctx.author.id and str(r.emoji) in self.emotes.keys())
 
                 if str(reaction.emoji) == '\u23f9':
@@ -405,7 +413,6 @@ class EmbedsPaginator:
 
     async def page_forward(self):
 
-        # If the current page is bigger then or equal too the amount of the pages, do nothing.
         if self.page >= len(self.entries) - 1:
             return
         self.page += 1

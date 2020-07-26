@@ -5,7 +5,6 @@ import aiohttp
 import discord
 import traceback
 import sys
-from cogs.utils.constants import VERSION
 from discord.ext import commands
 from discord import Webhook
 from cogs.utils import help, context
@@ -22,14 +21,17 @@ initial_extensions = {
 
     'cogs.general',
     'cogs.mod',
-    'cogs.music'
+    'cogs.music',
+    'cogs.admin'
 
 }
 
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix=config.command_prefix, description=description, help_command=help.HelpCommand())
+        super().__init__(command_prefix=commands.when_mentioned_or(config.command_prefix),
+                         description=description,
+                         help_command=help.HelpCommand())
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -57,16 +59,6 @@ class ADB(commands.AutoShardedBot):
 
     async def get_context(self, message: discord.Message, *, cls=context.Context):
         return await super().get_context(message, cls=cls)
-
-    async def _embed_gen(self):
-        """Provides a basic template for embeds"""
-        e = discord.Embed(color=discord.Color.blurple())
-        e.set_footer(text='Saz4nd0ra/another-discord-bot ({})'.format(VERSION),
-                     icon_url='https://i.imgur.com/gFHBoZA.png')
-        e.set_author(name='another-discord-bot',
-                     url='https://github.com/Saz4nd0ra/another-discord-bot',
-                     icon_url=self.user.avatar_url)
-        return e
 
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
@@ -135,7 +127,9 @@ class ADB(commands.AutoShardedBot):
 
     async def on_ready(self):
         print(f'Ready: {self.user} (ID: {self.user.id})')
-        log.info('Bot ready. ')
+        await self.change_presence(
+            activity=discord.Streaming(name=f'@ me or use {self.config.command_prefix}help',
+                                       url='https://www.twitch.tv/commanderroot'))
 
     # starting function for the bot, the bot gets started from launcher.py
 
