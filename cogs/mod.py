@@ -1,12 +1,14 @@
-# TODO make use of new message util to simplify embeds
-
 import discord
 import logging
+import asyncio
+import humanize
+import datetime
+from datetime import timedelta, datetime
 from discord.ext import commands
 from .utils import checks
-from .utils.formats import Plural
-from collections import Counter
+from .utils.formats import Plural, humanize_number
 from .utils.config import Config
+from typing import List
 c = Config()
 
 log = logging.getLogger(__name__)
@@ -17,6 +19,22 @@ def can_execute_action(ctx, user, target):
     return user.id == ctx.bot.owner_id or \
            user == ctx.guild.owner or \
            user.top_role > target.top_role
+
+
+async def mass_purge(messages: List[discord.Message], channel: discord.TextChannel):
+    """Bulk delete messages from a channel.
+    If more than 100 messages are supplied, the bot will delete 100 messages at
+    a time, sleeping between each action.
+    """
+    while messages:
+        # discord.NotFound can be raised when `len(messages) == 1` and the message does not exist.
+        # As a result of this obscure behavior, this error needs to be caught just in case.
+        try:
+            await channel.delete_messages(messages[:100])
+        except discord.errors.HTTPException:
+            pass
+        messages = messages[100:]
+        await asyncio.sleep(1.5)
 
 
 class MemberNotFound(Exception):
@@ -89,10 +107,27 @@ class Mod(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
 
+    async def mass_purge(self, messages):
+        while messages:
+            if len(messages) > 1:
+                await self.bot.delete_messages(messages[:100])
+                messages = messages[100:]
+            else:
+                await self.bot.delete_message(messages[0])
+                messages = []
+            await asyncio.sleep(1.5)
+
+    async def slow_deletion(self, messages):
+        for message in messages:
+            try:
+                await self.bot.delete_message(message)
+            except:
+                pass
+
     @commands.command()
     @commands.guild_only()
     @checks.has_permissions(ban_members=True)
-    async def ban(self, ctx, member: discord.Member, *, reason: ActionReason = None):
+    async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Bans a member from the server.
         """
 
@@ -141,6 +176,34 @@ class Mod(commands.Cog):
                 failed += 1
 
         await ctx.send(f'Banned {total_members - failed}/{total_members} members.')
+
+    @commands.command(pass_context=True, no_pm=True)
+    async def cleanup(self, ctx, number: int):
+        """Deletes last X messages.
+        Example:
+        cleanup messages 26"""
+
+        channel = ctx.message.channel
+        author = ctx.message.author
+        server = author.server
+        is_bot = self.bot.user.bot
+        has_permissions = channel.permissions_for(server.me).manage_messages
+
+        to_delete = []
+
+        if not has_permissions:
+            await self.bot.say('I\'m not allowed to delete messages.')
+            return
+
+        async for message in self.bot.logs_from(channel, limit=number+1):
+            to_delete.append(message)
+
+        log.info(f'{author.name}({author.id}) deleted {number} messages in channel {channel.name}')
+
+        if is_bot:
+            await self.mass_purge(to_delete)
+        else:
+            await self.slow_deletion(to_delete)
 
 
 def setup(bot):

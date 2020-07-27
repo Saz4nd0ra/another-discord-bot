@@ -1,4 +1,4 @@
-from collections import Counter
+from collections import Counter, deque
 import logging
 import datetime
 import aiohttp
@@ -35,6 +35,7 @@ class ADB(commands.AutoShardedBot):
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
+        self._prev_events = deque(maxlen=10)
         self.config = Config()
 
         self.blacklist = JSON('blacklist.json')
@@ -83,12 +84,26 @@ class ADB(commands.AutoShardedBot):
             return
 
         wh = self.stats_wh
-        embed = discord.Embed(title='Auto-blocked Member', colour=0xDDA453)
+        embed = discord.Embed(title='Auto-blocked Member', color=discord.Color.blurple())
         embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
         embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
         embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
         embed.timestamp = datetime.datetime.utcnow()
         return wh.send(embed=embed)
+
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.author.send('This command cannot be used in private messages.')
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.author.send('Sorry. This command is disabled and cannot be used.')
+        elif isinstance(error, commands.CommandInvokeError):
+            original = error.original
+            if not isinstance(original, discord.HTTPException):
+                print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
+                traceback.print_tb(original.__traceback__)
+                print(f'{original.__class__.__name__}: {original}', file=sys.stderr)
+        elif isinstance(error, commands.ArgumentParsingError):
+            await ctx.send(error)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message)
@@ -130,6 +145,10 @@ class ADB(commands.AutoShardedBot):
         await self.change_presence(
             activity=discord.Streaming(name=f'@ me or use {self.config.command_prefix}help',
                                        url='https://www.twitch.tv/commanderroot'))
+
+    async def close(self):
+        await super().close()
+        await self.session.close()
 
     # starting function for the bot, the bot gets started from launcher.py
 
