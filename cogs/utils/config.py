@@ -6,7 +6,7 @@ from configparser import SafeConfigParser
 log = logging.getLogger(__name__)
 
 
-#TODO maybe add a fallback, in case the user forgets to set a setting
+# TODO maybe add a fallback, in case the user forgets to set a setting
 class Config:
     def __init__(self):
         config = SafeConfigParser(interpolation=None)
@@ -18,6 +18,7 @@ class Config:
                         'IDs',
                         'Bot',
                         'Music',
+                        'Postgres',
                         'etc'}.difference(config.sections())
 
         if confsections:
@@ -37,7 +38,10 @@ class Config:
         self.vote_skip = config.get('Music', 'VoteSkip')
         self.skip_ratio = config.get('Music', 'SkipRatio')
 
+        self.postgres_path = config.get('Postgres', 'Path')
+        self.postgres_password = config.get('Postgres', 'Password')
 
-# this will be a fallback config soon
+
+# TODO need to implement a fallback, in case the user fucks something up
 class Fallback:
     pass

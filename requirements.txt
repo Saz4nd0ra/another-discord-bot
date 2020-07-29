@@ -4,4 +4,5 @@ discord.py
 wavelink
 git+https://github.com/Rapptz/discord-ext-menus.git
 pillow
-requests
+asyncpg
+click

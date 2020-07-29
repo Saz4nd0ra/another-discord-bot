@@ -192,7 +192,7 @@ class Mod(commands.Cog):
         to_delete = []
 
         if not has_permissions:
-            await self.bot.say('I\'m not allowed to delete messages.')
+            await ctx.send('I\'m not allowed to delete messages.')
             return
 
         async for message in self.bot.logs_from(channel, limit=number+1):

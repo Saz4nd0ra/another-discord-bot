@@ -1,8 +1,25 @@
 import asyncio
 import math
-
+import subprocess
 import discord
 from discord.ext import commands
+
+
+async def _gen_embed(ctx, error: bool = True):
+    """Provides a basic template for embeds"""
+    try:
+        version = subprocess.check_output(["git", "describe", "--tags", "--always"]).decode('ascii').strip()
+    except Exception:
+        version = 'version_unknown'
+
+    e = discord.Embed()
+    if error:
+        e.colour = discord.Color.blurple()
+    else:
+        e.colour = discord.Color.red()
+    e.set_footer(text='Saz4nd0ra/another-discord-bot ({})'.format(version), icon_url='https://i.imgur.com/gFHBoZA.png')
+    e.set_author(name=ctx.bot.name, url='https://github.com/Saz4nd0ra/another-discord-bot', icon_url=ctx.bot.avatar_url)
+    return e
 
 
 class BasePaginator:
@@ -424,10 +441,6 @@ class EmbedsPaginator:
         self.page = len(self.entries) - 1
 
         await self.message.edit(embed=self.entries[self.page])
-
-
-class Embeds:
-    pass
 
 
 class Plural:

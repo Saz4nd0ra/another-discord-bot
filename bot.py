@@ -15,16 +15,16 @@ config = Config()
 
 log = logging.getLogger(__name__)
 
-description = """Put a description there for fucks sake."""
+description = """"""
 
-initial_extensions = {
+initial_extensions = (
 
     'cogs.general',
     'cogs.mod',
     'cogs.music',
     'cogs.admin'
 
-}
+)
 
 
 class ADB(commands.AutoShardedBot):

@@ -88,12 +88,16 @@ class Admin(commands.Cog):
         if not user:
             return await ctx.send(f'Could not find any UserID matching **{user_id}**')
 
+        e = discord.Embed(title=message, color=discord.Color.blurple())
+        e.set_footer()
         try:
             await user.send(message)
             await ctx.send(f'✉️ Sent a DM to **{user_id}**')
         except discord.Forbidden:
             await ctx.send('This user might be having DMs blocked or it\'s a bot account...')
 
+
+# TODO broken command, need to fix
     @checks.is_admin()
     @commands.command(name='status')
     async def change_playing(self, ctx, *, playing: str, status: str, playing_type: str):

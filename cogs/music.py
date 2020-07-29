@@ -657,7 +657,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         eq = eqs.get(equalizer.lower(), None)
 
         if not eq:
-            joined = "\n".join(eqs.keys())
+            joined = '\n'.join(eqs.keys())
             return await ctx.send(f'Invalid EQ provided. Valid EQs:\n\n{joined}')
 
         await ctx.send(f'Successfully changed equalizer to {equalizer}', delete_after=15)
