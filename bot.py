@@ -22,7 +22,7 @@ initial_extensions = (
     'cogs.general',
     'cogs.mod',
     'cogs.music',
-    'cogs.admin'
+    'cogs.admin',
 
 )
 
