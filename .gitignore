@@ -133,7 +133,7 @@ dmypy.json
 config/options.ini
 .idea/
 
-.vscode/settings.json
+.vscode/
 
 # logs
 

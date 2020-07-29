@@ -7,9 +7,7 @@ from datetime import timedelta, datetime
 from discord.ext import commands
 from .utils import checks
 from .utils.formats import Plural
-from .utils.config import Config
 from typing import List
-c = Config()
 
 log = logging.getLogger(__name__)
 

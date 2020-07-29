@@ -15,7 +15,7 @@ class HelpCommand(commands.HelpCommand):
                     '**[argument...]** means you can have multiple arguments.'
         })
 
-    def get_cog_commands(self, cog: commands.Cog):
+    def get_cog_commands(self, cog):
 
         ctx = self.context
         filtered_commands = []
@@ -67,7 +67,7 @@ class HelpCommand(commands.HelpCommand):
         header = f'Use `{ctx.bot.config.command_prefix}help [Command/Category]` for help on a command or category.\n'
         await ctx.paginate_embed(title=title, header=header, entries=entries, entries_per_page=5)
 
-    async def send_cog_help(self, cog: commands.Cog):
+    async def send_cog_help(self, cog):
 
         ctx = self.context
 
@@ -79,7 +79,7 @@ class HelpCommand(commands.HelpCommand):
         entries = self.format_commands(command_list=cog_commands)
         await ctx.paginate_embed(title=title, entries=entries, entries_per_page=20)
 
-    async def send_group_help(self, group: commands.Group):
+    async def send_group_help(self, group):
 
         ctx = self.context
 
@@ -106,7 +106,7 @@ class HelpCommand(commands.HelpCommand):
 
         await ctx.paginate_embed(title=title, header=header, entries=entries, entries_per_page=20)
 
-    async def send_command_help(self, command: commands.Command):
+    async def send_command_help(self, command):
 
         ctx = self.context
 

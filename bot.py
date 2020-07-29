@@ -1,95 +1,101 @@
-from collections import Counter, deque
-import logging
-import datetime
-import aiohttp
-import discord
-import traceback
-import sys
 from discord.ext import commands
-from discord import Webhook
-from cogs.utils import help, context
-
+import discord
+from cogs.utils import context, help
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
-config = Config()
+import datetime
+import json
+import logging
+import traceback
+import sys
+import aiohttp
+from collections import Counter, deque, defaultdict
+
+description = """
+Hello there.
+"""
 
 log = logging.getLogger(__name__)
 
-description = """"""
-
 initial_extensions = (
-
-    'cogs.general',
-    'cogs.mod',
     'cogs.music',
     'cogs.admin',
-
+    'cogs.mod',
+    'cogs.general',
+    'cogs.status'
 )
+
+
+def _prefix_callable(bot, msg):
+    user_id = bot.user.id
+    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
+    if msg.guild is None:
+        base.append('!')
+        base.append('?')
+    else:
+        base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
+    return base
 
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix=commands.when_mentioned_or(config.command_prefix),
-                         description=description,
+        super().__init__(command_prefix=_prefix_callable, description=description,
+                         fetch_offline_members=False, heartbeat_timeout=150.0,
                          help_command=help.HelpCommand())
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
         self._prev_events = deque(maxlen=10)
-        self.config = Config()
 
+        self.config = Config()
+        # shard_id: List[datetime.datetime]
+        # shows the last attempted IDENTIFYs and RESUMEs
+        self.resumes = defaultdict(list)
+        self.identifies = defaultdict(list)
+
+        # guild_id: list
+        self.prefixes = JSON('prefixes.json')
+
+        # guild_id and user_id mapped to True
+        # these are users and guilds globally blacklisted
+        # from using the bot
         self.blacklist = JSON('blacklist.json')
 
-        # add cooldown mapping for people who excessively spam commands
+        # in case of even further spam, add a cooldown mapping
+        # for people who excessively spam commands
         self.spam_control = commands.CooldownMapping.from_cooldown(10, 12.0, commands.BucketType.user)
 
-        # a simple spam counter, when it reaches 5, the user gets banned
+        # A counter to auto-ban frequent spammers
+        # Triggering the rate limit 5 times in a row will auto-ban the user from the bot.
         self._auto_spam_count = Counter()
 
-        # load cogs
-        for ext in initial_extensions:
+        for extension in initial_extensions:
             try:
-                self.load_extension(ext)
-                log.info(f'Loaded {ext}')
+                self.load_extension(extension)
+                log.info(f'Loaded {extension}')
             except Exception as e:
-                log.error(f'Couldn\'t load {ext} due to {e} . . .')
-                log.error(traceback.print_exception(type(e), e, e.__traceback__, file=sys.stderr))
+                print(f'Failed to load extension {extension} due to {e}.', file=sys.stderr)
+                traceback.print_exc()
 
-        if not hasattr(self, 'uptime'):
-            self.uptime = datetime.datetime.utcnow()
+    def _clear_gateway_data(self):
+        one_week_ago = datetime.datetime.utcnow() - datetime.timedelta(days=7)
+        for shard_id, dates in self.identifies.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
 
-    async def get_context(self, message: discord.Message, *, cls=context.Context):
-        return await super().get_context(message, cls=cls)
+        for shard_id, dates in self.resumes.items():
+            to_remove = [index for index, dt in enumerate(dates) if dt < one_week_ago]
+            for index in reversed(to_remove):
+                del dates[index]
 
-    async def add_to_blacklist(self, object_id):
-        await self.blacklist.put(object_id, True)
+    async def on_socket_response(self, msg):
+        self._prev_events.append(msg)
 
-    async def remove_from_blacklist(self, object_id):
-        try:
-            await self.blacklist.remove(object_id)
-        except KeyError:
-            pass
-
-    @property
-    def stats_wh(self):
-        hook = Webhook.partial(id=config.wh_id, token=config.wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
-        return hook
-
-    def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
-        guild_name = getattr(ctx.guild, 'name', 'No Guild (DMs)')
-        guild_id = getattr(ctx.guild, 'id', None)
-        fmt = 'User %s (ID %s) in guild %r (ID %s) spamming, retry_after: %.2fs'
-        log.warning(fmt, message.author, message.author.id, guild_name, guild_id, retry_after)
-        if not autoblock:
-            return
-
-        wh = self.stats_wh
-        embed = discord.Embed(title='Auto-blocked Member', color=discord.Color.blurple())
-        embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
-        embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
-        embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
-        embed.timestamp = datetime.datetime.utcnow()
-        return wh.send(embed=embed)
+    async def before_identify_hook(self, shard_id, *, initial):
+        self._clear_gateway_data()
+        self.identifies[shard_id].append(datetime.datetime.utcnow())
+        await super().before_identify_hook(shard_id, initial=initial)
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
@@ -105,8 +111,66 @@ class ADB(commands.AutoShardedBot):
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send(error)
 
+    def get_guild_prefixes(self, guild, *, local_inject=_prefix_callable):
+        proxy_msg = discord.Object(id=0)
+        proxy_msg.guild = guild
+        return local_inject(self, proxy_msg)
+
+    def get_raw_guild_prefixes(self, guild_id):
+        return self.prefixes.get(guild_id, ['?', '!'])
+
+    async def set_guild_prefixes(self, guild, prefixes):
+        if len(prefixes) == 0:
+            await self.prefixes.put(guild.id, [])
+        elif len(prefixes) > 10:
+            raise RuntimeError('Cannot have more than 10 custom prefixes.')
+        else:
+            await self.prefixes.put(guild.id, sorted(set(prefixes), reverse=True))
+
+    async def add_to_blacklist(self, object_id):
+        await self.blacklist.put(object_id, True)
+
+    async def remove_from_blacklist(self, object_id):
+        try:
+            await self.blacklist.remove(object_id)
+        except KeyError:
+            pass
+
+    async def on_ready(self):
+        if not hasattr(self, 'uptime'):
+            self.uptime = datetime.datetime.utcnow()
+
+        print(f'Ready: {self.user} (ID: {self.user.id})')
+
+    async def on_shard_resumed(self, shard_id):
+        print(f'Shard ID {shard_id} has resumed...')
+        self.resumes[shard_id].append(datetime.datetime.utcnow())
+
+    @property
+    def stats_webhook(self):
+        wh_id= self.config.wh_id
+        wh_token = self.config.wh_token
+        hook = discord.Webhook.partial(id=wh_id, token=wh_token, adapter=discord.AsyncWebhookAdapter(self.session))
+        return hook
+
+    def log_spammer(self, ctx, message, retry_after, *, autoblock=False):
+        guild_name = getattr(ctx.guild, 'name', 'No Guild (DMs)')
+        guild_id = getattr(ctx.guild, 'id', None)
+        fmt = 'User %s (ID %s) in guild %r (ID %s) spamming, retry_after: %.2fs'
+        log.warning(fmt, message.author, message.author.id, guild_name, guild_id, retry_after)
+        if not autoblock:
+            return
+
+        wh = self.stats_webhook
+        embed = discord.Embed(title='Auto-blocked Member', color=discord.Color.blurple())
+        embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
+        embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
+        embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
+        embed.timestamp = datetime.datetime.utcnow()
+        return wh.send(embed=embed)
+
     async def process_commands(self, message):
-        ctx = await self.get_context(message)
+        ctx = await self.get_context(message, cls=context.Context)
 
         if ctx.command is None:
             return
@@ -133,29 +197,28 @@ class ADB(commands.AutoShardedBot):
         else:
             self._auto_spam_count.pop(author_id, None)
 
-        await self.invoke(ctx)
+        try:
+            await self.invoke(ctx)
+        finally:
+            # Just in case we have any outstanding DB connections
+            await ctx.release()
 
     async def on_message(self, message):
         if message.author.bot:
             return
         await self.process_commands(message)
 
-    async def on_ready(self):
-        print(f'Ready: {self.user} (ID: {self.user.id})')
-        await self.change_presence(
-            activity=discord.Streaming(name=f'@ me or use {self.config.command_prefix}help',
-                                       url='https://www.twitch.tv/commanderroot'))
+    async def on_guild_join(self, guild):
+        if guild.id in self.blacklist:
+            await guild.leave()
 
     async def close(self):
         await super().close()
         await self.session.close()
 
-    # starting function for the bot, the bot gets started from launcher.py
-
-    # TODO make that stuff fancier, by allowing the user to change the token when an error occurs
     def run(self):
         try:
-            super().run(config.login_token, reconnect=True)
+            super().run(self.config.login_token, reconnect=True)
         finally:
             with open('logs/prev_events.log', 'w', encoding='utf-8') as fp:
                 for data in self._prev_events:

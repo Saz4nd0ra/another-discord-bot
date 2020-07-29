@@ -31,15 +31,17 @@ class Config:
         # TODO check if the ids are correct, for later checks and so on
         self.dev_ids = config.get('IDs', 'DevIDs')
 
-        self.command_prefix = config.get('Bot', 'CommandPrefix')
         self.wh_id = config.get('Bot', 'WebhookID')
         self.wh_token = config.get('Bot', 'WebhookToken')
 
         self.vote_skip = config.get('Music', 'VoteSkip')
         self.skip_ratio = config.get('Music', 'SkipRatio')
 
+        self.ll_host = config.get('Music', 'LavalinkHost')
+        self.ll_port = config.get('Music', 'LavalinkPort')
+        self.ll_passwd = config.get('Music', 'LavalinkPassword')
+
         self.postgres_path = config.get('Postgres', 'Path')
-        self.postgres_password = config.get('Postgres', 'Password')
 
 
 # TODO need to implement a fallback, in case the user fucks something up
