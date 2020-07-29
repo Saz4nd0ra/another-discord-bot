@@ -21,8 +21,7 @@ initial_extensions = (
     'cogs.music',
     'cogs.admin',
     'cogs.mod',
-    'cogs.general',
-    'cogs.status'
+    'cogs.general'
 )
 
 
@@ -141,6 +140,9 @@ class ADB(commands.AutoShardedBot):
             self.uptime = datetime.datetime.utcnow()
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
+        await self.change_presence(
+            activity=discord.Streaming(name='@ me or use !help',
+                                       url='https://www.twitch.tv/commanderroot'))
 
     async def on_shard_resumed(self, shard_id):
         print(f'Shard ID {shard_id} has resumed...')
