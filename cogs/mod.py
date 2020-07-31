@@ -152,8 +152,7 @@ class Mod(commands.Cog):
     @commands.guild_only()
     @checks.has_permissions(ban_members=True)
     async def multiban(self, ctx, members: commands.Greedy[MemberID], *, reason: ActionReason = None):
-        """Bans multiple members from the server.
-        """
+        """Bans multiple members from the server."""
 
         if reason is None:
             reason = f'Action done by {ctx.author} (ID: {ctx.author.id})'
@@ -177,15 +176,13 @@ class Mod(commands.Cog):
 
     @commands.command(pass_context=True, no_pm=True)
     async def cleanup(self, ctx, number: int):
-        """Deletes last X messages.
-        Example:
-        cleanup messages 26"""
+        """Deletes last X messages."""
 
         channel = ctx.message.channel
         author = ctx.message.author
-        server = author.server
+        guild = ctx.guild
         is_bot = self.bot.user.bot
-        has_permissions = channel.permissions_for(server.me).manage_messages
+        has_permissions = channel.permissions_for(ctx.guild).manage_messages
 
         to_delete = []
 
