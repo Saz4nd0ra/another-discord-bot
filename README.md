@@ -46,8 +46,7 @@ Token = ###
 .
 .
 [Postgres]
-Path = 
-Password = 
+Path = postgresql://adb:samplepassword@127.0.0.1/database
 ```
 
 6. **Configuration of database**

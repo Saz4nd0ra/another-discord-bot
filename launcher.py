@@ -7,6 +7,8 @@ import discord
 import traceback
 import importlib
 import contextlib
+import subprocess
+import os
 
 from bot import ADB, initial_extensions
 from cogs.utils.db import Table
@@ -34,6 +36,8 @@ def setup_logging():
 
         log = logging.getLogger()
         log.setLevel(logging.INFO)
+        if not os.path.exists('logs/'):
+            os.mkdir('logs/')
         handler = logging.FileHandler(filename='logs/adb.log', encoding='utf-8', mode='w')
         dt_fmt = '%Y-%m-%d %H:%M:%S'
         fmt = logging.Formatter('[{asctime}] [{levelname:<7}] {name}: {message}', dt_fmt, style='{')
@@ -48,6 +52,13 @@ def setup_logging():
             hdlr.close()
             log.removeHandler(hdlr)
 
+
+def start_lavalink_node():
+    print('PRE-LOGGING LOGGING: Starting lavalink node.')
+
+    subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
+                     stdout=asyncio.subprocess.PIPE,
+                     stderr=asyncio.subprocess.STDOUT)
 
 def run_bot():
     loop = asyncio.get_event_loop()
@@ -72,6 +83,7 @@ def main(ctx):
     if ctx.invoked_subcommand is None:
         loop = asyncio.get_event_loop()
         with setup_logging():
+            start_lavalink_node()
             run_bot()
 
 
