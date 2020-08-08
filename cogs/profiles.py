@@ -1,6 +1,6 @@
 from discord.ext import commands
 from .utils import db
-from .utils.formats import Plural
+from .utils.formats import plural
 from collections import defaultdict
 
 import discord
