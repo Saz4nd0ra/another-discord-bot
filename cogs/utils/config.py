@@ -19,6 +19,7 @@ class Config:
                         'Bot',
                         'Music',
                         'Postgres',
+                        'API',
                         'etc'}.difference(config.sections())
 
         if confsections:
@@ -43,6 +44,8 @@ class Config:
 
         self.postgres_path = config.get('Postgres', 'Path')
 
+        self.default_region = config.get('API', 'DefaultRegion')
+        self.riot_apikey = config.get('API', 'RiotAPIKey')
 
 # TODO need to implement a fallback, in case the user fucks something up
 class Fallback:

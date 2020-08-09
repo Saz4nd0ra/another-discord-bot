@@ -10,15 +10,6 @@ import re
 class Profiles(db.Table):
     # this is the user_id
     id = db.Column(db.Integer(big=True), primary_key=True)
-    nnid = db.Column(db.String)
-    squad = db.Column(db.String)
-
-    # merger from the ?fc stuff
-    fc_3ds = db.Column(db.String)
-    fc_switch = db.Column(db.String)
-
-    # extra Splatoon data is stored here
-    extra = db.Column(db.JSON, default="'{}'::jsonb", nullable=False)
 
 
 class DisambiguateMember(commands.IDConverter):
@@ -73,79 +64,6 @@ class DisambiguateMember(commands.IDConverter):
             raise commands.BadArgument("Could not found this member. Note this is case sensitive.")
         return result
 
-def valid_nnid(argument):
-    arg = argument.strip('"')
-    if len(arg) > 16:
-        raise commands.BadArgument('An NNID has a maximum of 16 characters.')
-    return arg
-
-_rank = re.compile(r'^(?P<mode>\w+(?:\s*\w+)?)\s*(?P<rank>[AaBbCcSsXx][\+-]?)\s*(?P<number>[0-9]{0,4})$')
-
-def valid_rank(argument, *, _rank=_rank):
-    m = _rank.match(argument.strip('"'))
-    if m is None:
-        raise commands.BadArgument('Could not figure out mode or rank.')
-
-    mode = m.group('mode')
-    valid = {
-        'zones': 'Splat Zones',
-        'splat zones': 'Splat Zones',
-        'sz': 'Splat Zones',
-        'zone': 'Splat Zones',
-        'splat': 'Splat Zones',
-        'tower': 'Tower Control',
-        'control': 'Tower Control',
-        'tc': 'Tower Control',
-        'tower control': 'Tower Control',
-        'rain': 'Rainmaker',
-        'rainmaker': 'Rainmaker',
-        'rain maker': 'Rainmaker',
-        'rm': 'Rainmaker',
-        'clam blitz': 'Clam Blitz',
-        'clam': 'Clam Blitz',
-        'blitz': 'Clam Blitz',
-        'cb': 'Clam Blitz',
-    }
-
-    try:
-        mode = valid[mode.lower()]
-    except KeyError:
-        raise commands.BadArgument(f'Unknown Splatoon 2 mode: {mode}') from None
-
-    rank = m.group('rank').upper()
-    if rank == 'S-':
-        rank = 'S'
-
-    number = m.group('number')
-    if number:
-        number = int(number)
-
-        if number and rank not in ('S+', 'X'):
-            raise commands.BadArgument('Only S+ or X can input numbers.')
-        if rank == 'S+' and number > 10:
-            raise commands.BadArgument('S+10 is the current cap.')
-
-    return mode, { 'rank': rank, 'number': number }
-
-def valid_squad(argument):
-    arg = argument.strip('"')
-    if len(arg) > 100:
-        raise commands.BadArgument('Squad name way too long. Keep it less than 100 characters.')
-
-    if arg.startswith('http'):
-        arg = f'<{arg}>'
-    return arg
-
-_friend_code = re.compile(r'^(?:(?:SW|3DS)[- _]?)?(?P<one>[0-9]{4})[- _]?(?P<two>[0-9]{4})[- _]?(?P<three>[0-9]{4})$')
-
-def valid_fc(argument, *, _fc=_friend_code):
-    fc = argument.upper().strip('"')
-    m = _fc.match(fc)
-    if m is None:
-        raise commands.BadArgument('Not a valid friend code!')
-
-    return '{one}-{two}-{three}'.format(**m.groupdict())
-
 class Profile(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -181,33 +99,13 @@ class Profile(commands.Cog):
 
         # 0xF02D7D - Splatoon 2 Pink
         # 0x19D719 - Splatoon 2 Green
-        e = discord.Embed(colour=0x19D719)
-
-        keys = {
-            'fc_switch': 'Switch FC',
-            'nnid': 'Wii U NNID',
-            'fc_3ds': '3DS FC'
-        }
+        e = discord.Embed(color=discord.Color.blurple())
 
         for key, value in keys.items():
             e.add_field(name=value, value=record[key] or 'N/A', inline=True)
 
-        # consoles = [f'__{v}__: {record[k]}' for k, v in keys.items() if record[k] is not None]
-        # e.add_field(name='Consoles', value='\n'.join(consoles) if consoles else 'None!', inline=False)
         e.set_author(name=member.display_name, icon_url=member.avatar_url_as(format='png'))
 
-        extra = record['extra'] or {}
-        rank = extra.get('sp2_rank', {})
-        value = 'Unranked'
-        if rank:
-            value = '\n'.join(f'{mode}: {data["rank"]}{data["number"]}' for mode, data in rank.items())
-
-        e.add_field(name='Splatoon 2 Ranks', value=value)
-
-        weapon = extra.get('sp2_weapon')
-        e.add_field(name='Splatoon 2 Weapon', value=weapon and weapon['name'])
-
-        e.add_field(name='Squad', value=record['squad'] or 'N/A')
         await ctx.send(embed=e)
 
     async def edit_fields(self, ctx, **fields):
