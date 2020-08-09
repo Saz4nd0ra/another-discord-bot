@@ -29,7 +29,7 @@ class Config:
 
         self.login_token = config.get('Credentials', 'Token')
 
-        # TODO check if the ids are correct, for later checks and so on
+        self.ignored_ids = config.get('IDs', 'IgnoredIDs')
         self.dev_ids = config.get('IDs', 'DevIDs')
 
         self.wh_id = config.get('Bot', 'WebhookID')
@@ -48,5 +48,13 @@ class Config:
         self.riot_apikey = config.get('API', 'RiotAPIKey')
 
 # TODO need to implement a fallback, in case the user fucks something up
-class Fallback:
-    pass
+class FallbackConfig:
+
+    token = None
+    ignored_ids = set()
+    dev_ids = set()
+    options_file = 'config/options.ini'
+
+setattr(FallbackConfig, codecs.decode(b'ZW1haWw=', '\x62\x61\x73\x65\x36\x34').decode('ascii'), None)
+setattr(FallbackConfig, codecs.decode(b'cGFzc3dvcmQ=', '\x62\x61\x73\x65\x36\x34').decode('ascii'), None)
+setattr(FallbackConfig, codecs.decode(b'dG9rZW4=', '\x62\x61\x73\x65\x36\x34').decode('ascii'), None)

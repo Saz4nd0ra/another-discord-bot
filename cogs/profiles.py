@@ -64,6 +64,8 @@ class DisambiguateMember(commands.IDConverter):
             raise commands.BadArgument("Could not found this member. Note this is case sensitive.")
         return result
 
+
+# TODO include some game related things, like steam, riot games and more
 class Profile(commands.Cog):
     def __init__(self, bot):
         self.bot = bot

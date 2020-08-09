@@ -4,8 +4,8 @@ import subprocess
 import discord
 from discord.ext import commands
 
-
-async def _gen_embed(ctx, error: bool = True):
+# TODO fix the embed generator
+async def _gen_embed(error: bool = False):
     """Provides a basic template for embeds"""
     try:
         version = subprocess.check_output(["git", "describe", "--tags", "--always"]).decode('ascii').strip()
