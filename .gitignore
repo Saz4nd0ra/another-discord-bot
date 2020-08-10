@@ -141,5 +141,4 @@ config/options.ini
 logs/
 
 # project related
-
-manifest
+migrations/
