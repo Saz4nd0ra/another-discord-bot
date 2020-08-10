@@ -1,6 +1,7 @@
 import logging
 import os
 import shutil
+import codecs
 from configparser import SafeConfigParser
 
 log = logging.getLogger(__name__)

@@ -1,6 +1,6 @@
 from discord.ext import commands
 import discord
-from cogs.utils import context, help
+from cogs.utils import context
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
 import datetime
@@ -21,8 +21,8 @@ initial_extensions = (
     'cogs.music',
     'cogs.admin',
     'cogs.mod',
-    'cogs.general',
-    'cogs.profiles'
+    'cogs.profiles',
+    'cogs.meta'
 )
 
 
@@ -40,8 +40,7 @@ def _prefix_callable(bot, msg):
 class ADB(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=_prefix_callable, description=description,
-                         fetch_offline_members=False, heartbeat_timeout=150.0,
-                         help_command=help.HelpCommand())
+                         fetch_offline_members=False, heartbeat_timeout=150.0)
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -142,7 +141,7 @@ class ADB(commands.AutoShardedBot):
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
         await self.change_presence(
-            activity=discord.Streaming(name='@ me or use !help',
+            activity=discord.Streaming(name='@ me to ask for help!',
                                        url='https://www.twitch.tv/commanderroot'))
 
     async def on_shard_resumed(self, shard_id):
