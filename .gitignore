@@ -139,3 +139,7 @@ config/options.ini
 # logs
 
 logs/
+
+# project related
+
+manifest
