@@ -10,9 +10,8 @@ import typing
 import async_timeout
 import discord
 import wavelink
-from discord.ext import commands, menus
-
-BOT_COLOR = discord.Color.blurple()
+from discord.ext import commands
+from discord.ext.commands import Paginator as CommandPaginator
 
 # URL matching REGEX...
 URL_REG = re.compile(r'https?://(?:www\.)?.+')
@@ -126,7 +125,7 @@ class Player(wavelink.Player):
         if not track:
             return
 
-        embed = discord.Embed(title=f'{track.title}', color=BOT_COLOR)
+        embed = discord.Embed(title=f'{track.title}', color=discord.Color.blurple())
         embed.description = f'[{track.uri}]({track.uri})'
         embed.set_author(name=f'Current DJ: {self.dj}', icon_url=self.dj.avatar_url)
         embed.set_thumbnail(url=track.thumb)
@@ -165,7 +164,7 @@ class Player(wavelink.Player):
         except KeyError:
             pass
 
-
+# TODO make this use the paginator instead
 class InteractiveController(menus.Menu):
     """The Players interactive controller menu class."""
 
@@ -306,7 +305,7 @@ class PaginatorSource(menus.ListPageSource):
         super().__init__(entries, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = discord.Embed(title='In Queue:', color=BOT_COLOR)
+        embed = discord.Embed(title='In Queue:', color=discord.Color.blurple())
         embed.description = '\n'.join(f'{title}' for index, title in enumerate(page, 1))
 
         return embed
