@@ -11,7 +11,7 @@ import async_timeout
 import discord
 import wavelink
 from discord.ext import commands
-from discord.ext.commands import Paginator as CommandPaginator
+from discord.ext import commands, menus
 
 # URL matching REGEX...
 URL_REG = re.compile(r'https?://(?:www\.)?.+')

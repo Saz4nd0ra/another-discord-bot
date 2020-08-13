@@ -349,75 +349,6 @@ class Admin(commands.Cog):
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
 
-
-    @commands.command(hidden=True)
-    async def sql(self, ctx, *, query: str):
-        """Run some SQL."""
-        # the imports are here because I imagine some people would want to use
-        # this cog as a base for their other cog, and since this one is kinda
-        # odd and unnecessary for most people, I will make it easy to remove
-        # for those people.
-        from .utils.formats import TabularData, plural
-        import time
-
-        query = self.cleanup_code(query)
-
-        is_multistatement = query.count(';') > 1
-        if is_multistatement:
-            # fetch does not support multiple statements
-            strategy = ctx.db.execute
-        else:
-            strategy = ctx.db.fetch
-
-        try:
-            start = time.perf_counter()
-            results = await strategy(query)
-            dt = (time.perf_counter() - start) * 1000.0
-        except Exception:
-            return await ctx.send(f'```py\n{traceback.format_exc()}\n```')
-
-        rows = len(results)
-        if is_multistatement or rows == 0:
-            return await ctx.send(f'`{dt:.2f}ms: {results}`')
-
-        headers = list(results[0].keys())
-        table = TabularData()
-        table.set_columns(headers)
-        table.add_rows(list(r.values()) for r in results)
-        render = table.render()
-
-        fmt = f'```\n{render}\n```\n*Returned {plural(rows):row} in {dt:.2f}ms*'
-        if len(fmt) > 2000:
-            fp = io.BytesIO(fmt.encode('utf-8'))
-            await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
-        else:
-            await ctx.send(fmt)
-
-    @commands.command(hidden=True)
-    async def sql_table(self, ctx, *, table_name: str):
-        """Runs a query describing the table schema."""
-        from .utils.formats import TabularData
-
-        query = """SELECT column_name, data_type, column_default, is_nullable
-                   FROM INFORMATION_SCHEMA.COLUMNS
-                   WHERE table_name = $1
-                """
-
-        results = await ctx.db.fetch(query, table_name)
-
-        headers = list(results[0].keys())
-        table = TabularData()
-        table.set_columns(headers)
-        table.add_rows(list(r.values()) for r in results)
-        render = table.render()
-
-        fmt = f'```\n{render}\n```'
-        if len(fmt) > 2000:
-            fp = io.BytesIO(fmt.encode('utf-8'))
-            await ctx.send('Too many results...', file=discord.File(fp, 'results.txt'))
-        else:
-            await ctx.send(fmt)
-
     @commands.command(hidden=True)
     async def sudo(self, ctx, channel: Optional[GlobalChannel], who: discord.User, *, command: str):
         """Run a command as another user optionally in another channel."""
@@ -441,25 +372,6 @@ class Admin(commands.Cog):
 
         for i in range(times):
             await new_ctx.reinvoke()
-
-    @commands.command(hidden=True)
-    async def sh(self, ctx, *, command):
-        """Runs a shell command."""
-        from cogs.utils.paginator import TextPages
-
-        async with ctx.typing():
-            stdout, stderr = await self.run_process(command)
-
-        if stderr:
-            text = f'stdout:\n{stdout}\nstderr:\n{stderr}'
-        else:
-            text = stdout
-
-        try:
-            pages = TextPages(ctx, text)
-            await pages.paginate()
-        except Exception as e:
-            await ctx.send(str(e))
 
     @commands.command(hidden=True)
     async def perf(self, ctx, *, command):

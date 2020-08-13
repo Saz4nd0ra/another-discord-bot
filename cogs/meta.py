@@ -33,12 +33,6 @@ class Meta(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.old_help_command = bot.help_command
-        bot.help_command = PaginatedHelpCommand()
-        bot.help_command.cog = self
-
-    def cog_unload(self):
-        self.bot.help_command = self.old_help_command
 
     async def cog_command_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):
@@ -188,7 +182,7 @@ class Meta(commands.Cog):
             location = os.path.relpath(filename).replace('\\', '/')
         else:
             location = module.replace('.', '/') + '.py'
-            source_url = 'https://github.com/Rapptz/discord.py'
+            source_url = 'https://github.com/Saz4nd0ra/another-discord-bot'
             branch = 'master'
 
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'

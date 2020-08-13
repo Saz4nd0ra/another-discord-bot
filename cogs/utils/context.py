@@ -6,7 +6,6 @@ import io
 class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.pool = self.bot.pool
 
     async def entry_to_code(self, entries):
         width = max(len(a) for a, b in entries)
@@ -148,21 +147,6 @@ class Context(commands.Context):
         if label is not None:
             return f'{emoji}: {label}'
         return emoji
-
-    async def release(self):
-        """Releases the database connection from the pool.
-
-        Useful if needed for "long" interactive commands where
-        we want to release the connection and re-acquire later.
-
-        Otherwise, this is called automatically by the bot.
-        """
-        # from source digging asyncpg source, releasing an already
-        # released connection does nothing
-
-        if self._db is not None:
-            await self.bot.pool.release(self._db)
-            self._db = None
 
     async def show_help(self, command=None):
         """Shows the help command for the specified command if given.

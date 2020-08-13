@@ -1,5 +1,6 @@
 from discord.ext import commands
 import discord
+from cogs.help import HelpCommand
 from cogs.utils import context
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
@@ -198,11 +199,7 @@ class ADB(commands.AutoShardedBot):
         else:
             self._auto_spam_count.pop(author_id, None)
 
-        try:
-            await self.invoke(ctx)
-        finally:
-            # Just in case we have any outstanding DB connections
-            await ctx.release()
+        await self.invoke(ctx)
 
     async def on_message(self, message):
         if message.author.bot:
