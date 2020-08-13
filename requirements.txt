@@ -1,15 +1,12 @@
 humanize
 uvloop
+git+https://github.com/Rapptz/discord-ext-menus.git
 git+https://github.com/Rapptz/discord.py@master
 wavelink
-git+https://github.com/Rapptz/discord-ext-menus.git
-pillow
 PyNaCl
 lxml
 psutil
-asyncpg>=0.12.0
 click
 parsedatetime
-lru_dict
 python-dateutil
 pygit2
