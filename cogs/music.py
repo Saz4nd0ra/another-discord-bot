@@ -164,7 +164,6 @@ class Player(wavelink.Player):
         except KeyError:
             pass
 
-# TODO make this use the paginator instead
 class InteractiveController(menus.Menu):
     """The Players interactive controller menu class."""
 

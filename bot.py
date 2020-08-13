@@ -12,7 +12,7 @@ import aiohttp
 from collections import Counter, deque, defaultdict
 
 description = """
-Hello there.
+another-discord-bot, this one will eventually break.
 """
 
 log = logging.getLogger(__name__)
@@ -21,7 +21,6 @@ initial_extensions = (
     'cogs.music',
     'cogs.admin',
     'cogs.mod',
-    'cogs.profiles',
     'cogs.meta'
 )
 

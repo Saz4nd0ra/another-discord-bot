@@ -19,8 +19,6 @@ class Config:
                         'IDs',
                         'Bot',
                         'Music',
-                        'Postgres',
-                        'API',
                         'etc'}.difference(config.sections())
 
         if confsections:
@@ -42,11 +40,6 @@ class Config:
         self.ll_host = config.get('Music', 'LavalinkHost')
         self.ll_port = config.get('Music', 'LavalinkPort')
         self.ll_passwd = config.get('Music', 'LavalinkPassword')
-
-        self.postgres_path = config.get('Postgres', 'Path')
-
-        self.default_region = config.get('API', 'DefaultRegion')
-        self.riot_apikey = config.get('API', 'RiotAPIKey')
 
 # TODO need to implement a fallback, in case the user fucks something up
 class FallbackConfig:
