@@ -13,6 +13,7 @@ import sys
 import copy
 import time
 import subprocess
+from .utils import checks
 from typing import Union, Optional
 
 # to expose to the eval command
@@ -113,7 +114,8 @@ class Admin(commands.Cog):
             return f'```py\n{e.__class__.__name__}: {e}\n```'
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
 
-    @commands.command(hidden=True)
+    @checks.is_admin()
+    @commands.command()
     async def load(self, ctx, *, module):
         """Loads a module."""
         try:
@@ -123,7 +125,8 @@ class Admin(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
-    @commands.command(hidden=True)
+    @checks.is_admin()
+    @commands.command()
     async def unload(self, ctx, *, module):
         """Unloads a module."""
         try:
@@ -133,7 +136,8 @@ class Admin(commands.Cog):
         else:
             await ctx.send('\N{OK HAND SIGN}')
 
-    @commands.group(name='reload', hidden=True, invoke_without_command=True)
+    @checks.is_admin()
+    @commands.group(name='reload', invoke_without_command=True)
     async def _reload(self, ctx, *, module):
         """Reloads a module."""
         try:
@@ -168,7 +172,8 @@ class Admin(commands.Cog):
         except commands.ExtensionNotLoaded:
             self.bot.load_extension(module)
 
-    @_reload.command(name='all', hidden=True)
+    @checks.is_admin()
+    @_reload.command(name='all')
     async def _reload_all(self, ctx):
         """Reloads all modules, while pulling from git."""
 
@@ -213,7 +218,8 @@ class Admin(commands.Cog):
 
         await ctx.send('\n'.join(f'{status}: `{module}`' for status, module in statuses))
 
-    @commands.command(pass_context=True, hidden=True, name='eval')
+    @checks.is_admin()
+    @commands.command(pass_context=True, name='eval')
     async def _eval(self, ctx, *, body: str):
         """Evaluates code"""
 
@@ -260,7 +266,8 @@ class Admin(commands.Cog):
                 self._last_result = ret
                 await ctx.send(f'```py\n{value}{ret}\n```')
 
-    @commands.command(pass_context=True, hidden=True)
+    @checks.is_admin()
+    @commands.command(pass_context=True)
     async def repl(self, ctx):
         """Launches an interactive REPL session."""
         variables = {
@@ -349,7 +356,8 @@ class Admin(commands.Cog):
             except discord.HTTPException as e:
                 await ctx.send(f'Unexpected error: `{e}`')
 
-    @commands.command(hidden=True)
+    @checks.is_admin()
+    @commands.command()
     async def sudo(self, ctx, channel: Optional[GlobalChannel], who: discord.User, *, command: str):
         """Run a command as another user optionally in another channel."""
         msg = copy.copy(ctx.message)
@@ -361,7 +369,8 @@ class Admin(commands.Cog):
         new_ctx._db = ctx._db
         await self.bot.invoke(new_ctx)
 
-    @commands.command(hidden=True)
+    @checks.is_admin()
+    @commands.command()
     async def do(self, ctx, times: int, *, command):
         """Repeats a command a specified number of times."""
         msg = copy.copy(ctx.message)
@@ -373,7 +382,8 @@ class Admin(commands.Cog):
         for i in range(times):
             await new_ctx.reinvoke()
 
-    @commands.command(hidden=True)
+    @checks.is_admin()
+    @commands.command()
     async def perf(self, ctx, *, command):
         """Checks the timing of a command, attempting to suppress HTTP and DB calls."""
 

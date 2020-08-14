@@ -42,14 +42,6 @@ def setup_logging():
             log.removeHandler(hdlr)
 
 
-def start_lavalink_node():
-    log = logging.getLogger()
-    log.info('Starting lavalink node...')
-    subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
-                     stdout=asyncio.subprocess.PIPE,
-                     stderr=asyncio.subprocess.STDOUT)
-
-
 def run_bot():
     log = logging.getLogger()
     log.info('Starting adb...')
@@ -64,7 +56,6 @@ def main(ctx):
     if ctx.invoked_subcommand is None:
         loop = asyncio.get_event_loop()
         with setup_logging():
-            start_lavalink_node()
             run_bot()
 
 if __name__ == '__main__':
