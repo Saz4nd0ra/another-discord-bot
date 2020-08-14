@@ -16,15 +16,6 @@ from pathlib import Path
 from cogs.utils.config import Config
 config = Config()
 
-
-try:
-    import uvloop
-except ImportError:
-    pass
-else:
-    asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
-
-
 @contextlib.contextmanager
 def setup_logging():
     try:
@@ -53,7 +44,7 @@ def setup_logging():
 
 def start_lavalink_node():
     log = logging.getLogger()
-    log.info('Starting lavalink node.')
+    log.info('Starting lavalink node...')
     subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
                      stdout=asyncio.subprocess.PIPE,
                      stderr=asyncio.subprocess.STDOUT)
@@ -61,7 +52,7 @@ def start_lavalink_node():
 
 def run_bot():
     log = logging.getLogger()
-
+    log.info('Starting adb...')
     bot = ADB()
     bot.run()
 

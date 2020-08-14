@@ -11,10 +11,8 @@ import enum
 import datetime
 import asyncio
 import argparse, shlex
-import logging
 import io
 
-log = logging.getLogger(__name__)
 
 ## Misc utilities
 

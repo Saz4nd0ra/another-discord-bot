@@ -201,6 +201,7 @@ class ADB(commands.AutoShardedBot):
             self._auto_spam_count.pop(author_id, None)
 
         await self.invoke(ctx)
+        log.info(f'Invoked command {message.content} by {author_id}')
 
     async def on_message(self, message):
         if message.author.bot:

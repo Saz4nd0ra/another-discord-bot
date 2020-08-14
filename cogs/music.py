@@ -10,6 +10,7 @@ import typing
 import async_timeout
 import discord
 import wavelink
+from .utils.embed import Embed, SimpleEmbed
 from discord.ext import commands
 from discord.ext import commands, menus
 
@@ -125,11 +126,9 @@ class Player(wavelink.Player):
         if not track:
             return
 
-        embed = discord.Embed(title=f'{track.title}', color=discord.Color.blurple())
-        embed.description = f'[{track.uri}]({track.uri})'
-        embed.set_author(name=f'Current DJ: {self.dj}', icon_url=self.dj.avatar_url)
+        embed = SimpleEmbed(description=f'[{track.uri}]({track.uri})', title=f'{track.title}')
+        embed.set_author(name=f'DJ: {self.dj}', icon_url=self.dj.avatar_url)
         embed.set_thumbnail(url=track.thumb)
-
         embed.add_field(name='Requested by:', value=track.requester.mention)
         embed.add_field(
             name='Duration:',

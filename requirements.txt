@@ -1,12 +1,10 @@
 humanize
-uvloop
 git+https://github.com/Rapptz/discord-ext-menus.git
 git+https://github.com/Rapptz/discord.py@master
 wavelink
 PyNaCl
-lxml
-psutil
 click
 parsedatetime
 python-dateutil
 pygit2
+praw

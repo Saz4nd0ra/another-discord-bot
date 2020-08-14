@@ -19,7 +19,7 @@ class Config:
                         'IDs',
                         'Bot',
                         'Music',
-                        'etc'}.difference(config.sections())
+                        'Reddit'}.difference(config.sections())
 
         if confsections:
             raise Exception(
@@ -40,6 +40,9 @@ class Config:
         self.ll_host = config.get('Music', 'LavalinkHost')
         self.ll_port = config.get('Music', 'LavalinkPort')
         self.ll_passwd = config.get('Music', 'LavalinkPassword')
+
+        self.praw_secret = config.get('Reddit', 'PrawSecret')
+        self.praw_clientid = config.get('Reddit', 'PrawClientID')
 
 # TODO need to implement a fallback, in case the user fucks something up
 class FallbackConfig:
