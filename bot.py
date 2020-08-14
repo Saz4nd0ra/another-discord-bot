@@ -19,9 +19,9 @@ another-discord-bot, this one will eventually break.
 log = logging.getLogger(__name__)
 
 initial_extensions = (
-    'cogs.music',
     'cogs.admin',
     'cogs.mod',
+    'cogs.music',
     'cogs.meta'
 )
 
@@ -40,7 +40,8 @@ def _prefix_callable(bot, msg):
 class ADB(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(command_prefix=_prefix_callable, description=description,
-                         fetch_offline_members=False, heartbeat_timeout=150.0)
+                         fetch_offline_members=False, heartbeat_timeout=150.0,
+                         help_command=HelpCommand())
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
