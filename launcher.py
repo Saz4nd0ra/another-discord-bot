@@ -44,7 +44,7 @@ def setup_logging():
 def start_lavalink_node():
     log = logging.getLogger()
     log.info('Starting lavalink node...')
-    subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
+    subprocess.Popen(['java', '-jar', '-Xms512M','-Xmx512M','lavalink/Lavalink.jar'],
                      stdout=asyncio.subprocess.PIPE,
                      stderr=asyncio.subprocess.STDOUT)
 
