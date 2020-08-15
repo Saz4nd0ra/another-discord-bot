@@ -41,6 +41,12 @@ def setup_logging():
             hdlr.close()
             log.removeHandler(hdlr)
 
+def start_lavalink_node():
+    log = logging.getLogger()
+    log.info('Starting lavalink node...')
+    subprocess.Popen(['java', '-jar', 'lavalink/Lavalink.jar'],
+                     stdout=asyncio.subprocess.PIPE,
+                     stderr=asyncio.subprocess.STDOUT)
 
 def run_bot():
     log = logging.getLogger()
@@ -53,6 +59,7 @@ def run_bot():
 @click.pass_context
 def main(ctx):
     """Launches the bot."""
+    start_lavalink_node()
     if ctx.invoked_subcommand is None:
         loop = asyncio.get_event_loop()
         with setup_logging():
