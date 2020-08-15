@@ -142,3 +142,5 @@ logs/
 
 # project related
 migrations/
+
+nohup.out
