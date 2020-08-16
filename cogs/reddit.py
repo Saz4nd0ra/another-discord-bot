@@ -3,7 +3,8 @@ from discord.ext import commands
 from .utils import checks, config
 config = config.Config()
 from .utils.embed import SimpleEmbed
-import praw import Reddit
+import praw
+from praw import Reddit
 import random
 
 class API:
@@ -17,6 +18,7 @@ class API:
         return submissions
 
 class Reddit(commands.Cog):
+    """Browse reddit with those commands."""
     def __init__(self, bot):
         self.bot = bot
         self.api = API()
@@ -36,7 +38,7 @@ class Reddit(commands.Cog):
             post_to_pick = random.randint(1, 100)
             for x in range(0, post_to_pick):
                 submission = next(x for x in memes_submissions if not x.stickied)
-           e = SimpleEmbed(
+            e = SimpleEmbed(
                 title = f'``Title :`` {submission.title}'
             )
             e.set_image(url=f'{submission.url}')

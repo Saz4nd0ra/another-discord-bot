@@ -1,7 +1,7 @@
 from discord.ext import commands
 import discord
-from cogs.help import HelpCommand
 from cogs.utils import context
+from cogs.utils.help import HelpCommand
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
 from cogs.utils.embed import SimpleEmbed
@@ -23,7 +23,8 @@ initial_extensions = (
     'cogs.admin',
     'cogs.mod',
     'cogs.music',
-    'cogs.meta'
+    'cogs.meta',
+#    'cogs.reddit'
 )
 
 
