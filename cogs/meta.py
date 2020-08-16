@@ -1,5 +1,6 @@
 from discord.ext import commands
 from .utils import checks, formats, time
+from .utils.embed import SimpleEmbed
 import discord
 from collections import OrderedDict, deque, Counter
 import os, datetime
@@ -59,95 +60,6 @@ class Meta(commands.Cog):
             return await ctx.send('Output too long to display.')
         await ctx.send(msg)
 
-    @commands.group(name='prefix', invoke_without_command=True)
-    async def prefix(self, ctx):
-        """Manages the server's custom prefixes.
-
-        If called without a subcommand, this will list the currently set
-        prefixes.
-        """
-
-        prefixes = self.bot.get_guild_prefixes(ctx.guild)
-
-        # we want to remove prefix #2, because it's the 2nd form of the mention
-        # and to the end user, this would end up making them confused why the
-        # mention is there twice
-        del prefixes[1]
-
-        e = discord.Embed(title='Prefixes', colour=discord.Colour.blurple())
-        e.set_footer(text=f'{len(prefixes)} prefixes')
-        e.description = '\n'.join(f'{index}. {elem}' for index, elem in enumerate(prefixes, 1))
-        await ctx.send(embed=e)
-
-    @prefix.command(name='add', ignore_extra=False)
-    @checks.is_mod()
-    async def prefix_add(self, ctx, prefix: Prefix):
-        """Appends a prefix to the list of custom prefixes.
-
-        Previously set prefixes are not overridden.
-
-        To have a word prefix, you should quote it and end it with
-        a space, e.g. "hello " to set the prefix to "hello ". This
-        is because Discord removes spaces when sending messages so
-        the spaces are not preserved.
-
-        Multi-word prefixes must be quoted also.
-
-        You must have Manage Server permission to use this command.
-        """
-
-        current_prefixes = self.bot.get_raw_guild_prefixes(ctx.guild.id)
-        current_prefixes.append(prefix)
-        try:
-            await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
-        except Exception as e:
-            await ctx.send(f'{ctx.tick(False)} {e}')
-        else:
-            await ctx.send(ctx.tick(True))
-
-    @prefix_add.error
-    async def prefix_add_error(self, ctx, error):
-        if isinstance(error, commands.TooManyArguments):
-            await ctx.send("You've given too many prefixes. Either quote it or only do it one by one.")
-
-    @prefix.command(name='remove', aliases=['delete'], ignore_extra=False)
-    @checks.is_mod()
-    async def prefix_remove(self, ctx, prefix: Prefix):
-        """Removes a prefix from the list of custom prefixes.
-
-        This is the inverse of the 'prefix add' command. You can
-        use this to remove prefixes from the default set as well.
-
-        You must have Manage Server permission to use this command.
-        """
-
-        current_prefixes = self.bot.get_raw_guild_prefixes(ctx.guild.id)
-
-        try:
-            current_prefixes.remove(prefix)
-        except ValueError:
-            return await ctx.send('I do not have this prefix registered.')
-
-        try:
-            await self.bot.set_guild_prefixes(ctx.guild, current_prefixes)
-        except Exception as e:
-            await ctx.send(f'{ctx.tick(False)} {e}')
-        else:
-            await ctx.send(ctx.tick(True))
-
-    @prefix.command(name='clear')
-    @checks.is_mod()
-    async def prefix_clear(self, ctx):
-        """Removes all custom prefixes.
-
-        After this, the bot will listen to only mention prefixes.
-
-        You must have Manage Server permission to use this command.
-        """
-
-        await self.bot.set_guild_prefixes(ctx.guild, [])
-        await ctx.send(ctx.tick(True))
-
     @commands.command()
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command.
@@ -197,11 +109,11 @@ class Meta(commands.Cog):
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
-        embed = discord.Embed()
+        e = SimpleEmbed()
         user = user or ctx.author
         avatar = user.avatar_url_as(static_format='png')
-        embed.set_author(name=str(user), url=avatar)
-        embed.set_image(url=avatar)
+        e.set_author(name=str(user), url=avatar)
+        e.set_image(url=avatar)
         await ctx.send(embed=embed)
 
     @commands.command()
@@ -212,7 +124,7 @@ class Meta(commands.Cog):
         if ctx.guild and isinstance(user, discord.User):
             user = ctx.guild.get_member(user.id) or user
 
-        e = discord.Embed()
+        e =  SimpleEmbed()
         roles = [role.name.replace('@', '@\u200b') for role in getattr(user, 'roles', [])]
         shared = sum(g.get_member(user.id) is not None for g in self.bot.guilds)
         e.set_author(name=str(user))
@@ -285,7 +197,7 @@ class Meta(commands.Cog):
 
         member_by_status = Counter(str(m.status) for m in guild.members)
 
-        e = discord.Embed()
+        e =  discord.Embed()
         e.title = guild.name
         e.description = f'**ID**: {guild.id}\n**Owner**: {guild.owner}'
         if guild.icon:
@@ -374,7 +286,7 @@ class Meta(commands.Cog):
 
     async def say_permissions(self, ctx, member, channel):
         permissions = channel.permissions_for(member)
-        e = discord.Embed(colour=member.colour)
+        e =  discord.Embed(colour=member.colour)
         avatar = member.avatar_url_as(static_format='png')
         e.set_author(name=str(member), url=avatar)
         allowed, denied = [], []

@@ -9,11 +9,11 @@ else
 fi
 
 
-echo "Starting lavalink server as background process..."
-nohup java -jar lavalink/Lavalink.jar &
+echo "Starting lavalink server in screen lavalink"
+screen -A -m -d -S lavalink java -jar lavalink/Lavalink.jar &
 
 echo "Waiting 15 seconds to give lavalink enough time to start..."
-sleep 15
+sleep 5
 
 echo "Checking for python venv"
 
@@ -24,7 +24,7 @@ file="${url##*/}"
  
 [ ! -d "$venvdir" ] && python -m venv "$dldir" && echo "Venv created... attempting to launch bot"
  
- echo "Launching bot"
+echo "Launching bot in screen adb"
 
- ./adb/bin/python launcher.py
+./adb/bin/python launcher.py
  

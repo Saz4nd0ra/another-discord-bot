@@ -4,6 +4,7 @@ from cogs.help import HelpCommand
 from cogs.utils import context
 from cogs.utils.json import JSON
 from cogs.utils.config import Config
+from cogs.utils.embed import SimpleEmbed
 import datetime
 import json
 import logging
@@ -60,7 +61,7 @@ class ADB(commands.AutoShardedBot):
                 self.load_extension(extension)
                 log.info(f'Loaded {extension}')
             except Exception as e:
-                print(f'Failed to load extension {extension} due to {e}.', file=sys.stderr)
+                log.error(f'Failed to load extension {extension} due to {e}.')
                 traceback.print_exc()
 
     def _clear_gateway_data(self):
@@ -135,11 +136,11 @@ class ADB(commands.AutoShardedBot):
             return
 
         wh = self.stats_webhook
-        embed = discord.Embed(title='Auto-blocked Member', color=discord.Color.blurple())
-        embed.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
-        embed.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
-        embed.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
-        embed.timestamp = datetime.datetime.utcnow()
+        e = SimpleEmbed(title='Auto-blocked Member')
+        e.add_field(name='Member', value=f'{message.author} (ID: {message.author.id})', inline=False)
+        e.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
+        e.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
+        e.timestamp = datetime.datetime.utcnow()
         return wh.send(embed=embed)
 
     async def process_commands(self, message):

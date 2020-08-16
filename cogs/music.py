@@ -10,7 +10,7 @@ import typing
 import async_timeout
 import discord
 import wavelink
-from .utils.embed import Embed, SimpleEmbed
+from .utils.embed import SimpleEmbed
 from discord.ext import commands, menus, tasks
 
 # URL matching REGEX...
@@ -115,28 +115,28 @@ class Player(wavelink.Player):
             await self.controller.start(self.context)
 
         else:
-            embed = self.build_embed()
+            e = self.build_embed()
             await self.controller.message.edit(content=None, embed=embed)
 
         self.updating = False
 
     def build_embed(self) -> typing.Optional[discord.Embed]:
-        """Method which builds our players controller embed."""
+        """Method which builds our players controller e."""
         track = self.current
         if not track:
             return
 
-        embed = SimpleEmbed(description=f'[{track.uri}]({track.uri})', title=f'{track.title}')
-        embed.set_author(name=f'DJ: {self.dj}', icon_url=self.dj.avatar_url)
-        embed.set_thumbnail(url=track.thumb)
-        embed.add_field(name='Requested by:', value=track.requester.mention)
-        embed.add_field(
-            name='Duration:',
-            value=str(datetime.timedelta(milliseconds=int(track.length))),
-        )
-        embed.add_field(name='Volume:', value=f'**`{self.volume}%`**')
+        e = SimpleEmbed(description=f'Now Playing:\n**`{track.title}`**\n\n', title=f'Music Player | {channel.name}')
+        e.set_author(name=f'DJ: {self.dj}', icon_url=self.dj.avatar_url)
+        e.set_thumbnail(url=track.thumb)
+        e.add_field(name='Duration', value=str(datetime.timedelta(milliseconds=int(track.length))))
+        e.add_field(name='Queue Length', value=str(qsize))
+        e.add_field(name='Volume', value=f'**`{self.volume}%`**')
+        e.add_field(name='Requested By', value=track.requester.mention)
+        e.add_field(name='DJ', value=self.dj.mention)
+        e.add_field(name='Video URL', value=f'[Click Here!]({track.uri})')
 
-        return embed
+        return e
 
     async def is_position_fresh(self) -> bool:
         """Method which checks whether the player controller should be remade or updated."""
@@ -169,7 +169,7 @@ class InteractiveController(menus.Menu):
     def __init__(self, *, embed: discord.Embed, player: Player):
         super().__init__(timeout=None)
 
-        self.embed = embed
+        self.e =embed
         self.player = player
 
     async def update(self, payload):
@@ -303,10 +303,8 @@ class PaginatorSource(menus.ListPageSource):
         super().__init__(entries, per_page=per_page)
 
     async def format_page(self, menu: menus.Menu, page):
-        embed = discord.Embed(title='In Queue:', color=discord.Color.blurple())
-        embed.description = '\n'.join(f'{title}' for index, title in enumerate(page, 1))
-
-        return embed
+        e = SimpleEmbed(title='In Queue:', description='\n'.join(f'{title}' for index, title in enumerate(page, 1)))
+        return e
 
     def is_paginating(self):
         # We always want to embed even on 1 page of results...
