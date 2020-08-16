@@ -26,20 +26,9 @@ initial_extensions = (
 )
 
 
-def _prefix_callable(bot, msg):
-    user_id = bot.user.id
-    base = [f'<@!{user_id}> ', f'<@{user_id}> ']
-    if msg.guild is None:
-        base.append('!')
-        base.append('?')
-    else:
-        base.extend(bot.prefixes.get(msg.guild.id, ['?', '!']))
-    return base
-
-
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix=_prefix_callable, description=description,
+        super().__init__(command_prefix='a!', description=description,
                          fetch_offline_members=False, heartbeat_timeout=150.0,
                          help_command=HelpCommand())
 
@@ -52,9 +41,6 @@ class ADB(commands.AutoShardedBot):
         # shows the last attempted IDENTIFYs and RESUMEs
         self.resumes = defaultdict(list)
         self.identifies = defaultdict(list)
-
-        # guild_id: list
-        self.prefixes = JSON('prefixes.json')
 
         # guild_id and user_id mapped to True
         # these are users and guilds globally blacklisted
@@ -111,22 +97,6 @@ class ADB(commands.AutoShardedBot):
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send(error)
 
-    def get_guild_prefixes(self, guild, *, local_inject=_prefix_callable):
-        proxy_msg = discord.Object(id=0)
-        proxy_msg.guild = guild
-        return local_inject(self, proxy_msg)
-
-    def get_raw_guild_prefixes(self, guild_id):
-        return self.prefixes.get(guild_id, ['?', '!'])
-
-    async def set_guild_prefixes(self, guild, prefixes):
-        if len(prefixes) == 0:
-            await self.prefixes.put(guild.id, [])
-        elif len(prefixes) > 10:
-            raise RuntimeError('Cannot have more than 10 custom prefixes.')
-        else:
-            await self.prefixes.put(guild.id, sorted(set(prefixes), reverse=True))
-
     async def add_to_blacklist(self, object_id):
         await self.blacklist.put(object_id, True)
 
@@ -142,7 +112,7 @@ class ADB(commands.AutoShardedBot):
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
         await self.change_presence(
-            activity=discord.Streaming(name='@ me to ask for help!',
+            activity=discord.Streaming(name=f'a!help',
                                        url='https://www.twitch.tv/commanderroot'))
 
     async def on_shard_resumed(self, shard_id):
