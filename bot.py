@@ -14,7 +14,7 @@ import aiohttp
 from collections import Counter, deque, defaultdict
 
 description = """
-another-discord-bot, this one will eventually break.
+another-discord-bot (dev branch)
 """
 
 log = logging.getLogger(__name__)
@@ -30,7 +30,7 @@ initial_extensions = (
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix='a!', description=description,
+        super().__init__(command_prefix='_a!', description=description,
                          fetch_offline_members=False, heartbeat_timeout=150.0,
                          help_command=HelpCommand())
 
@@ -114,7 +114,7 @@ class ADB(commands.AutoShardedBot):
 
         print(f'Ready: {self.user} (ID: {self.user.id})')
         await self.change_presence(
-            activity=discord.Streaming(name=f'a!help',
+            activity=discord.Streaming(name=f'_a!help',
                                        url='https://www.twitch.tv/commanderroot'))
 
     async def on_shard_resumed(self, shard_id):
