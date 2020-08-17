@@ -10,7 +10,7 @@ fi
 
 
 echo "Starting lavalink server in screen lavalink"
-screen -A -m -d -S lavalink java -jar lavalink/Lavalink.jar &
+screen -dmLS lavalink java -jar lavalink/Lavalink.jar &
 
 echo "Waiting 15 seconds to give lavalink enough time to start..."
 sleep 5
@@ -26,5 +26,5 @@ file="${url##*/}"
  
 echo "Launching bot in screen adb"
 
-screen -A -m -d -S adb ./adb/bin/python launcher.py
+screen -dmLS adb ./adb/bin/python launcher.py
  
