@@ -1,0 +1,54 @@
+Saz4nd0ra: hehehexd
+Saz4nd0ra: hehehexd
+Saz4nd0ra: _a!help Reddit
+Saz4nd0ra: _a!help Music
+Saz4nd0ra: _a!help Music
+another-discord-bot: 
+Saz4nd0ra: _a!help
+another-discord-bot: 
+Saz4nd0ra: _a!help
+another-discord-bot: 
+Saz4nd0ra: _a!help
+another-discord-bot: 
+Saz4nd0ra: _a!help
+another-discord-bot: 
+Saz4nd0ra: _a!help Music
+another-discord-bot: 
+Saz4nd0ra: _a!help Music
+Saz4nd0ra: _a!help Music
+Saz4nd0ra: _a!help Music
+another-discord-bot: 
+Saz4nd0ra: _a!help
+Saz4nd0ra: _a!help
+Saz4nd0ra: _a!help
+Saz4nd0ra: _a!help
+another-discord-bot: 
+another-discord-bot: 
+Saz4nd0ra: !llinfo
+Saz4nd0ra: !llinfo
+Saz4nd0ra: _a!llinfo
+Saz4nd0ra: _a!llinfo
+another-discord-bot: **WaveLink:** `0.9.4`
+
+Connected to `1` nodes.
+Best available Node `MAIN | europe | (Shard: None)`
+`1` players are distributed on nodes.
+`0` players are distributed on server.
+`0` players are playing on server.
+
+Server Memory: `36.8 MB/317.7 MB` | `(280.9 MB free)`
+Server CPU: `12`
+
+Server Uptime: `1 day, 2:40:47.861000`
+another-discord-bot: **WaveLink:** `0.9.4`
+
+Connected to `1` nodes.
+Best available Node `MAIN | europe | (Shard: None)`
+`1` players are distributed on nodes.
+`0` players are distributed on server.
+`0` players are playing on server.
+
+Server Memory: `36.8 MB/317.7 MB` | `(280.9 MB free)`
+Server CPU: `12`
+
+Server Uptime: `1 day, 2:40:47.861000`

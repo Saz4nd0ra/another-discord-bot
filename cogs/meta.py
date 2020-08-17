@@ -11,13 +11,6 @@ import inspect
 import itertools
 from typing import Union
 
-class Prefix(commands.Converter):
-    async def convert(self, ctx, argument):
-        user_id = ctx.bot.user.id
-        if argument.startswith((f'<@{user_id}>', f'<@!{user_id}>')):
-            raise commands.BadArgument('That is a reserved prefix already in use.')
-        return argument
-
 class FetchedUser(commands.Converter):
     async def convert(self, ctx, argument):
         if not argument.isdigit():
@@ -114,7 +107,7 @@ class Meta(commands.Cog):
         avatar = user.avatar_url_as(static_format='png')
         e.set_author(name=str(user), url=avatar)
         e.set_image(url=avatar)
-        await ctx.send(embed=embed)
+        await ctx.send(embed=e)
 
     @commands.command()
     async def info(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):

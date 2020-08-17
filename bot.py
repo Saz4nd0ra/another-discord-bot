@@ -24,7 +24,8 @@ initial_extensions = (
     'cogs.mod',
     'cogs.music',
     'cogs.meta',
-#    'cogs.reddit'
+    'cogs.reddit',
+    'cogs.events'
 )
 
 
@@ -142,7 +143,7 @@ class ADB(commands.AutoShardedBot):
         e.add_field(name='Guild Info', value=f'{guild_name} (ID: {guild_id})', inline=False)
         e.add_field(name='Channel Info', value=f'{message.channel} (ID: {message.channel.id}', inline=False)
         e.timestamp = datetime.datetime.utcnow()
-        return wh.send(embed=embed)
+        return wh.send(embed=e)
 
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)

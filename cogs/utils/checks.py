@@ -1,8 +1,9 @@
 from discord.ext import commands
+from .config import Config
+config = Config()
 
 # those checks are written without security or extended functionality in mind
 # they don't take channel overrides into account
-
 
 async def check_permissions(ctx, perms, *, check=all):
     is_owner = await ctx.bot.is_owner(ctx.author)
