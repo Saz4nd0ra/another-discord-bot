@@ -10,7 +10,7 @@ fi
 
 
 echo "Starting lavalink server in screen lavalink"
-screen -dmLS lavalink java -jar lavalink/Lavalink.jar &
+screen -dmLS lavalink java -jar lavalink/Lavalink.jar
 
 echo "Waiting 15 seconds to give lavalink enough time to start..."
 sleep 5
