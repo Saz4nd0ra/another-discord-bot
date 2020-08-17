@@ -26,5 +26,5 @@ file="${url##*/}"
  
 echo "Launching bot in screen adb"
 
-./adb/bin/python launcher.py
+screen -A -m -d -S adb ./adb/bin/python launcher.py
  
