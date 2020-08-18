@@ -1,11 +1,11 @@
 import discord
 from discord.ext import commands
-from .utils import checks, config
-config = config.Config()
-from .utils.embed import SimpleEmbed
+from ...utils import checks
+from ...utils.embed import SimpleEmbed
 import praw
 from praw import Reddit
 import random
+
 
 # TODO all of that
 
@@ -13,8 +13,8 @@ class Reddit(commands.Cog):
     """Browse reddit with those commands."""
     def __init__(self, bot):
         self.bot = bot
-        self.reddit = praw.Reddit(client_id=config.praw_clientid, # connecting to reddit, read-only should be enough for our use
-                     client_secret=config.praw_secret,
+        self.reddit = praw.Reddit(client_id=self.bot.config.praw_clientid, # connecting to reddit, read-only should be enough for our use
+                     client_secret=self.bot.config.praw_secret,
                      user_agent='another-discord-bot by /u/Saz4nd0ra')
         
     async def get_hot_submission(self, subreddit: str):

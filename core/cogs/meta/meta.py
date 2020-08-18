@@ -1,6 +1,6 @@
 from discord.ext import commands
-from .utils import checks, formats, time
-from .utils.embed import SimpleEmbed
+from ...utils import checks, formats, time
+from ...utils.embed import SimpleEmbed
 import discord
 from collections import OrderedDict, deque, Counter
 import os, datetime
@@ -93,12 +93,6 @@ class Meta(commands.Cog):
         final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
         await ctx.send(final_url)
 
-    @commands.command(name='quit', hidden=True)
-    @commands.is_owner()
-    async def _quit(self, ctx):
-        """Quits the bot."""
-        await self.bot.logout()
-
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
@@ -190,9 +184,7 @@ class Meta(commands.Cog):
 
         member_by_status = Counter(str(m.status) for m in guild.members)
 
-        e =  discord.Embed()
-        e.title = guild.name
-        e.description = f'**ID**: {guild.id}\n**Owner**: {guild.owner}'
+        e =  SimpleEmbed(title=guild.name, description=f'**ID**: {guild.id}\n**Owner**: {guild.owner}')
         if guild.icon:
             e.set_thumbnail(url=guild.icon_url)
 
@@ -279,7 +271,7 @@ class Meta(commands.Cog):
 
     async def say_permissions(self, ctx, member, channel):
         permissions = channel.permissions_for(member)
-        e =  discord.Embed(colour=member.colour)
+        e =  SimpleEmbed()
         avatar = member.avatar_url_as(static_format='png')
         e.set_author(name=str(member), url=avatar)
         allowed, denied = [], []

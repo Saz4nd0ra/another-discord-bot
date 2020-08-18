@@ -31,8 +31,7 @@ class Config:
         self.ignored_ids = config.get('IDs', 'IgnoredIDs')
         self.dev_ids = config.get('IDs', 'DevIDs')
 
-        self.wh_id = config.get('Bot', 'WebhookID')
-        self.wh_token = config.get('Bot', 'WebhookToken')
+        self.prefix = config.get('Bot', 'Prefix')
         self.enable_msg_logging = config.getboolean('Bot', 'EnableMSGLogging')
         self.msg_logging_channel = config.get('Bot', 'LoggingChannel')
 

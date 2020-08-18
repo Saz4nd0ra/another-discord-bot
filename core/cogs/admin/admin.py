@@ -13,7 +13,7 @@ import sys
 import copy
 import time
 import subprocess
-from .utils import checks
+from ...utils import checks
 from typing import Union, Optional
 
 # to expose to the eval command
@@ -68,7 +68,7 @@ class GlobalChannel(commands.Converter):
         try:
             return await commands.TextChannelConverter().convert(ctx, argument)
         except commands.BadArgument:
-            # Not found... so fall back to ID + global lookup
+            # Not found.. so fall back to ID + global lookup
             try:
                 channel_id = int(argument, base=10)
             except ValueError:

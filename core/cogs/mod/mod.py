@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
-from .utils import checks, time
-from .utils.formats import plural
+from ...utils import checks, time
+from ...utils.formats import plural
 from collections import Counter, defaultdict
 from inspect import cleandoc
 

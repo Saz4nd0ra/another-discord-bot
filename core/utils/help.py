@@ -79,7 +79,7 @@ class HelpCommand(commands.HelpCommand):
             elif arg.annotation == t.Optional:
                 basis += f' [{arg.name} = None]'
             elif isinstance(arg.annotation, commands.converter._Greedy):
-                basis += f' [{arg.name} = (...)]'
+                basis += f' [{arg.name} = (..)]'
             elif arg.default == Parameter.empty:
                 basis += f' <{arg.name}>'
             else:

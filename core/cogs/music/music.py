@@ -9,6 +9,7 @@ import wavelink
 from discord.ext import commands
 from typing import Union
 import humanize
+from ...utils.embed import SimpleEmbed
 
 RURL = re.compile(r'https?:\/\/(?:www\.)?.+')
 
@@ -79,7 +80,7 @@ class Player(wavelink.Player):
         await self.bot.wait_until_ready()
 
         await self.set_eq(wavelink.Equalizer.flat())
-        # We can do any pre loop prep here...
+        # We can do any pre loop prep here..
         await self.set_volume(self.volume)
 
         while True:
@@ -96,11 +97,11 @@ class Player(wavelink.Player):
 
             await self.play(song)
 
-            # Invoke our controller if we aren't already...
+            # Invoke our controller if we aren't already..
             if not self.update:
                 await self.invoke_controller()
 
-            # Wait for TrackEnd event to set our event...
+            # Wait for TrackEnd event to set our event..
             await self.next_event.wait()
 
     async def invoke_controller(self, track: wavelink.Track = None):
@@ -110,9 +111,8 @@ class Player(wavelink.Player):
 
         self.updating = True
 
-        embed = discord.Embed(title='Music Controller',
-                              description=f'Now Playing:\n[{track.title}]({track.uri})',
-                              color=0xff0000)
+        embed = SimpleEmbed(title='Music Controller',
+                              description=f'Now Playing:\n[{track.title}]({track.uri})')
         embed.set_thumbnail(url=track.thumb)
 
         if track.is_stream:
@@ -123,7 +123,7 @@ class Player(wavelink.Player):
         embed.add_field(name='Volume', value=f'{self.volume}%')
 
         if len(self.entries) > 0:
-            data = '\n'.join(f'**-** `{t.title[0:45]}{"..." if len(t.title) > 45 else ""}`\n{"-"*10}'
+            data = '\n'.join(f'**-** `{t.title[0:45]}{".." if len(t.title) > 45 else ""}`\n{"-"*10}'
                              for t in itertools.islice([e for e in self.entries if not e.is_dead], 0, 3, None))
             embed.add_field(name='Coming Up:', value=data, inline=False)
 
@@ -531,7 +531,7 @@ class Music(commands.Cog):
             return await ctx.send('```\nNo more songs in the Queue!\n```', delete_after=10)
 
         fmt = '\n'.join(f'**`{str(song)}`**' for song in upcoming)
-        embed = discord.Embed(title=f'Upcoming - Next {len(upcoming)}', description=fmt)
+        embed = SimpleEmbed(title=f'Upcoming - Next {len(upcoming)}', description=fmt)
 
         await ctx.send(embed=embed)
 

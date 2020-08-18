@@ -9,12 +9,9 @@ import contextlib
 import subprocess
 import os
 
-from bot import ADB, initial_extensions
+from core.bot import ADB
 
 from pathlib import Path
-
-from cogs.utils.config import Config
-config = Config()
 
 @contextlib.contextmanager
 def setup_logging():
@@ -25,8 +22,6 @@ def setup_logging():
 
         log = logging.getLogger()
         log.setLevel(logging.INFO)
-        if not os.path.exists('data/'):
-            os.mkdir('data/')
         if not os.path.exists('logs/'):
             os.mkdir('logs/')
         handler = logging.FileHandler(filename='logs/adb.log', encoding='utf-8', mode='w')
