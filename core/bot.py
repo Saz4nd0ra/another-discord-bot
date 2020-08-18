@@ -2,7 +2,6 @@ from discord.ext import commands
 import discord
 from .utils import context
 from .utils.help import HelpCommand
-from .utils.json import JSON
 from .utils.config import Config
 from .utils.embed import SimpleEmbed
 import datetime
