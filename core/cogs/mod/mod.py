@@ -1,6 +1,6 @@
 from discord.ext import commands, tasks
-from .utils import checks, time
-from .utils.formats import plural
+from ...utils import checks, time
+from ...utils.formats import plural
 from collections import Counter, defaultdict
 from inspect import cleandoc
 
@@ -120,10 +120,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(kick_members=True)
     async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Kicks a member from the server.
-
-        In order for this to work, the bot must have Kick Member permissions.
-
-        To use this command you must have Kick Members permission.
         """
 
         if reason is None:
@@ -137,13 +133,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(ban_members=True)
     async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Bans a member from the server.
-
-        You can also ban from ID to ban regardless whether they're
-        in the server or not.
-
-        In order for this to work, the bot must have Ban Member permissions.
-
-        To use this command you must have Ban Members permission.
         """
 
         if reason is None:
@@ -157,12 +146,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(ban_members=True)
     async def multiban(self, ctx, members: commands.Greedy[MemberID], *, reason: ActionReason = None):
         """Bans multiple members from the server.
-
-        This only works through banning via ID.
-
-        In order for this to work, the bot must have Ban Member permissions.
-
-        To use this command you must have Ban Members permission.
         """
 
         if reason is None:
@@ -193,33 +176,6 @@ class Mod(commands.Cog):
 
         This command has a powerful "command line" syntax. To use this command
         you and the bot must both have Ban Members permission. **Every option is optional.**
-
-        Users are only banned **if and only if** all conditions are met.
-
-        The following options are valid.
-
-        `--channel` or `-c`: Channel to search for message history.
-        `--reason` or `-r`: The reason for the ban.
-        `--regex`: Regex that usernames must match.
-        `--created`: Matches users whose accounts were created less than specified minutes ago.
-        `--joined`: Matches users that joined less than specified minutes ago.
-        `--joined-before`: Matches users who joined before the member ID given.
-        `--joined-after`: Matches users who joined after the member ID given.
-        `--no-avatar`: Matches users who have no avatar. (no arguments)
-        `--no-roles`: Matches users that have no role. (no arguments)
-        `--show`: Show members instead of banning them (no arguments).
-
-        Message history filters (Requires `--channel`):
-
-        `--contains`: A substring to search for in the message.
-        `--starts`: A substring to search if the message starts with.
-        `--ends`: A substring to search if the message ends with.
-        `--match`: A regex to match the message content to.
-        `--search`: How many messages to search. Default 100. Max 2000.
-        `--after`: Messages must come after this message ID.
-        `--before`: Messages must come before this message ID.
-        `--files`: Checks if the message has attachments (no arguments).
-        `--embeds`: Checks if the message has embeds (no arguments).
         """
 
         # For some reason there are cases due to caching that ctx.author
@@ -379,14 +335,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(kick_members=True)
     async def softban(self, ctx, member: MemberID, *, reason: ActionReason = None):
         """Soft bans a member from the server.
-
-        A softban is basically banning the member from the server but
-        then unbanning the member as well. This allows you to essentially
-        kick the member while removing their messages.
-
-        In order for this to work, the bot must have Ban Member permissions.
-
-        To use this command you must have Kick Members permissions.
         """
 
         if reason is None:
@@ -401,13 +349,6 @@ class Mod(commands.Cog):
     @checks.has_permissions(ban_members=True)
     async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
         """Unbans a member from the server.
-
-        You can pass either the ID of the banned member or the Name#Discrim
-        combination of the member. Typically the ID is easiest to use.
-
-        In order for this to work, the bot must have Ban Member permissions.
-
-        To use this command you must have Ban Members permissions.
         """
 
         if reason is None:
@@ -425,10 +366,6 @@ class Mod(commands.Cog):
     async def remove(self, ctx):
         """Removes messages that meet a criteria.
         In order to use this command, you must have Manage Messages permissions.
-        Note that the bot needs Manage Messages as well. These commands cannot
-        be used in a private message.
-        When the command is done doing its work, you will get a message
-        detailing which users got removed and how many messages got removed.
         """
 
         if ctx.invoked_subcommand is None:
@@ -540,33 +477,6 @@ class Mod(commands.Cog):
     @remove.command()
     async def custom(self, ctx, *, args: str):
         """A more advanced purge command.
-
-        This command uses a powerful "command line" syntax.
-        Most options support multiple values to indicate 'any' match.
-        If the value has spaces it must be quoted.
-
-        The messages are only deleted if all options are met unless
-        the `--or` flag is passed, in which case only if any is met.
-
-        The following options are valid.
-
-        `--user`: A mention or name of the user to remove.
-        `--contains`: A substring to search for in the message.
-        `--starts`: A substring to search if the message starts with.
-        `--ends`: A substring to search if the message ends with.
-        `--search`: How many messages to search. Default 100. Max 2000.
-        `--after`: Messages must come after this message ID.
-        `--before`: Messages must come before this message ID.
-
-        Flag options (no arguments):
-
-        `--bot`: Check if it's a bot user.
-        `--embeds`: Check if the message has embeds.
-        `--files`: Check if the message has attachments.
-        `--emoji`: Check if the message has custom emoji.
-        `--reactions`: Check if the message has reactions
-        `--or`: Use logical OR for all options.
-        `--not`: Use logical NOT for all options.
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
         parser.add_argument('--user', nargs='+')

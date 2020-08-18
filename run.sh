@@ -10,21 +10,16 @@ fi
 
 
 echo "Starting lavalink server in screen lavalink"
-screen -A -m -d -S lavalink java -jar lavalink/Lavalink.jar &
+screen -dmLS lavalink java -jar lavalink/Lavalink.jar
 
 echo "Waiting 15 seconds to give lavalink enough time to start..."
 sleep 5
 
 echo "Checking for python venv"
 
-venvdir="./adb/"
- 
-url="some_url/file.tar.gz"
-file="${url##*/}"
- 
-[ ! -d "$venvdir" ] && python -m venv "$dldir" && echo "Venv created... attempting to launch bot"
+venvdir="./venv/"
  
 echo "Launching bot in screen adb"
 
-./adb/bin/python launcher.py
+screen -dmLS adb ./venv/bin/python run.py
  

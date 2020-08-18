@@ -166,7 +166,7 @@ class UserFriendlyTime(commands.Converter):
                 if begin == 1:
                     # check if it's quoted:
                     if argument[0] != '"':
-                        raise commands.BadArgument('Expected quote before time input...')
+                        raise commands.BadArgument('Expected quote before time input..')
 
                     if not (end < len(argument) and argument[end] == '"'):
                         raise commands.BadArgument('If the time is quoted, you must unquote it.')

@@ -38,7 +38,7 @@ class Context(commands.Context):
         if len(matches) == 1:
             return matches[0]
 
-        await self.send('There are too many matches... Which one did you mean? **Only say the number**.')
+        await self.send('There are too many matches.. Which one did you mean? **Only say the number**.')
         await self.send('\n'.join(f'{index}: {entry(item)}' for index, item in enumerate(matches, 1)))
 
         def check(m):
@@ -58,7 +58,7 @@ class Context(commands.Context):
                 try:
                     return matches[index - 1]
                 except:
-                    await self.send(f'Please give me a valid number. {2 - i} tries remaining...')
+                    await self.send(f'Please give me a valid number. {2 - i} tries remaining..')
 
             raise ValueError('Too many tries. Goodbye.')
         finally:

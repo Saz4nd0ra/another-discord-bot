@@ -9,12 +9,9 @@ import contextlib
 import subprocess
 import os
 
-from bot import ADB, initial_extensions
+from core.bot import ADB
 
 from pathlib import Path
-
-from cogs.utils.config import Config
-config = Config()
 
 @contextlib.contextmanager
 def setup_logging():
