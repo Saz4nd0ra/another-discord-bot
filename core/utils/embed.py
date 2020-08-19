@@ -18,7 +18,7 @@ class SimpleEmbed(discord.Embed):
         if (
             "color" in kwargs
         ):  # if color is provided, set color, else use the discord blurple color
-            self.color = kwargs.get("color")
+            self.colour = kwargs.get("color")
         else:
             self.color = discord.Color.blurple()
         if isinstance(message, commands.Context):
