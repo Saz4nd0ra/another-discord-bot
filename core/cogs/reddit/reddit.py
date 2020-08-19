@@ -35,7 +35,7 @@ class Reddit(commands.Cog):
         Available categories: 
         """
         if category == None: # if user doesn't provide a subreddit r/memes is the fallback subreddit
-            submission = await self.get_hot_submission(self, subreddit='memes')
+            submission = await self.get_hot_submission(subreddit='memes')
             e = SimpleEmbed(
                 title = f'``Title :`` {submission.title}'
             )
@@ -52,10 +52,14 @@ class Reddit(commands.Cog):
                     # TODO implement more subreddits
                 }
 
-            subreddit_submissions = await self.get_hot_submissions(self, switcher.get(category))
-            post_to_pick = random.randint(1, 100)
-            for x in range(0, post_to_pick):
-                submission = next(x for x in memes_submissions if not x.stickied)
+            submission = await self.get_hot_submission(switcher.get(category))
+            e = SimpleEmbed(
+                title = f'``Title :`` {submission.title}'
+            )
+            e.set_image(url=f'{submission.url}')
+            e.add_field(name=':thumbsup: **Upvotes** :',value= f'{submission.ups}',inline=True)
+            e.add_field(name=':envelope: **Comments** :',value= f'{len(submission.comments)}',inline=True)
+            await ctx.send(embed=e)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):

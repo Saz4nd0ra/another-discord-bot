@@ -20,15 +20,14 @@ another-discord-bot (dev branch)
 
 log = logging.getLogger(__name__)
 
-cogs_to_load = ( # of course nothing works as planned
-    'core.cogs.admin.admin',
-    'core.cogs.mod.mod',
-    'core.cogs.music.music',
-    'core.cogs.meta.meta',
-    'core.cogs.reddit.reddit',
-    'core.cogs.events.events'
-)
-
+cogs_to_load = { # of course nothing works as planned
+    'admin',
+    'mod',
+    'music',
+    'reddit',
+    'events',
+    'meta'
+}
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
@@ -52,7 +51,8 @@ class ADB(commands.AutoShardedBot):
 
         for cog in cogs_to_load:
             try:
-                self.load_extension(cog)
+                cog_path = f'core.cogs.{cog}.{cog}'
+                self.load_extension(cog_path)
                 log.info(f'Loaded {cog}')
             except Exception as e:
                 log.error(f'Failed to load extension {cog} due to {e}.')

@@ -12,9 +12,9 @@ class SimpleEmbed(discord.Embed):
 
     async def __ainit__(self, message, **kwargs):
         if 'color' in kwargs: # if color is provided, set color, else use the discord blurple color
-            self._color = kwargs.get('color')
+            self.colour = kwargs.get('color')
         else:
-            self._color = discord.Color.blurple()
+            self.colour = discord.Color.blurple()
         if isinstance(message, commands.Context):
             message = message.message
         title = kwargs.get('title')
