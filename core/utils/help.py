@@ -35,7 +35,7 @@ class HelpSource(menus.ListPageSource):
     async def format_page(self, menu: menus.Menu, cog_tuple: t.Tuple[t.Optional[commands.Cog], t.List[commands.Command]]) -> discord.Embed:
         '''Format the pages.'''
         cog, command_list = cog_tuple
-        e = SimpleEmbed(
+        e = discord.Embed(
             title=textwrap.dedent(
                 f'''
                 Help for
@@ -48,10 +48,11 @@ class HelpSource(menus.ListPageSource):
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ''}
                 '''
-            )
+            ),
+            color=discord.Color.blurple()
         )
         e.set_author(
-            name=self.menu_author.display_name,
+            name=self.menu_author,
             icon_url=str(self.menu_author.avatar_url),
         )
         for command in await self.filter_commands(command_list):
@@ -119,7 +120,6 @@ class HelpCommand(commands.HelpCommand):
             name=str(ctx.message.author),
             icon_url=str(ctx.message.author.avatar_url),
         )
-        e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for command in await self.filter_commands(cog.get_commands()):
             e.add_field(
                 name=f'{prefix}{self.get_command_signature(command)}',
@@ -148,7 +148,6 @@ class HelpCommand(commands.HelpCommand):
             name=str(ctx.message.author),
             icon_url=str(ctx.message.author.avatar_url),
         )
-        e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         await ctx.send(embed=e)
 
     async def send_group_help(self, group: commands.Group) -> None:
@@ -180,7 +179,6 @@ class HelpCommand(commands.HelpCommand):
             name=str(ctx.message.author),
             icon_url=str(ctx.message.author.avatar_url),
         )
-        e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         await ctx.send(embed=e)
 
     async def send_error_message(self, error: str) -> None:

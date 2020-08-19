@@ -20,21 +20,25 @@ another-discord-bot (dev branch)
 
 log = logging.getLogger(__name__)
 
-cogs_to_load = ( # of course nothing works as planned
-    'core.cogs.admin.admin',
-    'core.cogs.mod.mod',
-    'core.cogs.music.music',
-    'core.cogs.meta.meta',
-    'core.cogs.reddit.reddit',
-    'core.cogs.events.events'
-)
+cogs_to_load = {  # of course nothing works as planned
+    "admin",
+    "mod",
+    "music",
+    "reddit",
+    "events",
+    "meta",
+}
 
 
 class ADB(commands.AutoShardedBot):
     def __init__(self):
-        super().__init__(command_prefix=CONFIG.prefix, description=DESCRIPTION,
-                         fetch_offline_members=False, heartbeat_timeout=150.0,
-                         help_command=HelpCommand())
+        super().__init__(
+            command_prefix=CONFIG.prefix,
+            description=DESCRIPTION,
+            fetch_offline_members=False,
+            heartbeat_timeout=150.0,
+            help_command=HelpCommand(),
+        )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
@@ -52,37 +56,43 @@ class ADB(commands.AutoShardedBot):
 
         for cog in cogs_to_load:
             try:
-                self.load_extension(cog)
-                log.info(f'Loaded {cog}')
+                cog_path = f"core.cogs.{cog}.{cog}"
+                self.load_extension(cog_path)
+                log.info(f"Loaded {cog}")
             except Exception as e:
-                log.error(f'Failed to load extension {cog} due to {e}.')
+                log.error(f"Failed to load extension {cog} due to {e}.")
                 traceback.print_exc()
 
     async def on_command_error(self, ctx, error):
         if isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send('This command cannot be used in private messages.')
+            await ctx.author.send("This command cannot be used in private messages.")
         elif isinstance(error, commands.DisabledCommand):
-            await ctx.author.send('Sorry. This command is disabled and cannot be used.')
+            await ctx.author.send("Sorry. This command is disabled and cannot be used.")
         elif isinstance(error, commands.CommandInvokeError):
             original = error.original
             if not isinstance(original, discord.HTTPException):
-                print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
+                print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
-                print(f'{original.__class__.__name__}: {original}', file=sys.stderr)
+                print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
         elif isinstance(error, commands.ArgumentParsingError):
-            await ctx.send('An error occured when invoking that command, check the logs.')
+            await ctx.send(
+                "An error occured when invoking that command, check the logs."
+            )
 
-    async def on_ready(self): # maybe I should do it even fancier
-        if not hasattr(self, 'uptime'):
+    async def on_ready(self):  # maybe I should do it even fancier
+        if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
 
-        print(f'Ready: {self.user} (ID: {self.user.id})')
+        print(f"Ready: {self.user} (ID: {self.user.id})")
         await self.change_presence(
-            activity=discord.Streaming(name=f'{self.config.prefix}help',
-                                       url='https://www.twitch.tv/commanderroot'))
+            activity=discord.Streaming(
+                name=f"{self.config.prefix}help",
+                url="https://www.twitch.tv/commanderroot",
+            )
+        )
 
     async def on_shard_resumed(self, shard_id):
-        print(f'Shard ID {shard_id} has resumed..')
+        print(f"Shard ID {shard_id} has resumed..")
         self.resumes[shard_id].append(datetime.datetime.utcnow())
 
     async def process_commands(self, message):
@@ -91,11 +101,11 @@ class ADB(commands.AutoShardedBot):
         if ctx.command is None:
             return
 
-#        if ctx.author.id in self.blacklist:
-#            return
-#
-#        if ctx.guild is not None and ctx.guild.id in self.blacklist:
-#            return
+        #        if ctx.author.id in self.blacklist:
+        #            return
+        #
+        #        if ctx.guild is not None and ctx.guild.id in self.blacklist:
+        #            return
 
         await self.invoke(ctx)
 
@@ -112,11 +122,11 @@ class ADB(commands.AutoShardedBot):
         try:
             super().run(self.config.login_token, reconnect=True)
         finally:
-            with open('logs/prev_events.log', 'w', encoding='utf-8') as fp:
+            with open("logs/prev_events.log", "w", encoding="utf-8") as fp:
                 for data in self._prev_events:
                     try:
                         x = json.dumps(data, ensure_ascii=True, indent=4)
                     except:
-                        fp.write(f'{data}\n')
+                        fp.write(f"{data}\n")
                     else:
-                        fp.write(f'{x}\n')
+                        fp.write(f"{x}\n")
