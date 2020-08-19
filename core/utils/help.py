@@ -89,13 +89,11 @@ class HelpCommand(commands.HelpCommand):
     async def send_bot_help(self, mapping: dict) -> None:
         '''Send the global help.'''
         ctx = self.context
-        pages = menus.MenuPages(
-            source=HelpSource(
-                self.get_command_signature,
-                self.filter_commands,
-                ctx.prefix,
-                ctx.author,
-                mapping,
+        pages = menus.MenuPages(source=HelpSource(self.get_command_signature,
+                                                  self.filter_commands,
+                                                  ctx.prefix,
+                                                  ctx.author,
+                        mapping,
             ),
             clear_reactions_after=True,
         )
@@ -107,47 +105,30 @@ class HelpCommand(commands.HelpCommand):
         prefix = ctx.prefix
         e = SimpleEmbed(
             title=cog.qualified_name,
-            description=textwrap.dedent(
-                f'''
-                Help syntax : `<Required argument>`. `[t.Optional argument]`
-                Command prefix: `{prefix}`
-                {cog.description}
-                '''
-            )
-        )
-        e.set_author(
-            name=str(ctx.message.author),
-            icon_url=str(ctx.message.author.avatar_url),
-        )
+            description=textwrap.dedent(f'''Help syntax: `<Required argument>`. `[t.Optional argument]` Command prefix: `{prefix}`{cog.description}'''))
+        e.set_author(name=str(ctx.message.author),
+                     icon_url=str(ctx.message.author.avatar_url),
+                     )
         e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         for command in await self.filter_commands(cog.get_commands()):
             e.add_field(
                 name=f'{prefix}{self.get_command_signature(command)}',
                 value=command.help,
                 inline=False,
-            )
+                )
         await ctx.send(embed=e)
 
     async def send_command_help(self, command: commands.Command) -> None:
         '''Send help for a command.'''
         ctx = self.context
         prefix = ctx.prefix
-        e = SimpleEmbed(
-            title=f'{prefix}{self.get_command_signature(command)}',
-            description=textwrap.dedent(
-                f'''
-                Help syntax : `<Required arguments`.
-                `[t.Optional arguments]`
-                {command.help}
-                '''
-            )
-        )
+        e = SimpleEmbed(title=f'{prefix}{self.get_command_signature(command)}',
+                        description=textwrap.dedent(f'''Help syntax: `<Required arguments`. `[t.Optional arguments]`{command.help}'''))
         if command.aliases:
             e.add_field(name='Aliases :', value='\n'.join(command.aliases))
-        e.set_author(
-            name=str(ctx.message.author),
-            icon_url=str(ctx.message.author.avatar_url),
-        )
+        e.set_author(name=str(ctx.message.author),
+                     icon_url=str(ctx.message.author.avatar_url),
+                     )
         e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         await ctx.send(embed=e)
 
@@ -155,31 +136,16 @@ class HelpCommand(commands.HelpCommand):
         '''Send help for a group.'''
         ctx = self.context
         prefix = ctx.prefix
-        e = SimpleEmbed(
-            title=textwrap.dedent(
-                f'''
-                Help for group {prefix}
-                {self.get_command_signature(group)}
-                '''
-            ),
-            description=textwrap.dedent(
-                f'''
-                Help syntax : `<Required arguments>`.
-                `[t.Optional arguments]`
-                {group.help}
-                '''
-            )
-        )
+        e = SimpleEmbed(title=f'{prefix}{self.get_command_signature(command)}',
+                        description=textwrap.dedent(f'''Group help: `<Required arguments`. `[t.Optional arguments]`{command.help}'''))
         for command in await self.filter_commands(group.commands, sort=True):
-            e.add_field(
-                name=f'{prefix}{self.get_command_signature(command)}',
-                value=command.help,
-                inline=False,
-            )
-        e.set_author(
-            name=str(ctx.message.author),
-            icon_url=str(ctx.message.author.avatar_url),
-        )
+            e.add_field(name=f'{prefix}{self.get_command_signature(command)}',
+                        value=command.help,
+                        inline=False,
+                        )
+        e.set_author(name=str(ctx.message.author),
+                     icon_url=str(ctx.message.author.avatar_url),
+                     )
         e.set_thumbnail(url=str(ctx.bot.user.avatar_url))
         await ctx.send(embed=e)
 
@@ -192,10 +158,9 @@ class HelpCommand(commands.HelpCommand):
 def setup(bot: commands.Bot) -> None:
     '''Add the help command.'''
     bot.old_help_command = bot.help_command
-    bot.help_command = Help(
-        verify_checks=False,
-        command_attrs={'hidden': True},
-    )
+    bot.help_command = Help(verify_checks=False,
+                            command_attrs={'hidden': True},
+                            )
 
 
 def teardown(bot: commands.Bot) -> None:
