@@ -36,7 +36,11 @@ class Reddit(commands.Cog):
     @browse.command()
     async def meme(self, ctx, category: str = None):
         """Get the hottest memes from a specifif category.
-        Available categories: 
+        Available categories:
+            - Anime
+            - Minecraft
+            - Dank
+            - NGE
         """
         if (
             category == None
@@ -81,7 +85,7 @@ class Reddit(commands.Cog):
     async def hot(self, ctx, subreddit: str):
         """Browse hot submission in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
-        e = SimpleEmbed
+        e = SimpleEmbed(title)
 
 
 def setup(bot):

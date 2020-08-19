@@ -4,7 +4,6 @@ from discord.ext import commands
 import asyncio
 import datetime
 
-
 class SimpleEmbed(discord.Embed):
     def __init__(
         self, message: typing.Union[commands.Context, discord.Message] = None, **kwargs
@@ -25,6 +24,9 @@ class SimpleEmbed(discord.Embed):
             message = message.message
         title = kwargs.get("title")
         description = kwargs.get("description")
+
+        self.set_author(name=str(message.author),
+                        icon_url=str(message.author.avatar_url))
 
         self.set_footer(
             icon_url="https://i.imgur.com/gFHBoZA.png",
