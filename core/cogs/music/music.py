@@ -13,7 +13,6 @@ from ...utils.embed import Embed
 
 RURL = re.compile(r"https?:\/\/(?:www\.)?.+")
 
-
 class Track(wavelink.Track):
     __slots__ = ("requester", "channel", "message")
 
@@ -255,6 +254,11 @@ class Player(wavelink.Player):
             return False
         return False
 
+# TODO implement spotify integration
+
+class Spotify:
+    def __init__(self):
+        pass
 
 class Music(commands.Cog):
     def __init__(self, bot):
@@ -297,12 +301,7 @@ class Music(commands.Cog):
         elif isinstance(event, wavelink.TrackException):
             print(event.error)
 
-    @commands.command(name="reactcontrol", hidden=True)
-    async def react_control(self, ctx):
-        """Dummy command for error handling in our player."""
-        pass
-
-    @commands.command(name="connect")
+    @commands.command()
     async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
         """Connect to voice.
         """

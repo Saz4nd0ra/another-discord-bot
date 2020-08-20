@@ -20,12 +20,10 @@ another-discord-bot (dev branch)
 log = logging.getLogger(__name__)
 
 cogs_to_load = {  # of course nothing works as planned
-    "admin",
-    "mod",
     "music",
     "reddit",
     "events",
-    "meta",
+    "general"
 }
 
 
@@ -73,13 +71,7 @@ class ADB(commands.AutoShardedBot):
                 print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
-        elif isinstance(error, commands.ArgumentParsingError):
-            e = Embed(
-                title="An error occurred:",
-                description="Something went wrong while invoking your command.",
-                colour=discord.Color.red(),
-            )
-            await ctx.send(embed=e)
+                await ctx.send("`An error occurred while processing your command. Check the logs.`")
 
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):
