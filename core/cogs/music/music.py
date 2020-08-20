@@ -13,6 +13,7 @@ from ...utils.embed import Embed
 
 RURL = re.compile(r"https?:\/\/(?:www\.)?.+")
 
+
 class Track(wavelink.Track):
     __slots__ = ("requester", "channel", "message")
 
@@ -254,11 +255,14 @@ class Player(wavelink.Player):
             return False
         return False
 
+
 # TODO implement spotify integration
+
 
 class Spotify:
     def __init__(self):
         pass
+
 
 class Music(commands.Cog):
     def __init__(self, bot):
