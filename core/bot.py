@@ -74,9 +74,12 @@ class ADB(commands.AutoShardedBot):
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
         elif isinstance(error, commands.ArgumentParsingError):
-            await ctx.send(
-                "An error occured when invoking that command, check the logs."
+            e = Embed(
+                title="An error occurred:",
+                description="Something went wrong while invoking your command.",
+                colour=discord.Color.red(),
             )
+            await ctx.send(embed=e)
 
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):

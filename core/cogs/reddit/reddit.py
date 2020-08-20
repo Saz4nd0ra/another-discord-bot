@@ -1,7 +1,7 @@
 import discord
 from discord.ext import commands
 from ...utils import checks
-from ...utils.embed import SimpleEmbed
+from ...utils.embed import Embed
 import praw
 from praw import Reddit
 import random
@@ -46,7 +46,7 @@ class Reddit(commands.Cog):
             category == None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.get_hot_submission(subreddit="memes")
-            e = SimpleEmbed(title=f"Title: {submission.title}")
+            e = Embed(title=f"Title: {submission.title}")
             e.set_image(url=f"{submission.url}")
             e.add_field(
                 name=":thumbsup: **Upvotes**:", value=f"{submission.ups}", inline=True
@@ -69,7 +69,7 @@ class Reddit(commands.Cog):
             }
 
             submission = await self.get_hot_submission(switcher.get(category))
-            e = SimpleEmbed(title=f"Title: {submission.title}")
+            e = Embed(title=f"Title: {submission.title}")
             e.set_image(url=f"{submission.url}")
             e.add_field(
                 name=":thumbsup: **Upvotes**:", value=f"{submission.ups}", inline=True
@@ -85,7 +85,7 @@ class Reddit(commands.Cog):
     async def hot(self, ctx, subreddit: str):
         """Browse hot submission in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
-        e = SimpleEmbed(title)
+        e = Embed(title)
 
 
 def setup(bot):

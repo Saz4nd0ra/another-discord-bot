@@ -9,7 +9,7 @@ import wavelink
 from discord.ext import commands
 from typing import Union
 import humanize
-from ...utils.embed import SimpleEmbed
+from ...utils.embed import Embed
 
 RURL = re.compile(r"https?:\/\/(?:www\.)?.+")
 
@@ -113,7 +113,7 @@ class Player(wavelink.Player):
 
         self.updating = True
 
-        embed = SimpleEmbed(
+        embed = Embed(
             title="Music Controller",
             description=f"Now Playing:\n[{track.title}]({track.uri})",
         )
@@ -556,7 +556,7 @@ class Music(commands.Cog):
             )
 
         fmt = "\n".join(f"**`{str(song)}`**" for song in upcoming)
-        embed = SimpleEmbed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
+        embed = Embed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
 
         await ctx.send(embed=embed)
 

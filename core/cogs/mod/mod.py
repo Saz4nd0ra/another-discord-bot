@@ -132,13 +132,26 @@ class Mod(commands.Cog):
         elif isinstance(error, commands.CommandInvokeError):
             original = error.original
             if isinstance(original, discord.Forbidden):
-                await ctx.send("I do not have permission to execute this action.")
-            elif isinstance(original, discord.NotFound):
-                await ctx.send(f"This entity does not exist: {original.text}")
-            elif isinstance(original, discord.HTTPException):
-                await ctx.send(
-                    "Somehow, an unexpected error occurred. Try again later?"
+                e = Embed(
+                    title="An error occurred:",
+                    description="I do not have permissions to do that.",
+                    colour=discord.Color.red(),
                 )
+                await ctx.send(embed=e)
+            elif isinstance(original, discord.NotFound):
+                e = Embed(
+                    title="An error occurred:",
+                    description=f"This entity does not exist: {original.text}",
+                    colour=discord.Color.red(),
+                )
+                await ctx.send(embed=e)
+            elif isinstance(original, discord.HTTPException):
+                e = Embed(
+                    title="An error occurred:",
+                    description="Somehow, an uncaught error occured. Maybe try again later?",
+                    colour=discord.Color.red(),
+                )
+                await ctx.send(embed=e)
         elif isinstance(error, NoMuteRole):
             await ctx.send(error)
 
@@ -198,7 +211,11 @@ class Mod(commands.Cog):
             except discord.HTTPException:
                 failed += 1
 
-        await ctx.send(f"Banned {total_members - failed}/{total_members} members.")
+        e = Embed(
+            title="Multiban",
+            description=f"Banned {total_members - failed}/{total_members} members.",
+        )
+        await ctx.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -212,15 +229,16 @@ class Mod(commands.Cog):
 
         # For some reason there are cases due to caching that ctx.author
         # can be a User even in a guild only context
-        # Rather than trying to work out the kink with it
-        # Just upgrade the member itself.
         if not isinstance(ctx.author, discord.Member):
             try:
                 author = await ctx.guild.fetch_member(ctx.author.id)
             except discord.HTTPException:
-                return await ctx.send(
-                    "Somehow, Discord does not seem to think you are in this server."
+                e = Embed(
+                    title="An error occurred:",
+                    description="Somehow, Discord does not seem to think you are in this server.",
+                    colour=discord.Color.red(),
                 )
+                return await ctx.send(embed=e)
         else:
             author = ctx.author
 
@@ -271,7 +289,12 @@ class Mod(commands.Cog):
                 try:
                     _match = re.compile(args.match)
                 except re.error as e:
-                    return await ctx.send(f"Invalid regex passed to `--match`: {e}")
+                    e = Embed(
+                        title="An error occurred:",
+                        description=f"Invalid regex passed to `--match`: {e}",
+                        colour=discord.Color.red(),
+                    )
+                    return await ctx.send(embed=e)
                 else:
                     predicates.append(lambda m, x=_match: x.match(m.content))
             if args.embeds:
@@ -310,7 +333,12 @@ class Mod(commands.Cog):
             try:
                 _regex = re.compile(args.regex)
             except re.error as e:
-                return await ctx.send(f"Invalid regex passed to `--regex`: {e}")
+                e = Embed(
+                    title="An error occurred:",
+                    description=f"Invalid regex passed to `--match`: {e}",
+                    colour=discord.Color.red(),
+                )
+                return await ctx.send(embed=e)
             else:
                 predicates.append(lambda m, x=_regex: x.match(m.name))
 
@@ -362,7 +390,12 @@ class Mod(commands.Cog):
 
         members = {m for m in members if all(p(m) for p in predicates)}
         if len(members) == 0:
-            return await ctx.send("No members found matching criteria.")
+            e = Embed(
+                title="An error occurred:",
+                description="No members found matching criteria.",
+                colour=discord.Color.red(),
+            )
+            return await ctx.send(embed=e)
 
         if args.show:
             members = sorted(members, key=lambda m: m.joined_at or now)
@@ -385,7 +418,8 @@ class Mod(commands.Cog):
             f"This will ban **{plural(len(members)):member}**. Are you sure?"
         )
         if not confirm:
-            return await ctx.send("Aborting.")
+            e = Embed(title="Massban", description="Aborting.", colour=discord.Color.red())
+            return await ctx.send(embed=e)
 
         count = 0
         for member in members:
@@ -395,8 +429,8 @@ class Mod(commands.Cog):
                 pass
             else:
                 count += 1
-
-        await ctx.send(f"Banned {count}/{len(members)}")
+        e = Embed(title="Massban", description=f"Banned {count}/{len(members)}")
+        await ctx.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -410,7 +444,8 @@ class Mod(commands.Cog):
 
         await ctx.guild.ban(member, reason=reason)
         await ctx.guild.unban(member, reason=reason)
-        await ctx.send("\N{OK HAND SIGN}")
+        e = Embed(title="Softban", description=f"Softanned {memeber}.")
+        await ctx.send(embed=e)
 
     @commands.command()
     @commands.guild_only()
@@ -424,11 +459,17 @@ class Mod(commands.Cog):
 
         await ctx.guild.unban(member.user, reason=reason)
         if member.reason:
-            await ctx.send(
-                f"Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}."
+            e = Embed(
+                title="Massban",
+                description=f"Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}.",
             )
+            await ctx.send(embed=e)
         else:
-            await ctx.send(f"Unbanned {member.user} (ID: {member.user.id}).")
+            e = Embed(
+                title="Massban",
+                description=f"Unbanned {member.user} (ID: {member.user.id}).",
+            )
+            await ctx.send(embed=e)
 
     @commands.group(aliases=["purge"])
     @commands.guild_only()
@@ -443,7 +484,12 @@ class Mod(commands.Cog):
 
     async def do_removal(self, ctx, limit, predicate, *, before=None, after=None):
         if limit > 2000:
-            return await ctx.send(f"Too many messages to search given ({limit}/2000)")
+            e = Embed(
+                title="An error occurred:",
+                description=f"Too many messages to search given ({limit}/2000)",
+                colour=discord.Color.red(),
+            )
+            return await ctx.send(embed=e)
 
         if before is None:
             before = ctx.message
@@ -458,9 +504,19 @@ class Mod(commands.Cog):
                 limit=limit, before=before, after=after, check=predicate
             )
         except discord.Forbidden as e:
-            return await ctx.send("I do not have permissions to delete messages.")
+            e = Embed(
+                title="An error occurred:",
+                description="I do not have permissions to delete messages.",
+                colour=discord.Color.red(),
+            )
+            return await ctx.send(embed=e)
         except discord.HTTPException as e:
-            return await ctx.send(f"Error: {e} (try a smaller search?)")
+            e = Embed(
+                title="An error occurred:",
+                description=f"Error: {e} (try a smaller search?)",
+                colour=discord.Color.red(),
+            )
+            return await ctx.send(embed=e)
 
         spammers = Counter(m.author.display_name for m in deleted)
         deleted = len(deleted)
@@ -472,10 +528,10 @@ class Mod(commands.Cog):
 
         to_send = "\n".join(messages)
 
-        if len(to_send) > 2000:
-            await ctx.send(f"Successfully removed {deleted} messages.", delete_after=10)
-        else:
-            await ctx.send(to_send, delete_after=10)
+        e = Embed(
+            title="Remove", description=f"Successfully removed {deleted} messages."
+        )
+        await ctx.send(embed=e, delete_after=10)
 
     @remove.command()
     async def embeds(self, ctx, search=100):
@@ -511,7 +567,12 @@ class Mod(commands.Cog):
         The substring must be at least 3 characters long.
         """
         if len(substr) < 3:
-            await ctx.send("The substring length must be at least 3 characters.")
+            e = Embed(
+                title="An error occurred:",
+                description="The substring length must be greater than 3.",
+                colour=discord.Color.red(),
+            )
+            await ctx.send(embed=e)
         else:
             await self.do_removal(ctx, 100, lambda e: substr in e.content)
 
@@ -541,14 +602,23 @@ class Mod(commands.Cog):
         """Removes all reactions from messages that have them."""
 
         if search > 2000:
-            return await ctx.send(f"Too many messages to search for ({search}/2000)")
+            e = Embed(
+                title="An error occurred:",
+                description="Too many messages to search through, the limit is 2000.",
+                colour=discord.Color.red(),
+            )
+            await ctx.send(embed=e)
 
         total_reactions = 0
         async for message in ctx.history(limit=search, before=ctx.message):
             if len(message.reactions):
                 total_reactions += sum(r.count for r in message.reactions)
                 await message.clear_reactions()
-
+        e = Embed(
+            title="Remove",
+            description=f"Successfully removed {total_reactions} reactions.",
+        )
+        await ctx.send(embed=e)
         await ctx.send(f"Successfully removed {total_reactions} reactions.")
 
     @remove.command()

@@ -1,6 +1,6 @@
 from discord.ext import commands
 from ...utils import checks, formats, time
-from ...utils.embed import SimpleEmbed
+from ...utils.embed import Embed
 import discord
 from collections import OrderedDict, deque, Counter
 import os, datetime
@@ -39,14 +39,11 @@ class Meta(commands.Cog):
     @commands.command(hidden=True)
     async def hello(self, ctx):
         """Displays my intro message."""
-        await ctx.send("Hello! I'm a robot! Danny#0007 made me.")
+        await ctx.send("Hello! I'm a robot! Saz4nd0ra#5506 made me.")
 
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):
-        """Shows you information about a number of characters.
-
-        Only up to 25 characters at a time.
-        """
+        """Shows you information about a number of characters."""
 
         def to_string(c):
             digit = f"{ord(c):x}"
@@ -60,12 +57,7 @@ class Meta(commands.Cog):
 
     @commands.command()
     async def source(self, ctx, *, command: str = None):
-        """Displays my full source code or for a specific command.
-
-        To display the source code of a subcommand you can separate it by
-        periods, e.g. tag.create for the create subcommand of the tag command
-        or by spaces.
-        """
+        """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
         branch = "master"
         if command is None:
@@ -101,7 +93,7 @@ class Meta(commands.Cog):
     @commands.command()
     async def avatar(self, ctx, *, user: Union[discord.Member, FetchedUser] = None):
         """Shows a user's enlarged avatar (if possible)."""
-        e = SimpleEmbed()
+        e = Embed()
         user = user or ctx.author
         avatar = user.avatar_url_as(static_format="png")
         e.set_author(name=str(user), url=avatar)
@@ -116,7 +108,7 @@ class Meta(commands.Cog):
         if ctx.guild and isinstance(user, discord.User):
             user = ctx.guild.get_member(user.id) or user
 
-        e = SimpleEmbed()
+        e = Embed(title="Meta")
         roles = [
             role.name.replace("@", "@\u200b") for role in getattr(user, "roles", [])
         ]
@@ -175,7 +167,12 @@ class Meta(commands.Cog):
         if guild_id is not None and await self.bot.is_owner(ctx.author):
             guild = self.bot.get_guild(guild_id)
             if guild is None:
-                return await ctx.send(f"Invalid Guild ID given.")
+                e = Embed(
+                    title="An error occurred:",
+                    description="Invalid Guild ID given.",
+                    colour=discord.Color.red(),
+                )
+                return await ctx.send(embed=e)
         else:
             guild = ctx.guild
 
@@ -205,7 +202,7 @@ class Meta(commands.Cog):
 
         member_by_status = Counter(str(m.status) for m in guild.members)
 
-        e = SimpleEmbed(
+        e = Embed(
             title=guild.name,
             description=f"**ID**: {guild.id}\n**Owner**: {guild.owner}",
         )
@@ -305,7 +302,7 @@ class Meta(commands.Cog):
 
     async def say_permissions(self, ctx, member, channel):
         permissions = channel.permissions_for(member)
-        e = SimpleEmbed()
+        e = Embed()
         avatar = member.avatar_url_as(static_format="png")
         e.set_author(name=str(member), url=avatar)
         allowed, denied = [], []
@@ -325,13 +322,7 @@ class Meta(commands.Cog):
     async def permissions(
         self, ctx, member: discord.Member = None, channel: discord.TextChannel = None
     ):
-        """Shows a member's permissions in a specific channel.
-
-        If no channel is given then it uses the current one.
-
-        You cannot use this in private messages. If no member is given then
-        the info returned will be yours.
-        """
+        """Shows a member's permissions in a specific channel."""
         channel = channel or ctx.channel
         if member is None:
             member = ctx.author
@@ -342,16 +333,7 @@ class Meta(commands.Cog):
     @commands.guild_only()
     @checks.admin_or_permissions(manage_roles=True)
     async def botpermissions(self, ctx, *, channel: discord.TextChannel = None):
-        """Shows the bot's permissions in a specific channel.
-
-        If no channel is given then it uses the current one.
-
-        This is a good way of checking if the bot has the permissions needed
-        to execute the commands it wants to execute.
-
-        To execute this command you must have Manage Roles permission.
-        You cannot use this in private messages.
-        """
+        """Shows the bot's permissions in a specific channel."""
         channel = channel or ctx.channel
         member = ctx.guild.me
         await self.say_permissions(ctx, member, channel)

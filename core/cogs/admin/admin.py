@@ -14,11 +14,13 @@ import copy
 import time
 import subprocess
 from ...utils import checks
+from ...utils.embed import Embed
 from typing import Union, Optional
 
 # to expose to the eval command
 import datetime
 from collections import Counter
+
 
 class Admin(commands.Cog):
     """Admin-only commands that make the bot dynamic."""
@@ -82,8 +84,8 @@ class Admin(commands.Cog):
             await ctx.send("\N{OK HAND SIGN}")
 
     @checks.is_admin()
-    @commands.group(name="reload", invoke_without_command=True)
-    async def _reload(self, ctx, *, module):
+    @commands.group(invoke_without_command=True)
+    async def reload(self, ctx, *, module):
         """Reloads a module."""
         try:
             self.bot.reload_extension(module)
@@ -102,7 +104,7 @@ class Admin(commands.Cog):
             if ext != ".py":
                 continue
 
-            if root.startswith("cogs/"):
+            if root.startswith("core/cogs/"):
                 # A submodule is a directory inside the main cog directory for
                 # my purposes
                 ret.append((root.count("/") - 1, root.replace("/", ".")))
@@ -118,60 +120,8 @@ class Admin(commands.Cog):
             self.bot.load_extension(module)
 
     @checks.is_admin()
-    @_reload.command(name="all")
-    async def _reload_all(self, ctx):
-        """Reloads all modules, while pulling from git."""
-
-        async with ctx.typing():
-            stdout, stderr = await self.run_process("git pull")
-
-        # progress and stuff is redirected to stderr in git pull
-        # however, things like "fast forward" and files
-        # along with the text "already up-to-date" are in stdout
-
-        if stdout.startswith("Already up-to-date."):
-            return await ctx.send(stdout)
-
-        modules = self.find_modules_from_git(stdout)
-        mods_text = "\n".join(
-            f"{index}. `{module}`" for index, (_, module) in enumerate(modules, start=1)
-        )
-        prompt_text = (
-            f"This will update the following modules, are you sure?\n{mods_text}"
-        )
-        confirm = await ctx.prompt(prompt_text, reacquire=False)
-        if not confirm:
-            return await ctx.send("Aborting.")
-
-        statuses = []
-        for is_submodule, module in modules:
-            if is_submodule:
-                try:
-                    actual_module = sys.modules[module]
-                except KeyError:
-                    statuses.append((ctx.tick(None), module))
-                else:
-                    try:
-                        importlib.reload(actual_module)
-                    except Exception as e:
-                        statuses.append((ctx.tick(False), module))
-                    else:
-                        statuses.append((ctx.tick(True), module))
-            else:
-                try:
-                    self.reload_or_load_extension(module)
-                except commands.ExtensionError:
-                    statuses.append((ctx.tick(False), module))
-                else:
-                    statuses.append((ctx.tick(True), module))
-
-        await ctx.send(
-            "\n".join(f"{status}: `{module}`" for status, module in statuses)
-        )
-
-    @checks.is_admin()
-    @commands.command(pass_context=True, name="eval")
-    async def _eval(self, ctx, *, body: str):
+    @commands.command(pass_context=True)
+    async def eval(self, ctx, *, body: str):
         """Evaluates code"""
 
         env = {
@@ -232,13 +182,20 @@ class Admin(commands.Cog):
         }
 
         if ctx.channel.id in self.sessions:
-            await ctx.send(
-                "Already running a REPL session in this channel. Exit it with `quit`."
+            e = Embed(
+                title="An error occurred:",
+                description="Already running a REPL session in this channel. Exit it with `quit`.",
+                colour=discord.Color.red(),
             )
+            await ctx.send(embed=e)
             return
 
         self.sessions.add(ctx.channel.id)
-        await ctx.send("Enter code to execute or evaluate. `exit()` or `quit` to exit.")
+        e = Embed(
+            title="REPL",
+            description="Enter code to execute or evaluate. `exit()` or `quit` to exit.",
+        )
+        await ctx.send(embed=e)
 
         def check(m):
             return (
@@ -253,14 +210,16 @@ class Admin(commands.Cog):
                     "message", check=check, timeout=10.0 * 60.0
                 )
             except asyncio.TimeoutError:
-                await ctx.send("Exiting REPL session.")
+                e = Embed(title="REPL", description="Exiting REPL session.",)
+                await ctx.send(embed=e)
                 self.sessions.remove(ctx.channel.id)
                 break
 
             cleaned = self.cleanup_code(response.content)
 
             if cleaned in ("quit", "exit", "exit()"):
-                await ctx.send("Exiting.")
+                e = Embed(title="REPL", description="Exiting REPL session.",)
+                await ctx.send(embed=e)
                 self.sessions.remove(ctx.channel.id)
                 return
 
@@ -312,6 +271,7 @@ class Admin(commands.Cog):
                 pass
             except discord.HTTPException as e:
                 await ctx.send(f"Unexpected error: `{e}`")
-                
+
+
 def setup(bot):
     bot.add_cog(Admin(bot))
