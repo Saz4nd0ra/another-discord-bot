@@ -145,3 +145,4 @@ migrations/
 nohup.out
 data/
 screenlog.0
+venv_win/

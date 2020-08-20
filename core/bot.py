@@ -3,7 +3,6 @@ import discord
 from .utils import context
 from .utils.help import HelpCommand
 from .utils.config import Config
-from .utils.embed import SimpleEmbed
 import datetime
 import json
 import logging
