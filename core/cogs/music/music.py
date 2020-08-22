@@ -169,8 +169,7 @@ class Player(wavelink.Player):
 
     async def reaction_controller(self):
         """Our reaction controller, attached to our controller.
-        This handles the reaction buttons and it's controls.
-        """
+        This handles the reaction buttons and it's controls."""
         self.bot.loop.create_task(self.add_reactions())
 
         def check(r, u):
@@ -307,12 +306,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
-        """Connect to voice.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Connect to voice."""
 
         if not channel:
             try:
@@ -328,14 +322,9 @@ class Music(commands.Cog):
 
         await player.connect(channel.id)
 
-    @commands.command(name="play")
+    @commands.command(name="play", aliases=["p"])
     async def play(self, ctx, *, query: str):
-        """Queue a song or playlist for playback.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Queue a song or playlist for playback."""
 
         await ctx.trigger_typing()
 
@@ -377,14 +366,10 @@ class Music(commands.Cog):
         if player.controller_message and player.is_playing:
             await player.invoke_controller()
 
-    @commands.command(name="now_playing", aliases=["np", "now"])
+    @commands.command(name="nowplaying", aliases=["np", "now"])
     async def now_playing(self, ctx):
-        """Invoke the player controller.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Invoke the player controller."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         if not player:
             return
@@ -401,10 +386,7 @@ class Music(commands.Cog):
     async def pause(self, ctx):
         """Pause the currently playing song.
         """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         if not player:
             return
@@ -425,12 +407,8 @@ class Music(commands.Cog):
 
     @commands.command(name="resume")
     async def resume(self, ctx):
-        """Resume a currently paused song.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Resume a currently paused song."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -448,12 +426,8 @@ class Music(commands.Cog):
 
     @commands.command(name="skip")
     async def skip(self, ctx):
-        """Skip the current song.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Skip the current song."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -469,12 +443,8 @@ class Music(commands.Cog):
 
     @commands.command(name="stop", aliases=["leave"])
     async def stop(self, ctx):
-        """Stop the player, disconnect and clear the queue.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Stop the player, disconnect and clear the queue."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -491,10 +461,7 @@ class Music(commands.Cog):
 
     @commands.command(name="seek")
     async def seek(self, ctx, *, position: str):
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Scrub through the song."""
 
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
@@ -518,12 +485,8 @@ class Music(commands.Cog):
 
     @commands.command(name="volume", aliases=["vol", "v"])
     async def volume(self, ctx, *, volume: int):
-        """Change the player volume.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Change the player volume."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -540,12 +503,8 @@ class Music(commands.Cog):
 
     @commands.command(name="queue", aliases=["q"])
     async def queue(self, ctx):
-        """Retrieve a list of currently queued songs.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Retrieve a list of currently queued songs."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -565,12 +524,8 @@ class Music(commands.Cog):
 
     @commands.command(name="shuffle", aliases=["mix"])
     async def shuffle(self, ctx):
-        """Shuffle the current queue.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Shuffle the current queue."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -597,10 +552,7 @@ class Music(commands.Cog):
     async def repeat(self, ctx):
         """Repeat the currently playing song.
         """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -621,10 +573,7 @@ class Music(commands.Cog):
 
     @commands.command(name="vol_up", hidden=True)
     async def volume_up(self, ctx):
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -642,10 +591,7 @@ class Music(commands.Cog):
 
     @commands.command(name="vol_down", hidden=True)
     async def volume_down(self, ctx):
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
@@ -663,12 +609,8 @@ class Music(commands.Cog):
 
     @commands.command()
     async def llinfo(self, ctx):
-        """Retrieve various Music / WaveLink information.
-        """
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
+        """Retrieve various Music / WaveLink information."""
+
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         node = player.node
 

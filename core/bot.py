@@ -97,11 +97,8 @@ class ADB(commands.AutoShardedBot):
         if ctx.command is None:
             return
 
-        #        if ctx.author.id in self.blacklist:
-        #            return
-        #
-        #        if ctx.guild is not None and ctx.guild.id in self.blacklist:
-        #            return
+        if message.author.id is in self.config.blacklisted_ids:
+            return
 
         await self.invoke(ctx)
 

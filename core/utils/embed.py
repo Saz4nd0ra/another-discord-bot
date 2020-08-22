@@ -27,9 +27,7 @@ class Embed(discord.Embed):
 
         if ctx:
             footer_image = self.ctx.bot.user.avatar_url
-            self.set_footer(
-                text="Saz4nd0ra/another-discord-bot", icon_url=footer_image
-            )
+            self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url=footer_image)
         else:
             pass
         if kwargs.get("image"):

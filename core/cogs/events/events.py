@@ -1,7 +1,6 @@
 import discord
 from discord.ext import commands
 import logging
-from ...utils import checks
 
 log = logging.getLogger(__name__)
 

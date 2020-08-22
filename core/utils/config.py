@@ -29,12 +29,16 @@ class Config:
 
         self.login_token = config.get("Credentials", "Token")
 
-        self.ignored_ids = config.get("IDs", "IgnoredIDs")
+        self.privileged_users = config.get("IDs", "PrivilegedUsers")
+        self.admin_role_ids = config.get("IDs", "AdminRoleIDs")
+        self.mod_role_ids = config.get("IDs", "ModRoleIDs")
+        self.owner_id = config.get("IDs", "OwnerID")
         self.dev_ids = config.get("IDs", "DevIDs")
 
         self.prefix = config.get("Bot", "Prefix")
         self.enable_msg_logging = config.getboolean("Bot", "EnableMSGLogging")
         self.msg_logging_channel = config.get("Bot", "LoggingChannel")
+        self.blacklisted_ids = config.get("Bot", "BlacklistedIDs")
 
         self.vote_skip = config.getboolean("Music", "VoteSkip")
         self.skip_ratio = config.get("Music", "SkipRatio")

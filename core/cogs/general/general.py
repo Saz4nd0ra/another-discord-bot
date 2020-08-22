@@ -44,7 +44,7 @@ class General(commands.Cog):
             ("ID:", f"{user.id}"),
             ("Created:", f"{humanize.naturaldate(user.created_at)}"),
             ("Joined:", f"{humanize.naturaldate(user.joined_at)}"),
-            ("Roles:", f"{show_roles}")
+            ("Roles:", f"{show_roles}"),
         )
 
         await ctx.send(embed=e)

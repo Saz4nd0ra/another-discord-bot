@@ -1,97 +1,54 @@
 from discord.ext import commands
-from .config import Config
-
-config = Config()
-
-# those checks are written without security or extended functionality in mind
-# they don't take channel overrides into account
-# needs a lot of tuning still
-# TODO user overridable admin and mod roles
 
 
-async def check_permissions(ctx, perms, *, check=all):
-    is_owner = await ctx.bot.is_owner(ctx.author)
-    if is_owner:
-        return True
+def is_owner():
+    async def predicate(ctx):
+        if ctx.bot.config.owner_id == "auto" and ctx.author.id is ctx.bot.owner_id:
+            return True
+        elif ctx.author.id is ctx.bot.config.owner_id:
+            return True
+        else:
+            return False
 
-    resolved = ctx.channel.permissions_for(ctx.author)
-    return check(
-        getattr(resolved, name, None) == value for name, value in perms.items()
-    )
-
-
-def has_permissions(*, check=all, **perms):
-    async def pred(ctx):
-        return await check_permissions(ctx, perms, check=check)
-
-    return commands.check(pred)
+    return commands.check(predicate)
 
 
-async def check_guild_permissions(ctx, perms, *, check=all):
-    is_owner = await ctx.bot.is_owner(ctx.author)
-    if is_owner:
-        return True
+def not_dm():
+    async def predicate(ctx):
+        if not ctx.message.guild:
+            raise commands.NoPrivateMessage()
+        else:
+            return True
 
-    if ctx.guild is None:
-        return False
-
-    resolved = ctx.author.guild_permissions
-    return check(
-        getattr(resolved, name, None) == value for name, value in perms.items()
-    )
-
-
-def has_guild_permissions(*, check=all, **perms):
-    async def pred(ctx):
-        return await check_guild_permissions(ctx, perms, check=check)
-
-    return commands.check(pred)
-
-
-# These do not take channel overrides into account
-
-
-def is_mod():
-    async def pred(ctx):
-        return await check_guild_permissions(ctx, {"manage_guild": True})
-
-    return commands.check(pred)
+    return commands.check(predicate)
 
 
 def is_admin():
-    async def pred(ctx):
-        return await check_guild_permissions(ctx, {"administrator": True})
-
-    return commands.check(pred)
-
-
-def mod_or_permissions(**perms):
-    perms["manage_guild"] = True
-
     async def predicate(ctx):
-        return await check_guild_permissions(ctx, perms, check=any)
-
-    return commands.check(predicate)
-
-
-def admin_or_permissions(**perms):
-    perms["administrator"] = True
-
-    async def predicate(ctx):
-        return await check_guild_permissions(ctx, perms, check=any)
-
-    return commands.check(predicate)
-
-
-def is_in_guilds(*guild_ids):
-    def predicate(ctx):
-        guild = ctx.guild
-        if guild is None:
+        if not ctx.message.guild:
+            raise commands.NoPrivateMessage()
+        elif ctx.author.guild_permissions.administrator:
+            return True
+        elif ctx.author.roles[1].id in ctx.bot.config.admin_role_ids:
+            return True
+        else:
             return False
-        return guild.id in guild_ids
+            ctx.send("You do not have the necessary permissions to use that command.")
 
     return commands.check(predicate)
 
+def is_mod():
+    async def predicate(ctx):
+        if not ctx.message.guild:
+            raise commands.NoPrivateMessage()
+        elif ctx.author.guild_permissions.delete_messages:
+            return True
+        elif ctx.author.roles[1].id in ctx.bot.config.mod_role_ids:
+            return True
+        else:
+            return False
+            ctx.send("You do not have the necessary permissions to use that command.")
 
-def is_lounge_cpp():
-    return is_in_guilds()
+    return commands.check(predicate)
+
+      
