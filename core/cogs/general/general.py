@@ -60,11 +60,8 @@ class General(commands.Cog):
             if ctx.guild.banner:
                 image = ctx.guild.banner_url_as(format="png")
 
-            e = Embed(
-                title=f"Server: {ctx.guild.name}", image=image, thumbnail=thumbnail
-            )
+            e = Embed(ctx=ctx, title=f"Server: {ctx.guild.name}", thumbnail=thumbnail)
 
-            e.add_field(name="Server Name:", value=ctx.guild.name, inline=True)
             e.add_field(name="Server ID:", value=ctx.guild.id, inline=True)
             e.add_field(name="Members:", value=ctx.guild.member_count, inline=True)
             e.add_field(name="Bots:", value=str(findbots), inline=True)
@@ -82,6 +79,7 @@ class General(commands.Cog):
         """Get the current server icon"""
         if not ctx.guild.icon:
             return await ctx.send("This server does not have a avatar.")
+
         await ctx.send(ctx.guild.icon_url_as(size=512))
 
     @server.command()
@@ -90,6 +88,26 @@ class General(commands.Cog):
         if not ctx.guild.banner:
             return await ctx.send("This server does not have a banner.")
         await ctx.send(ctx.guild.banner_url_as(format="png"))
+
+    @commands.command()
+    async def charinfo(self, ctx, *, characters: str):
+        """Shows you information about a number of characters.
+        Only up to 25 characters at a time.
+        """
+
+        def to_string(c):
+            digit = f"{ord(c):x}"
+            name = unicodedata.name(c, "Name not found.")
+            return f"`\\U{digit:>08}`: {name} - {c} \N{EM DASH} <http://www.fileformat.info/info/unicode/char/{digit}>"
+
+        msg = "\n".join(map(to_string, characters))
+        if len(msg) > 2000:
+            return await ctx.send("Output too long to display.")
+        await ctx.send(msg)
+
+    @commands.group()
+    async def random(ctx):
+        """A group of commands to provide pseudo randomness."""
 
     @commands.command()
     async def choice(self, ctx, *options):

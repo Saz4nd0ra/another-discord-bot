@@ -23,6 +23,12 @@ class Embed(discord.Embed):
             author_image = self.ctx.author.avatar_url
             self.set_author(name=title, icon_url=author_image)
 
+        # if kwargs have an argument called colour, set the embed to colour to that
+        # else default to discord blurple
+        # little note 0xe82243 is our error colour for future embed error messages
+
+        self.colour = int(kwargs.get("colour")) if kwargs.get("colour") else 0x7289DA
+
         self.description = kwargs.get("description")
 
         if ctx:

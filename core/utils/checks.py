@@ -37,6 +37,7 @@ def is_admin():
 
     return commands.check(predicate)
 
+
 def is_mod():
     async def predicate(ctx):
         if not ctx.message.guild:
@@ -51,4 +52,15 @@ def is_mod():
 
     return commands.check(predicate)
 
-      
+
+def is_dev():
+    async def predicate(ctx):
+        if not ctx.message.guild:
+            raise commands.NoPrivateMessage()
+        elif ctx.author.id in ctx.bot.config.dev_ids:
+            return True
+        else:
+            return False
+            ctx.send("You do not have the necessary permissions to use that command.")
+
+    return commands.check(predicate)

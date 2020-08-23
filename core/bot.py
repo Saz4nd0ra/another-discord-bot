@@ -97,7 +97,7 @@ class ADB(commands.AutoShardedBot):
         if ctx.command is None:
             return
 
-        if message.author.id is in self.config.blacklisted_ids:
+        if str(message.author.id) in str(self.config.blacklisted_ids):
             return
 
         await self.invoke(ctx)
