@@ -4,6 +4,9 @@ from discord.ext import commands
 from ...utils.embed import Embed
 import random
 import humanize
+import unicodedata
+import inspect
+import os
 
 log = logging.getLogger(__name__)
 
@@ -79,8 +82,12 @@ class General(commands.Cog):
         """Get the current server icon"""
         if not ctx.guild.icon:
             return await ctx.send("This server does not have a avatar.")
-
-        await ctx.send(ctx.guild.icon_url_as(size=512))
+        e = Embed(
+            ctx=ctx,
+            title=f"{ctx.guild.name}s Server Icon",
+            image=ctx.guild.icon_url_as(size=512),
+        )
+        await ctx.send(embed=e)
 
     @server.command()
     async def banner(self, ctx):
@@ -92,8 +99,7 @@ class General(commands.Cog):
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):
         """Shows you information about a number of characters.
-        Only up to 25 characters at a time.
-        """
+        Only up to 25 characters at a time."""
 
         def to_string(c):
             digit = f"{ord(c):x}"
@@ -105,19 +111,48 @@ class General(commands.Cog):
             return await ctx.send("Output too long to display.")
         await ctx.send(msg)
 
+    @commands.command()
+    async def source(self, ctx, *, command: str = None):
+        """Displays my full source code or for a specific command."""
+        source_url = 'https://github.com/Saz4nd0ra/another-discord-bot'
+        branch = 'master'
+        if command is None:
+            return await ctx.send(source_url)
+
+        if command == 'help':
+            src = type(self.bot.help_command)
+            module = src.__module__
+            filename = inspect.getsourcefile(src)
+        else:
+            obj = self.bot.get_command(command.replace('.', ' '))
+            if obj is None:
+                return await ctx.send('Could not find command.')
+
+            # since we found the command we're looking for, presumably anyway, let's
+            # try to access the code itself
+            src = obj.callback.__code__
+            module = obj.callback.__module__
+            filename = src.co_filename
+
+        lines, firstlineno = inspect.getsourcelines(src)
+        location = os.path.relpath(filename).replace('\\', '/')
+
+        final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
+        await ctx.send(final_url)
+
     @commands.group()
-    async def random(ctx):
+    async def random(self, ctx):
         """A group of commands to provide pseudo randomness."""
 
-    @commands.command()
+    @random.command()
     async def choice(self, ctx, *options):
         """Chooses between multiple options"""
         if not len(options) > 0:
-            await ctx.send("You gotta give me a couple different options.")
+            await ctx.send("You will have to give me a couple different options.")
         else:
-            await ctx.send(random.choice(options))
+            await ctx.send(f"**{random.choice(options)}**")
 
-    @commands.command()
+    @random.command()
     async def number(self, ctx, maximum: int, minimum: int = 0):
         """Gives a random number"""
         result = None
@@ -126,6 +161,7 @@ class General(commands.Cog):
         else:
             result = random.randint(minimum, maximum)
         await ctx.send(result)
+
 
 
 def setup(bot):

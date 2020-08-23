@@ -1,5 +1,7 @@
 from discord.ext import commands
+import logging
 
+log = logging.getLogger('utils.checks')
 
 def is_owner():
     async def predicate(ctx):
@@ -31,6 +33,9 @@ def is_admin():
             return True
         elif ctx.author.roles[1].id in ctx.bot.config.admin_role_ids:
             return True
+        elif is_owner() is True: # bypass for owner
+            log.info("Owner used admin command.")
+            return True
         else:
             return False
             ctx.send("You do not have the necessary permissions to use that command.")
@@ -46,6 +51,9 @@ def is_mod():
             return True
         elif ctx.author.roles[1].id in ctx.bot.config.mod_role_ids:
             return True
+        elif is_owner() is True: # again, bypass for owner
+            log.info("Owner used mod command.")
+            return True
         else:
             return False
             ctx.send("You do not have the necessary permissions to use that command.")
@@ -59,6 +67,9 @@ def is_dev():
             raise commands.NoPrivateMessage()
         elif ctx.author.id in ctx.bot.config.dev_ids:
             return True
+        elif is_owner() is True: # again, bypass for owner
+            log.info("Owner used developer command.")
+            return True 
         else:
             return False
             ctx.send("You do not have the necessary permissions to use that command.")

@@ -13,6 +13,7 @@ class HelpSource(menus.ListPageSource):
 
     def __init__(
         self,
+        ctx,
         signature: t.Callable,
         filter_commands: t.Coroutine,
         prefix: str,
@@ -30,12 +31,13 @@ class HelpSource(menus.ListPageSource):
 
     async def format_page(
         self,
+        ctx,
         menu: menus.Menu,
         cog_tuple: t.Tuple[t.Optional[commands.Cog], t.List[commands.Command]],
     ) -> discord.Embed:
         """Format the pages."""
         cog, command_list = cog_tuple
-        e = discord.Embed(
+        e = Embed(
             title=textwrap.dedent(
                 f"""
                 Help for
@@ -48,11 +50,7 @@ class HelpSource(menus.ListPageSource):
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ''}
                 """
-            ),
-            colour=discord.Color.blurple(),
-        )
-        e.set_author(
-            name=self.menu_author, icon_url=str(self.menu_author.avatar_url),
+            )
         )
         for command in await self.filter_commands(command_list):
             e.add_field(
@@ -91,6 +89,7 @@ class HelpCommand(commands.HelpCommand):
         ctx = self.context
         pages = menus.MenuPages(
             source=HelpSource(
+                ctx,
                 self.get_command_signature,
                 self.filter_commands,
                 ctx.prefix,

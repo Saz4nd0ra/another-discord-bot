@@ -31,11 +31,8 @@ class Embed(discord.Embed):
 
         self.description = kwargs.get("description")
 
-        if ctx:
-            footer_image = self.ctx.bot.user.avatar_url
-            self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url=footer_image)
-        else:
-            pass
+        self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url="")
+
         if kwargs.get("image"):
             self.set_image(url=kwargs.get("image"))
         if kwargs.get("thumbnail"):
@@ -44,3 +41,6 @@ class Embed(discord.Embed):
     def add_fields(self, *fields: Tuple[str, str]):
         for name, value in fields:
             self.add_field(name=name, value=value, inline=True)
+
+    def add_field(self, field: Tuple[str, str]):
+        self.add_field(name=name, value=value, inline=inline if )
