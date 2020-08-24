@@ -8,9 +8,6 @@ import random
 
 from typing import Tuple
 
-# TODO all of that
-
-# TODO check for kwargs
 
 class Embed(discord.Embed):
     def __init__(self, ctx: Context = None, *, title: str, **kwargs):

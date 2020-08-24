@@ -5,7 +5,6 @@ from .utils.config import Config
 import datetime
 import json
 import logging
-import traceback
 import sys
 import aiohttp
 from collections import Counter, deque, defaultdict
@@ -57,19 +56,6 @@ class ADB(commands.AutoShardedBot):
             except Exception as e:
                 log.error(f"Failed to load extension {cog} due to {e}.")
                 traceback.print_exc()
-
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send("This command cannot be used in private messages.")
-        elif isinstance(error, commands.DisabledCommand):
-            await ctx.author.send("Sorry. This command is disabled and cannot be used.")
-        elif isinstance(error, commands.CommandInvokeError):
-            original = error.original
-            if not isinstance(original, discord.HTTPException):
-                print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
-                traceback.print_tb(original.__traceback__)
-                print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
-                await ctx.error(message=f"{original.__traceback__}")
 
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):
