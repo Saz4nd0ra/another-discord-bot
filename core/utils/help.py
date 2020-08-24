@@ -50,7 +50,7 @@ class HelpSource(menus.ListPageSource):
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ''}
                 """
-            )
+            ),
         )
         for command in await self.filter_commands(command_list):
             e.add_field(

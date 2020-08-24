@@ -16,7 +16,7 @@ class Reddit(commands.Cog):
         self.bot = bot
         self.config = self.bot.config
         self.reddit = praw.Reddit(
-            client_id=self.onfig.praw_clientid,  # connecting to reddit, read-only should be enough for our use
+            client_id=self.config.praw_clientid,  # connecting to reddit, read-only should be enough for our use
             client_secret=self.config.praw_secret,
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )

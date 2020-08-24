@@ -1,5 +1,5 @@
 from discord.ext import commands
-from ..utils.embed import ErrorEmbed 
+import discord
 import asyncio
 import discord
 import io
@@ -35,5 +35,5 @@ class Context(commands.Context):
 
     async def error(self, message):
         """Triggers our Error embed to send the error message needed."""
-        e = ErrorEmbed(ctx=self, message=message)
-        
+        e = discord.Embed(title="An error occurred:", message=message, color=0xe82243)
+        await self.send(embed=e)

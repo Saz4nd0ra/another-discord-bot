@@ -2,7 +2,7 @@ import discord
 from discord.ext import commands
 import logging
 
-log = logging.getLogger('cogs.events')
+log = logging.getLogger("cogs.events")
 
 
 class Events(commands.Cog):

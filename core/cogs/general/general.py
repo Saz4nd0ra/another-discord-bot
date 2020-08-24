@@ -8,7 +8,7 @@ import unicodedata
 import inspect
 import os
 
-log = logging.getLogger('cogs.general')
+log = logging.getLogger("cogs.general")
 
 
 class General(commands.Cog):
@@ -43,7 +43,7 @@ class General(commands.Cog):
 
         e.add_fields(
             ("Username:", f"{user}"),
-            ("Display name:", f"{user.nick}"),
+            ("Nickname:", f"{user.nick}"),
             ("ID:", f"{user.id}"),
             ("Created:", f"{humanize.naturaldate(user.created_at)}"),
             ("Joined:", f"{humanize.naturaldate(user.joined_at)}"),
@@ -64,16 +64,13 @@ class General(commands.Cog):
                 image = ctx.guild.banner_url_as(format="png")
 
             e = Embed(ctx=ctx, title=f"Server: {ctx.guild.name}", thumbnail=thumbnail)
-
-            e.add_field(name="Server ID:", value=ctx.guild.id, inline=True)
-            e.add_field(name="Members:", value=ctx.guild.member_count, inline=True)
-            e.add_field(name="Bots:", value=str(findbots), inline=True)
-            e.add_field(name="Owner:", value=ctx.guild.owner, inline=True)
-            e.add_field(name="Region:", value=ctx.guild.region, inline=True)
-            e.add_field(
-                name="Created:",
-                value=humanize.naturaldate(ctx.guild.created_at),
-                inline=True,
+            e.add_fields(
+                ("Server ID:", f"{ctx.guild.id}"),
+                ("Members:", f"{ctx.guild.member_count}"),
+                ("Bots:", f"{str(findbots)}"),
+                ("Owner:", f"{ctx.guild.owner}"),
+                ("Region:", f"{ctx.guild.region}"),
+                ("Created:", f"{humanize.naturaldate(ctx.guild.created_at)}"),
             )
             await ctx.send(embed=e)
 
@@ -81,7 +78,7 @@ class General(commands.Cog):
     async def icon(self, ctx):
         """Get the current server icon"""
         if not ctx.guild.icon:
-            return await ctx.send("This server does not have a avatar.")
+            return await ctx.error("This server does not have a avatar.")
         e = Embed(
             ctx=ctx,
             title=f"{ctx.guild.name}s Server Icon",
@@ -93,7 +90,7 @@ class General(commands.Cog):
     async def banner(self, ctx):
         """Get the current banner image"""
         if not ctx.guild.banner:
-            return await ctx.send("This server does not have a banner.")
+            return await ctx.message("This server does not have a banner.")
         await ctx.send(ctx.guild.banner_url_as(format="png"))
 
     @commands.command()
@@ -114,19 +111,19 @@ class General(commands.Cog):
     @commands.command()
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command."""
-        source_url = 'https://github.com/Saz4nd0ra/another-discord-bot'
-        branch = 'master'
+        source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
+        branch = "master"
         if command is None:
             return await ctx.send(source_url)
 
-        if command == 'help':
+        if command == "help":
             src = type(self.bot.help_command)
             module = src.__module__
             filename = inspect.getsourcefile(src)
         else:
-            obj = self.bot.get_command(command.replace('.', ' '))
+            obj = self.bot.get_command(command.replace(".", " "))
             if obj is None:
-                return await ctx.send('Could not find command.')
+                return await ctx.error("Could not find command.")
 
             # since we found the command we're looking for, presumably anyway, let's
             # try to access the code itself
@@ -135,9 +132,9 @@ class General(commands.Cog):
             filename = src.co_filename
 
         lines, firstlineno = inspect.getsourcelines(src)
-        location = os.path.relpath(filename).replace('\\', '/')
+        location = os.path.relpath(filename).replace("\\", "/")
 
-        final_url = f'<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>'
+        final_url = f"<{source_url}/blob/{branch}/{location}#L{firstlineno}-L{firstlineno + len(lines) - 1}>"
         await ctx.send(final_url)
 
     @commands.group()
@@ -148,7 +145,7 @@ class General(commands.Cog):
     async def choice(self, ctx, *options):
         """Chooses between multiple options"""
         if not len(options) > 0:
-            await ctx.send("You will have to give me a couple different options.")
+            await ctx.error("You will have to give me a couple different options.")
         else:
             await ctx.send(f"**{random.choice(options)}**")
 
@@ -161,7 +158,6 @@ class General(commands.Cog):
         else:
             result = random.randint(minimum, maximum)
         await ctx.send(result)
-
 
 
 def setup(bot):

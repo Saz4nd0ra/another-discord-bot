@@ -32,7 +32,7 @@ class ADB(commands.AutoShardedBot):
             command_prefix=CONFIG.prefix,
             description=DESCRIPTION,
             fetch_offline_members=False,
-            heartbeat_timeout=150.0
+            heartbeat_timeout=150.0,
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -69,7 +69,7 @@ class ADB(commands.AutoShardedBot):
                 print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
-                await ctx.error(message=original.__traceback__)
+                await ctx.error(message=f"{original.__traceback__}")
 
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):

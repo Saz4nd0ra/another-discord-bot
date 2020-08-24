@@ -4,7 +4,7 @@ import shutil
 import codecs
 from configparser import SafeConfigParser
 
-log = logging.getLogger('config')
+log = logging.getLogger("config")
 
 
 # TODO maybe add a fallback, in case the user forgets to set a setting
