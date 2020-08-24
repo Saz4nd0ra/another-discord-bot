@@ -31,7 +31,7 @@ class Embed(discord.Embed):
 
         self.description = kwargs.get("description")
 
-        self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url="")
+        self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url="https://i.imgur.com/gFHBoZA.png")
 
         if kwargs.get("image"):
             self.set_image(url=kwargs.get("image"))
@@ -43,4 +43,16 @@ class Embed(discord.Embed):
             self.add_field(name=name, value=value, inline=True)
 
     def add_field(self, field: Tuple[str, str]):
-        self.add_field(name=name, value=value, inline=inline if )
+        self.add_field(name=Tuple[0], value=Tuple[1], inline=True)
+
+
+class ErrorEmbed(discord.Embed):
+    def __init__(self, ctx: Context = None, *, message: str):
+        self.ctx = ctx if ctx else None
+        self.title = f"Error in {ctx.command}"
+        self.description = f"`{message}`"
+        self.colour = 0xe82243
+
+        self.set_footer(text="Saz4nd0ra/another-discord-bot", icon_url="https://i.imgur.com/gFHBoZA.png")
+
+

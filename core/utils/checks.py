@@ -3,6 +3,7 @@ import logging
 
 log = logging.getLogger('utils.checks')
 
+
 def is_owner():
     async def predicate(ctx):
         if ctx.bot.config.owner_id == "auto" and ctx.author.id is ctx.bot.owner_id:
@@ -11,16 +12,6 @@ def is_owner():
             return True
         else:
             return False
-
-    return commands.check(predicate)
-
-
-def not_dm():
-    async def predicate(ctx):
-        if not ctx.message.guild:
-            raise commands.NoPrivateMessage()
-        else:
-            return True
 
     return commands.check(predicate)
 

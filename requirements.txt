@@ -7,3 +7,4 @@ parsedatetime
 python-dateutil
 pygit2
 praw
+lavalink

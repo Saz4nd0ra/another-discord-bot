@@ -8,7 +8,7 @@ import unicodedata
 import inspect
 import os
 
-log = logging.getLogger(__name__)
+log = logging.getLogger('cogs.general')
 
 
 class General(commands.Cog):

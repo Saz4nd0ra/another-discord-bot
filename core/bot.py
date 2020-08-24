@@ -69,9 +69,7 @@ class ADB(commands.AutoShardedBot):
                 print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
-                await ctx.send(
-                    "`An error occurred while processing your command. Check the logs.`"
-                )
+                await ctx.error(message=original.__traceback__)
 
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):

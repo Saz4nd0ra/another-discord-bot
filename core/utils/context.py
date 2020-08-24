@@ -1,4 +1,5 @@
 from discord.ext import commands
+from ..utils.embed import ErrorEmbed 
 import asyncio
 import discord
 import io
@@ -31,3 +32,8 @@ class Context(commands.Context):
             )
         else:
             return await self.send(content)
+
+    async def error(self, message):
+        """Triggers our Error embed to send the error message needed."""
+        e = ErrorEmbed(ctx=self, message=message)
+        
