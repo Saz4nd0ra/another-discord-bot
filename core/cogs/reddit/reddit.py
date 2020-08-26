@@ -1,4 +1,5 @@
 import discord
+from ...utils import context
 from discord.ext import commands
 from ...utils.embed import Embed
 import praw
@@ -8,6 +9,11 @@ import random
 
 # TODO all of that
 
+REDDIT_DOMAINS = [
+    "reddit.com",
+    "redd.it",
+]  # need to find more domains, if there are any
+
 
 class Reddit(commands.Cog):
     """Browse reddit with those commands."""
@@ -16,8 +22,10 @@ class Reddit(commands.Cog):
         self.bot = bot
         self.config = self.bot.config
         self.reddit = praw.Reddit(
-            client_id=self.config.praw_clientid,  # connecting to reddit, read-only should be enough for our use
+            client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
+            password=self.config.praw_password,  # the actual password of the application account
+            username=self.config.praw_username,  # the actual username of the application account
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )
 
@@ -27,6 +35,42 @@ class Reddit(commands.Cog):
         for x in range(0, post_to_pick):
             submission = next(x for x in submissions if not x.stickied)
         return submission
+
+    async def get_new_submission(self, subreddit: str):
+        submissions = self.reddit.subreddit(subreddit).hot(limit=3)
+        post_to_pick = random.randint(1, 3)
+        for x in range(0, post_to_pick):
+            submission = next(x for x in submissions if not x.stickied)
+        return submission
+
+    async def get_submission_from_url(self, url: str):
+        submission = self.reddit.submission(url)
+        return submission
+
+    @commands.Cogs.listener()
+    async def on_message(self, message):
+        """Catch reddit links, check them, and then return them as a nice embed."""
+        ctx = await self.get_context(message, cls=context.Context)
+        if any(x in message.content for x in REDDIT_DOMAINS):
+            submission_url = message.content
+            submission = await self.get_submission_from_url(url=submission_url)
+            if submission.over_18 is True and message.channel.is_nsfw() is not True:
+                await message.delete()
+                await ctx.send(
+                    f"{message.author.mention} this channel doesn't allow NSFW."
+                )
+
+            e = Embed(
+                ctx,
+                title=f"Title: {submission.title}",
+                description=submission.selftext,
+                image=submission.url,
+            )
+            e.add_fields(
+                (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+                (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+            )
+            await ctx.send(embed=e)
 
     @commands.group()
     async def browse(self, ctx):
@@ -46,15 +90,10 @@ class Reddit(commands.Cog):
             category == None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.get_hot_submission(subreddit="memes")
-            e = Embed(title=f"Title: {submission.title}")
-            e.set_image(url=f"{submission.url}")
-            e.add_field(
-                name=":thumbsup: **Upvotes**:", value=f"{submission.ups}", inline=True
-            )
-            e.add_field(
-                name=":envelope: **Comments**:",
-                value=f"{len(submission.comments)}",
-                inline=True,
+            e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+            e.add_fields(
+                (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+                (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
             await ctx.send(embed=e)
 
@@ -69,23 +108,35 @@ class Reddit(commands.Cog):
             }
 
             submission = await self.get_hot_submission(switcher.get(category))
-            e = Embed(title=f"Title: {submission.title}")
-            e.set_image(url=f"{submission.url}")
-            e.add_field(
-                name=":thumbsup: **Upvotes**:", value=f"{submission.ups}", inline=True
+            e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+            e.add_fields(
+                (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+                (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
-            e.add_field(
-                name=":envelope: **Comments**:",
-                value=f"{len(submission.comments)}",
-                inline=True,
-            )
+            await ctx.send(embed=e)
             await ctx.send(embed=e)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):
-        """Browse hot submission in a subreddit."""
+        """Browse hot submissions in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
-        e = Embed(title)
+        e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        e.add_fields(
+            (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+            (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+        )
+        await ctx.send(embed=e)
+
+    @browse.command()
+    async def new(self, ctx, subreddit: str):
+        """Browse new submissions in a subreddit."""
+        submission = await self.get_hot_submission(self, subreddit)
+        e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        e.add_fields(
+            (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+            (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+        )
+        await ctx.send(embed=e)
 
 
 def setup(bot):

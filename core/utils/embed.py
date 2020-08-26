@@ -9,6 +9,7 @@ import random
 from typing import Tuple
 
 
+
 class Embed(discord.Embed):
     def __init__(self, ctx: Context = None, *, title: str, **kwargs):
         super(Embed, self).__init__(**kwargs)
@@ -42,4 +43,3 @@ class Embed(discord.Embed):
 
     def add_field(self, *field: Tuple[str, str]):
         self.add_field(name=Tuple[0], value=Tuple[1])
-

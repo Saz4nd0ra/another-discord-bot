@@ -3,7 +3,7 @@ import discord
 import asyncio
 import discord
 import io
-
+from .embed import Embed
 
 class Context(commands.Context):
     def __init__(self, **kwargs):
@@ -35,5 +35,11 @@ class Context(commands.Context):
 
     async def error(self, message):
         """Triggers our Error embed to send the error message needed."""
-        e = discord.Embed(title="An error occurred:", message=message, color=0xe82243)
+        e = Embed(ctx=self, title="An error occurred:", description=message, color=0xE82243)
         await self.send(embed=e)
+
+    async def send_embed(self, message):
+        """Sends a quick embed."""
+        e = Embed(ctx=self, title=self.command.qualified_name, description=message)
+        await self.send(embed=e)
+

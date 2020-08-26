@@ -19,9 +19,9 @@ class NoChannelProvided(commands.CommandError):
     pass
 
 
-class IncorrectChannelError(commands.CommandError):
-    """Error raised when commands are issued outside of the players session channel."""
-    pass
+
+class Track(wavelink.Track):
+    __slots__ = ("requester", "channel", "message")
 
 
 class Track(wavelink.Track):
@@ -36,19 +36,18 @@ class Track(wavelink.Track):
 
 
 class Player(wavelink.Player):
-    """Custom wavelink Player class."""
+    def __init__(self, bot, guild_id: int, node: wavelink.Node, **kwargs):
+        super(Player, self).__init__(bot, guild_id, node, **kwargs)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+        self.ctx = kwargs.get("ctx")
+        self.queue = Queue()
+        self.next_event = asyncio.Event()
 
-        self.context: commands.Context = kwargs.get('context', None)
-        if self.context:
-            self.dj: discord.Member = self.context.author
-
-        self.queue = asyncio.Queue()
-        self.controller = None
-
-        self.waiting = False
+        self.volume = 50
+        self.dj = None
+        self.controller_message = None
+        self.reaction_task = None
+        self.update = False
         self.updating = False
 
         self.pause_votes = set()
@@ -123,23 +122,27 @@ class Player(wavelink.Player):
         embed.description = f'Now Playing:\n**`{track.title}`**\n\n'
         embed.set_thumbnail(url=track.thumb)
 
-        embed.add_field(name='Duration', value=str(datetime.timedelta(milliseconds=int(track.length))))
-        embed.add_field(name='Queue Length', value=str(qsize))
-        embed.add_field(name='Volume', value=f'**`{self.volume}%`**')
-        embed.add_field(name='Requested By', value=track.requester.mention)
-        embed.add_field(name='DJ', value=self.dj.mention)
-        embed.add_field(name='Video URL', value=f'[Click Here!]({track.uri})')
+        e = Embed(
+            ctx=self.ctx,
+            title="Music Controller",
+            description=f"Now Playing:\n[{track.title}]({track.uri})",
+            thumbnail=track.thumb,
+        )
 
-        return embed
+        if track.is_stream:
+            e.add_field("Duration", "🔴`Streaming`")
+        else:
+            e.add_field(
+                "Duration", f"{(datetime.timedelta(milliseconds=int(track.length)))}",
+            )
 
-    async def is_position_fresh(self) -> bool:
-        """Method which checks whether the player controller should be remade or updated."""
-        try:
-            async for message in self.context.channel.history(limit=5):
-                if message.id == self.controller.message.id:
-                    return True
-        except (discord.HTTPException, AttributeError):
-            return False
+        e.add_fields(
+            ("Queue Length:", f"{str(len(self.entries))}"),
+            ("Volume:", f"{self.volume}"),
+            ("Coming Up:", f"{data}"),
+            ("DJ", f"{self.dj.mention}"),
+            ("Video URL", f"[Click Here!]({track.uri})"),
+        )
 
         return False
 
@@ -285,9 +288,11 @@ class PaginatorSource(menus.ListPageSource):
 
         return embed
 
-    def is_paginating(self):
-        # We always want to embed even on 1 page of results...
-        return True
+        tracks = await self.bot.wavelink.get_tracks(query)
+        if not tracks:
+            return await ctx.error(
+                "No songs were found with that query. Please try again."
+            )
 
 
 class Music(commands.Cog, wavelink.WavelinkMixin):

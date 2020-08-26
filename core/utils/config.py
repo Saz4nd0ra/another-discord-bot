@@ -47,6 +47,8 @@ class Config:
         self.ll_port = config.get("Music", "LavalinkPort")
         self.ll_passwd = config.get("Music", "LavalinkPassword")
 
+        self.praw_username = config.get("Reddit", "PrawUsername")
+        self.praw_password = config.get("Reddit", "PrawPassword")
         self.praw_secret = config.get("Reddit", "PrawSecret")
         self.praw_clientid = config.get("Reddit", "PrawClientID")
 
