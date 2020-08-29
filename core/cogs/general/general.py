@@ -90,8 +90,13 @@ class General(commands.Cog):
     async def banner(self, ctx):
         """Get the current banner image"""
         if not ctx.guild.banner:
-            return await ctx.message("This server does not have a banner.")
-        await ctx.send(ctx.guild.banner_url_as(format="png"))
+            return await ctx.error("This server does not have a banner.")
+        e = Embed(
+            ctx=ctx,
+            title=f"{ctx.guild.name}s Server Banner",
+            image=ctx.guild.icon_url_as(size=512),
+        )
+        await ctx.send(embed=e)
 
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):

@@ -7,6 +7,7 @@ import json
 import logging
 import sys
 import aiohttp
+import traceback
 from collections import Counter, deque, defaultdict
 
 CONFIG = Config()

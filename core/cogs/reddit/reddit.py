@@ -47,10 +47,10 @@ class Reddit(commands.Cog):
         submission = self.reddit.submission(url)
         return submission
 
-    @commands.Cogs.listener()
+    @commands.Cog.listener()
     async def on_message(self, message):
         """Catch reddit links, check them, and then return them as a nice embed."""
-        ctx = await self.get_context(message, cls=context.Context)
+        ctx = await self.bot.get_context(message, cls=context.Context)
         if any(x in message.content for x in REDDIT_DOMAINS):
             submission_url = message.content
             submission = await self.get_submission_from_url(url=submission_url)
