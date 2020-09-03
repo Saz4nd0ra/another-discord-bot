@@ -1,10 +1,20 @@
+import sys
+import click
 import logging
 import asyncio
+import discord
+import traceback
+import importlib
+import contextlib
+import subprocess
 import os
 
 from core.bot import ADB
 
+from pathlib import Path
 
+
+@contextlib.contextmanager
 def setup_logging():
     try:
         # __enter__
@@ -41,11 +51,14 @@ def run_bot():
     bot.run()
 
 
-def main():
+@click.group(invoke_without_command=True, options_metavar="[options]")
+@click.pass_context
+def main(ctx):
     """Launches the bot."""
-    loop = asyncio.get_event_loop()
-    with setup_logging():
-        run_bot()
+    if ctx.invoked_subcommand is None:
+        loop = asyncio.get_event_loop()
+        with setup_logging():
+            run_bot()
 
 
 if __name__ == "__main__":
