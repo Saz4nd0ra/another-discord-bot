@@ -15,17 +15,16 @@ class Config:
             shutil.copyfile("config/example_options.ini", "config/options.ini")
 
         config.read("config/options.ini", encoding="utf-8")
-        confsections = {"Credentials", "IDs", "Bot", "Music", "Reddit"}.difference(
-            config.sections()
-        )
+        confsections = {
+            "Credentials",
+            "IDs",
+            "Bot",
+            "Music",
+            "Reddit",
+        }.difference(config.sections())
 
         if confsections:
-            raise Exception(
-                log.error(
-                    "Config sections altered!\n"
-                    "Make sure you have a correctly formatted config!"
-                )
-            )
+            raise Exception(log.error("Config sections altered!\n" "Make sure you have a correctly formatted config!"))
 
         self.login_token = config.get("Credentials", "Token")
 

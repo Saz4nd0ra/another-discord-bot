@@ -18,6 +18,8 @@ class Embed(discord.Embed):
         if ctx:
             author_image = self.ctx.author.avatar_url
             self.set_author(name=title, icon_url=author_image)
+        else:
+            self.title = title
 
         # if kwargs have an argument called colour, set the embed to colour to that
         # else default to discord blurple

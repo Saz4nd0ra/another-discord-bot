@@ -1,19 +1,10 @@
-import sys
 import logging
 import asyncio
-import discord
-import traceback
-import importlib
-import contextlib
-import subprocess
 import os
 
 from core.bot import ADB
 
-from pathlib import Path
 
-
-@contextlib.contextmanager
 def setup_logging():
     try:
         # __enter__

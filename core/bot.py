@@ -5,10 +5,9 @@ from .utils.config import Config
 import datetime
 import json
 import logging
-import sys
 import aiohttp
 import traceback
-from collections import Counter, deque, defaultdict
+from collections import deque, defaultdict
 
 CONFIG = Config()
 

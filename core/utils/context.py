@@ -28,9 +28,7 @@ class Context(commands.Context):
         if len(content) > 2000:
             fp = io.BytesIO(content.encode())
             kwargs.pop("file", None)
-            return await self.send(
-                file=discord.File(fp, filename="message_too_long.txt"), **kwargs
-            )
+            return await self.send(file=discord.File(fp, filename="message_too_long.txt"), **kwargs)
         else:
             return await self.send(content)
 
@@ -49,5 +47,6 @@ class Context(commands.Context):
         """Sends a quick embed."""
         e = Embed(ctx=self, title=self.command.qualified_name, description=message)
         await self.send(
-            embed=e, delete_after=auto_delete if auto_delete else auto_delete == None
+            embed=e,
+            delete_after=auto_delete if auto_delete else auto_delete == None,
         )

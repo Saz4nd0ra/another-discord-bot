@@ -1,9 +1,10 @@
 humanize
 git+https://github.com/Rapptz/discord-ext-menus.git
-git+https://github.com/Rapptz/discord.py@master
+discord.py
 PyNaCl
 parsedatetime
 python-dateutil
 pygit2
 praw
 wavelink
+aiohttp

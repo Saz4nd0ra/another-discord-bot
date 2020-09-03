@@ -24,7 +24,7 @@ class Events(commands.Cog):
                 log.info("Message logged")
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx, error):
+    async def on_command_error(self, ctx: commands.Context,  error):
         """The event triggered when an error is raised while invoking a command.
         Parameters"""
         if hasattr(ctx.command, "on_error"):
@@ -46,32 +46,29 @@ class Events(commands.Cog):
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
-                await ctx.author.embed(
-                    f"{ctx.command} can not be used in Private Messages."
-                )
+                await ctx.author.error(f"{ctx.command} can not be used in Private Messages.")
             except discord.HTTPException:
                 pass
 
         elif isinstance(error, commands.BadArgument):
             if ctx.command.qualified_name == "tag list":
-                await ctx.error("I could not find that member. Please try again.")
+                await ctx.error("Wrong argument passed. Check the help command.")
 
         else:
             print(
-                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+                "Ignoring exception in command {}:".format(ctx.command),
+                file=sys.stderr,
             )
-            traceback.print_exception(
-                type(error), error, error.__traceback__, file=sys.stderr
-            )
+            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     @commands.command(name="do", aliases=["mimic", "copy"])
-    async def do_repeat(self, ctx, *, inp: str):
+    async def do_repeat(self, ctx: commands.Context,  *, inp: str):
         """A simple command which repeats your input!
         Parameters"""
         await ctx.send(inp)
 
     @do_repeat.error
-    async def do_repeat_handler(self, ctx, error):
+    async def do_repeat_handler(self, ctx: commands.Context,  error):
         """A local Error Handler for our command do_repeat.
         This will only listen for errors in do_repeat.
         The global on_command_error will still be invoked after.

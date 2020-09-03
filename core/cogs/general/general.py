@@ -18,7 +18,7 @@ class General(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def user(self, ctx, *, user: discord.Member = None):
+    async def user(self, ctx: commands.Context,  *, user: discord.Member = None):
         """Get user information"""
         user = user or ctx.author
 
@@ -99,7 +99,7 @@ class General(commands.Cog):
         await ctx.send(embed=e)
 
     @commands.command()
-    async def charinfo(self, ctx, *, characters: str):
+    async def charinfo(self, ctx: commands.Context,  *, characters: str):
         """Shows you information about a number of characters.
         Only up to 25 characters at a time."""
 
@@ -114,7 +114,7 @@ class General(commands.Cog):
         await ctx.send(msg)
 
     @commands.command()
-    async def source(self, ctx, *, command: str = None):
+    async def source(self, ctx: commands.Context,  *, command: str = None):
         """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
         branch = "master"
@@ -147,7 +147,7 @@ class General(commands.Cog):
         """A group of commands to provide pseudo randomness."""
 
     @random.command()
-    async def choice(self, ctx, *options):
+    async def choice(self, ctx: commands.Context,  *options):
         """Chooses between multiple options"""
         if not len(options) > 0:
             await ctx.error("You will have to give me a couple different options.")
@@ -155,7 +155,7 @@ class General(commands.Cog):
             await ctx.send(f"**{random.choice(options)}**")
 
     @random.command()
-    async def number(self, ctx, maximum: int, minimum: int = 0):
+    async def number(self, ctx: commands.Context,  maximum: int, minimum: int = 0):
         """Gives a random number"""
         result = None
         if maximum < minimum:

@@ -56,9 +56,7 @@ class Reddit(commands.Cog):
             submission = await self.get_submission_from_url(url=submission_url)
             if submission.over_18 is True and message.channel.is_nsfw() is not True:
                 await message.delete()
-                await ctx.send(
-                    f"{message.author.mention} this channel doesn't allow NSFW."
-                )
+                await ctx.send(f"{message.author.mention} this channel doesn't allow NSFW.")
 
             e = Embed(
                 ctx,
@@ -78,7 +76,7 @@ class Reddit(commands.Cog):
         pass
 
     @browse.command()
-    async def meme(self, ctx, category: str = None):
+    async def meme(self, ctx: commands.Context,  category: str = None):
         """Get the hottest memes from a specifif category.
         Available categories:
             - Anime
@@ -86,9 +84,7 @@ class Reddit(commands.Cog):
             - Dank
             - NGE
         """
-        if (
-            category == None
-        ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
+        if category == None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.get_hot_submission(subreddit="memes")
             e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
             e.add_fields(
@@ -117,7 +113,7 @@ class Reddit(commands.Cog):
             await ctx.send(embed=e)
 
     @browse.command()
-    async def hot(self, ctx, subreddit: str):
+    async def hot(self, ctx: commands.Context,  subreddit: str):
         """Browse hot submissions in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
@@ -128,7 +124,7 @@ class Reddit(commands.Cog):
         await ctx.send(embed=e)
 
     @browse.command()
-    async def new(self, ctx, subreddit: str):
+    async def new(self, ctx: commands.Context,  subreddit: str):
         """Browse new submissions in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
