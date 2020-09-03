@@ -9,7 +9,6 @@ import random
 from typing import Tuple
 
 
-
 class Embed(discord.Embed):
     def __init__(self, ctx: Context = None, *, title: str, **kwargs):
         super(Embed, self).__init__(**kwargs)

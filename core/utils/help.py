@@ -26,7 +26,8 @@ class HelpSource(menus.ListPageSource):
         self.menu_author = author
         sorted_cogs = sorted(cogs, key=lambda cog: cog.qualified_name if cog else "ZZ")
         super().__init__(
-            [(cog, cogs[cog]) for cog in sorted_cogs], per_page=1,
+            [(cog, cogs[cog]) for cog in sorted_cogs],
+            per_page=1,
         )
 
     async def format_page(
@@ -115,7 +116,8 @@ class HelpCommand(commands.HelpCommand):
             ),
         )
         e.set_author(
-            name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url),
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
         )
         for command in await self.filter_commands(cog.get_commands()):
             e.add_field(
@@ -142,7 +144,8 @@ class HelpCommand(commands.HelpCommand):
         if command.aliases:
             e.add_field(name="Aliases :", value="\n".join(command.aliases))
         e.set_author(
-            name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url),
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
         )
         await ctx.send(embed=e)
 
@@ -172,7 +175,8 @@ class HelpCommand(commands.HelpCommand):
                 inline=False,
             )
         e.set_author(
-            name=str(ctx.message.author), icon_url=str(ctx.message.author.avatar_url),
+            name=str(ctx.message.author),
+            icon_url=str(ctx.message.author.avatar_url),
         )
         await ctx.send(embed=e)
 
@@ -185,7 +189,10 @@ class HelpCommand(commands.HelpCommand):
 def setup(bot: commands.Bot) -> None:
     """Add the help command."""
     bot.old_help_command = bot.help_command
-    bot.help_command = Help(verify_checks=False, command_attrs={"hidden": True},)
+    bot.help_command = Help(
+        verify_checks=False,
+        command_attrs={"hidden": True},
+    )
 
 
 def teardown(bot: commands.Bot) -> None:

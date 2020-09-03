@@ -27,7 +27,7 @@ class Events(commands.Cog):
     async def on_command_error(self, ctx, error):
         """The event triggered when an error is raised while invoking a command.
         Parameters"""
-        if hasattr(ctx.command, 'on_error'):
+        if hasattr(ctx.command, "on_error"):
             return
 
         cog = ctx.cog
@@ -35,30 +35,36 @@ class Events(commands.Cog):
             if cog._get_overridden_method(cog.cog_command_error) is not None:
                 return
 
-        ignored = (commands.CommandNotFound, )
-        error = getattr(error, 'original', error)
+        ignored = (commands.CommandNotFound,)
+        error = getattr(error, "original", error)
 
         if isinstance(error, ignored):
             return
 
         if isinstance(error, commands.DisabledCommand):
-            await ctx.error(f'{ctx.command} has been disabled.')
+            await ctx.error(f"{ctx.command} has been disabled.")
 
         elif isinstance(error, commands.NoPrivateMessage):
             try:
-                await ctx.author.embed(f'{ctx.command} can not be used in Private Messages.')
+                await ctx.author.embed(
+                    f"{ctx.command} can not be used in Private Messages."
+                )
             except discord.HTTPException:
                 pass
 
         elif isinstance(error, commands.BadArgument):
-            if ctx.command.qualified_name == 'tag list':
-                await ctx.error('I could not find that member. Please try again.')
+            if ctx.command.qualified_name == "tag list":
+                await ctx.error("I could not find that member. Please try again.")
 
         else:
-            print('Ignoring exception in command {}:'.format(ctx.command), file=sys.stderr)
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
+            print(
+                "Ignoring exception in command {}:".format(ctx.command), file=sys.stderr
+            )
+            traceback.print_exception(
+                type(error), error, error.__traceback__, file=sys.stderr
+            )
 
-    @commands.command(name='do', aliases=['mimic', 'copy'])
+    @commands.command(name="do", aliases=["mimic", "copy"])
     async def do_repeat(self, ctx, *, inp: str):
         """A simple command which repeats your input!
         Parameters"""
@@ -72,8 +78,9 @@ class Events(commands.Cog):
         """
 
         if isinstance(error, commands.MissingRequiredArgument):
-            if error.param.name == 'inp':
+            if error.param.name == "inp":
                 await ctx.error("You forgot to give me input to repeat!")
+
 
 def setup(bot):
     bot.add_cog(Events(bot))

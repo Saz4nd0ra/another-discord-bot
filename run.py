@@ -1,5 +1,4 @@
 import sys
-import click
 import logging
 import asyncio
 import discord
@@ -51,14 +50,11 @@ def run_bot():
     bot.run()
 
 
-@click.group(invoke_without_command=True, options_metavar="[options]")
-@click.pass_context
-def main(ctx):
+def main():
     """Launches the bot."""
-    if ctx.invoked_subcommand is None:
-        loop = asyncio.get_event_loop()
-        with setup_logging():
-            run_bot()
+    loop = asyncio.get_event_loop()
+    with setup_logging():
+        run_bot()
 
 
 if __name__ == "__main__":

@@ -5,6 +5,7 @@ import discord
 import io
 from .embed import Embed
 
+
 class Context(commands.Context):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -35,12 +36,18 @@ class Context(commands.Context):
 
     async def error(self, message: str, auto_delete: int = None):
         """Triggers our Error embed to send the error message needed."""
-        e = Embed(ctx=self, title="An error occurred:", description=message, color=0xE82243,
-                  delete_after=auto_delete if auto_delete else auto_delete == None)
+        e = Embed(
+            ctx=self,
+            title="An error occurred:",
+            description=message,
+            color=0xE82243,
+            delete_after=auto_delete if auto_delete else auto_delete == None,
+        )
         await self.send(embed=e)
 
     async def send_embed(self, message: str, auto_delete: int = None):
         """Sends a quick embed."""
         e = Embed(ctx=self, title=self.command.qualified_name, description=message)
-        await self.send(embed=e, delete_after=auto_delete if auto_delete else auto_delete == None)
-
+        await self.send(
+            embed=e, delete_after=auto_delete if auto_delete else auto_delete == None
+        )

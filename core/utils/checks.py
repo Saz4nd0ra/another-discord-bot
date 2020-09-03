@@ -22,7 +22,9 @@ def is_admin():
             raise commands.NoPrivateMessage()
         elif ctx.author.guild_permissions.administrator:
             return True
-        elif str(ctx.author.roles[1].id) in ctx.bot.config.admin_role_ids: # checks the id for the role in the second place, since @everyone is at index [0]
+        elif (
+            str(ctx.author.roles[1].id) in ctx.bot.config.admin_role_ids
+        ):  # checks the id for the role in the second place, since @everyone is at index [0]
             return True
         elif is_owner() is True:  # bypass for owner
             log.info("Owner used admin command.")
@@ -40,7 +42,9 @@ def is_mod():
             raise commands.NoPrivateMessage()
         elif ctx.author.guild_permissions.delete_messages:
             return True
-        elif str(ctx.author.roles[1].id) in ctx.bot.config.mod_role_ids: # checking at [1] because @everyone is at [0]
+        elif (
+            str(ctx.author.roles[1].id) in ctx.bot.config.mod_role_ids
+        ):  # checking at [1] because @everyone is at [0]
             return True
         elif is_owner() is True:  # again, bypass for owner
             log.info("Owner used mod command.")
