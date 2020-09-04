@@ -13,7 +13,8 @@ class Embed(discord.Embed):
     def __init__(self, ctx: Context = None, *, title: str, **kwargs):
         super(Embed, self).__init__(**kwargs)
         self.ctx = ctx if ctx else None
-        self.timestamp = ctx.message.created_at
+        if ctx:
+            self.timestamp = ctx.message.created_at
 
         if ctx:
             author_image = self.ctx.author.avatar_url
@@ -41,6 +42,3 @@ class Embed(discord.Embed):
     def add_fields(self, *fields: Tuple[str, str]):
         for name, value in fields:
             self.add_field(name=name, value=value)
-
-    def add_field(self, *field: Tuple[str, str]):
-        self.add_field(name=Tuple[0], value=Tuple[1])

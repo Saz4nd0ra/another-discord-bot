@@ -12,3 +12,9 @@ class IncorrectChannelError(commands.CommandError):
     """Error raised when commands are issued outside of the players session channel."""
 
     pass
+
+
+class NotConnected(commands.CommandError):
+    """Error raised when a music player gets invoked, but no connection to a voice channel was established before."""
+
+    pass

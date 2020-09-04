@@ -17,14 +17,14 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if self.bot.config.enable_msg_logging:
-            if message.channel.id in self.bot.config.msg_logging_channel:
+            if str(message.channel.id) in self.bot.config.msg_logging_channel:
                 f = open("./data/msgs.txt", "a")
                 f.write(f"{message.author.name}: {message.content}\n")
                 f.close()
                 log.info("Message logged")
 
     @commands.Cog.listener()
-    async def on_command_error(self, ctx: commands.Context,  error):
+    async def on_command_error(self, ctx, error):
         """The event triggered when an error is raised while invoking a command.
         Parameters"""
         if hasattr(ctx.command, "on_error"):
@@ -62,13 +62,13 @@ class Events(commands.Cog):
             traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
 
     @commands.command(name="do", aliases=["mimic", "copy"])
-    async def do_repeat(self, ctx: commands.Context,  *, inp: str):
+    async def do_repeat(self, ctx, *, inp: str):
         """A simple command which repeats your input!
         Parameters"""
         await ctx.send(inp)
 
     @do_repeat.error
-    async def do_repeat_handler(self, ctx: commands.Context,  error):
+    async def do_repeat_handler(self, ctx, error):
         """A local Error Handler for our command do_repeat.
         This will only listen for errors in do_repeat.
         The global on_command_error will still be invoked after.

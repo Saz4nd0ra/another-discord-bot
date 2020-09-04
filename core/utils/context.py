@@ -39,7 +39,7 @@ class Context(commands.Context):
             title="An error occurred:",
             description=message,
             color=0xE82243,
-            delete_after=auto_delete if auto_delete else auto_delete == None,
+            delete_after=auto_delete if auto_delete else auto_delete is None,
         )
         await self.send(embed=e)
 
@@ -48,5 +48,5 @@ class Context(commands.Context):
         e = Embed(ctx=self, title=self.command.qualified_name, description=message)
         await self.send(
             embed=e,
-            delete_after=auto_delete if auto_delete else auto_delete == None,
+            delete_after=auto_delete if auto_delete else auto_delete is None,
         )

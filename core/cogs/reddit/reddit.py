@@ -22,10 +22,10 @@ class Reddit(commands.Cog):
         self.bot = bot
         self.config = self.bot.config
         self.reddit = praw.Reddit(
-            client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
+            client_id=self.config.praw_clientid, # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
-            password=self.config.praw_password,  # the actual password of the application account
-            username=self.config.praw_username,  # the actual username of the application account
+            password=self.config.praw_password, # the actual password of the application account
+            username=self.config.praw_username, # the actual username of the application account
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )
 
@@ -39,6 +39,13 @@ class Reddit(commands.Cog):
     async def get_new_submission(self, subreddit: str):
         submissions = self.reddit.subreddit(subreddit).hot(limit=3)
         post_to_pick = random.randint(1, 3)
+        for x in range(0, post_to_pick):
+            submission = next(x for x in submissions if not x.stickied)
+        return submission
+
+    async def get_best_submission(self, subreddit: str):
+        submissions = self.reddit.subreddit(subreddit).hot(limit=100)
+        post_to_pick = random.randint(1, 100)
         for x in range(0, post_to_pick):
             submission = next(x for x in submissions if not x.stickied)
         return submission
@@ -76,7 +83,7 @@ class Reddit(commands.Cog):
         pass
 
     @browse.command()
-    async def meme(self, ctx: commands.Context,  category: str = None):
+    async def meme(self, ctx, category: str = None):
         """Get the hottest memes from a specifif category.
         Available categories:
             - Anime
@@ -113,7 +120,7 @@ class Reddit(commands.Cog):
             await ctx.send(embed=e)
 
     @browse.command()
-    async def hot(self, ctx: commands.Context,  subreddit: str):
+    async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
@@ -124,7 +131,18 @@ class Reddit(commands.Cog):
         await ctx.send(embed=e)
 
     @browse.command()
-    async def new(self, ctx: commands.Context,  subreddit: str):
+    async def new(self, ctx, subreddit: str):
+        """Browse new submissions in a subreddit."""
+        submission = await self.get_hot_submission(self, subreddit)
+        e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        e.add_fields(
+            (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+            (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+        )
+        await ctx.send(embed=e)
+
+    @browse.command()
+    async def best(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
         submission = await self.get_hot_submission(self, subreddit)
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)

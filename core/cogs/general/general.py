@@ -18,7 +18,7 @@ class General(commands.Cog):
         self.bot = bot
 
     @commands.command()
-    async def user(self, ctx: commands.Context,  *, user: discord.Member = None):
+    async def user(self, ctx, *, user: discord.Member = None):
         """Get user information"""
         user = user or ctx.author
 
@@ -34,7 +34,7 @@ class General(commands.Cog):
             else "None"
         )
 
-        e = Embed(ctx=ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
+        e = Embed(ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
 
         if hasattr(user, "nick"):
             nick = user.nick
@@ -63,7 +63,7 @@ class General(commands.Cog):
             if ctx.guild.banner:
                 image = ctx.guild.banner_url_as(format="png")
 
-            e = Embed(ctx=ctx, title=f"Server: {ctx.guild.name}", thumbnail=thumbnail)
+            e = Embed(ctx, title=f"Server: {ctx.guild.name}", thumbnail=thumbnail)
             e.add_fields(
                 ("Server ID:", f"{ctx.guild.id}"),
                 ("Members:", f"{ctx.guild.member_count}"),
@@ -80,7 +80,7 @@ class General(commands.Cog):
         if not ctx.guild.icon:
             return await ctx.error("This server does not have a avatar.")
         e = Embed(
-            ctx=ctx,
+            ctx,
             title=f"{ctx.guild.name}s Server Icon",
             image=ctx.guild.icon_url_as(size=512),
         )
@@ -92,14 +92,14 @@ class General(commands.Cog):
         if not ctx.guild.banner:
             return await ctx.error("This server does not have a banner.")
         e = Embed(
-            ctx=ctx,
+            ctx,
             title=f"{ctx.guild.name}s Server Banner",
             image=ctx.guild.icon_url_as(size=512),
         )
         await ctx.send(embed=e)
 
     @commands.command()
-    async def charinfo(self, ctx: commands.Context,  *, characters: str):
+    async def charinfo(self, ctx, *, characters: str):
         """Shows you information about a number of characters.
         Only up to 25 characters at a time."""
 
@@ -114,7 +114,7 @@ class General(commands.Cog):
         await ctx.send(msg)
 
     @commands.command()
-    async def source(self, ctx: commands.Context,  *, command: str = None):
+    async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
         branch = "master"
@@ -147,7 +147,7 @@ class General(commands.Cog):
         """A group of commands to provide pseudo randomness."""
 
     @random.command()
-    async def choice(self, ctx: commands.Context,  *options):
+    async def choice(self, ctx, *options):
         """Chooses between multiple options"""
         if not len(options) > 0:
             await ctx.error("You will have to give me a couple different options.")
@@ -155,7 +155,7 @@ class General(commands.Cog):
             await ctx.send(f"**{random.choice(options)}**")
 
     @random.command()
-    async def number(self, ctx: commands.Context,  maximum: int, minimum: int = 0):
+    async def number(self, ctx, maximum: int, minimum: int = 0):
         """Gives a random number"""
         result = None
         if maximum < minimum:
