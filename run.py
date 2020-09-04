@@ -1,17 +1,11 @@
-import sys
-import click
-import logging
 import asyncio
-import discord
-import traceback
-import importlib
 import contextlib
-import subprocess
+import logging
 import os
 
-from core.bot import ADB
+import click
 
-from pathlib import Path
+from core.bot import ADB
 
 
 @contextlib.contextmanager

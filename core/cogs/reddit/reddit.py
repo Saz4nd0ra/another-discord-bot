@@ -29,23 +29,16 @@ class Reddit(commands.Cog):
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )
 
-    async def get_hot_submission(self, subreddit: str):
-        submissions = self.reddit.subreddit(subreddit).hot(limit=100)
-        post_to_pick = random.randint(1, 100)
-        for x in range(0, post_to_pick):
-            submission = next(x for x in submissions if not x.stickied)
-        return submission
+    async def get_submission(self, subreddit: str, sorting:str):
+        if sorting is "hot":
+            submissions = self.reddit.subreddit(subreddit).hot(limit=100)
+        if sorting is "new":
+            submissions = self.reddit.subreddit(subreddit).new(limit=3)
+        else:
+            submissions = self.reddit.subreddit(subreddit).best(limit=100)
 
-    async def get_new_submission(self, subreddit: str):
-        submissions = self.reddit.subreddit(subreddit).hot(limit=3)
-        post_to_pick = random.randint(1, 3)
-        for x in range(0, post_to_pick):
-            submission = next(x for x in submissions if not x.stickied)
-        return submission
-
-    async def get_best_submission(self, subreddit: str):
-        submissions = self.reddit.subreddit(subreddit).hot(limit=100)
         post_to_pick = random.randint(1, 100)
+
         for x in range(0, post_to_pick):
             submission = next(x for x in submissions if not x.stickied)
         return submission
@@ -53,6 +46,13 @@ class Reddit(commands.Cog):
     async def get_submission_from_url(self, url: str):
         submission = self.reddit.submission(url)
         return submission
+
+    async def voting_reaction(self):
+        reactions = {
+            "⏯": "rp",
+            "": ""
+        }
+
 
     @commands.Cog.listener()
     async def on_message(self, message):
