@@ -21,6 +21,10 @@ class Reddit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = self.bot.config
+        self.reactions = {
+            "↑": "upvote",
+            "↓": "downvote"
+        }
         self.reddit = praw.Reddit(
             client_id=self.config.praw_clientid, # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
@@ -29,13 +33,13 @@ class Reddit(commands.Cog):
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )
 
-    async def get_submission(self, subreddit: str, sorting:str):
+    async def get_submission(self, subreddit: str, sorting: str):
         if sorting is "hot":
             submissions = self.reddit.subreddit(subreddit).hot(limit=100)
         if sorting is "new":
             submissions = self.reddit.subreddit(subreddit).new(limit=3)
         else:
-            submissions = self.reddit.subreddit(subreddit).best(limit=100)
+            submissions = self.reddit.subreddit(subreddit).top(limit=100)
 
         post_to_pick = random.randint(1, 100)
 
@@ -47,11 +51,24 @@ class Reddit(commands.Cog):
         submission = self.reddit.submission(url)
         return submission
 
-    async def voting_reaction(self):
-        reactions = {
-            "⏯": "rp",
-            "": ""
-        }
+    async def upvote_post(self):
+        pass
+
+    async def downvote_post(self):
+        pass
+
+    async def vote_reactions(self, message):
+        self.bot.loop.create_task(self.add_reactions(message))
+
+    async def add_reactions(self, message):
+
+        for reaction in self.reactions:
+            try:
+                await message.add_reaction(str(reaction))
+            except discord.HTTPException:
+                return
+
+
 
 
     @commands.Cog.listener()
@@ -75,7 +92,9 @@ class Reddit(commands.Cog):
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),
                 (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
-            await ctx.send(embed=e)
+            message = await ctx.send(embed=e)
+            await self.voting_reaction(message)
+
 
     @commands.group()
     async def browse(self, ctx):
@@ -84,15 +103,15 @@ class Reddit(commands.Cog):
 
     @browse.command()
     async def meme(self, ctx, category: str = None):
-        """Get the hottest memes from a specifif category.
+        """Get the hottest memes from a specific category.
         Available categories:
             - Anime
             - Minecraft
             - Dank
             - NGE
         """
-        if category == None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
-            submission = await self.get_hot_submission(subreddit="memes")
+        if category is None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
+            submission = await self.get_submission(subreddit="memes", sorting="hot")
             e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
             e.add_fields(
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),
@@ -110,19 +129,18 @@ class Reddit(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await self.get_hot_submission(switcher.get(category))
+            submission = await self.get_submission(subreddit=switcher.get(category), sorting="hot")
             e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
             e.add_fields(
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),
                 (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
             await ctx.send(embed=e)
-            await ctx.send(embed=e)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
-        submission = await self.get_hot_submission(self, subreddit)
+        submission = await self.get_submission(subreddit, sorting="hot")
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         e.add_fields(
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
@@ -133,7 +151,7 @@ class Reddit(commands.Cog):
     @browse.command()
     async def new(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
-        submission = await self.get_hot_submission(self, subreddit)
+        submission = await self.get_submission(subreddit, sorting="new")
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         e.add_fields(
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
@@ -142,9 +160,9 @@ class Reddit(commands.Cog):
         await ctx.send(embed=e)
 
     @browse.command()
-    async def best(self, ctx, subreddit: str):
-        """Browse new submissions in a subreddit."""
-        submission = await self.get_hot_submission(self, subreddit)
+    async def top(self, ctx, subreddit: str):
+        """Browse top submissions in a subreddit."""
+        submission = await self.get_hot_submission(subreddit, sorting="top")
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         e.add_fields(
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),

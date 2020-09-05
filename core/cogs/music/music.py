@@ -357,13 +357,13 @@ class Music(commands.Cog):
             for t in tracks.tracks:
                 await player.queue.put(Track(t.id, t.info, ctx=ctx))
 
-            await ctx.send(
+            await ctx.embed(
                 f'```ini\nAdded the playlist \'{tracks.data["playlistInfo"]["name"]}\''
                 f" with {len(tracks.tracks)} songs to the queue.\n```"
             )
         else:
             track = tracks[0]
-            await ctx.send(
+            await ctx.embed(
                 f"```ini\nAdded '{track.title}' to the Queue\n```", delete_after=10
             )
             await player.queue.put(Track(track.id, track.info, ctx=ctx))
@@ -371,10 +371,9 @@ class Music(commands.Cog):
         if player.controller_message and player.is_playing:
             await player.invoke_controller()
 
-    @commands.command(name="now_playing", aliases=["np", "now"])
+    @commands.command(aliases=["np", "now"])
     async def now_playing(self, ctx):
-        """Invoke the player controller.
-        """
+        """Invoke the player controller."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -391,10 +390,9 @@ class Music(commands.Cog):
 
         await player.invoke_controller()
 
-    @commands.command(name="pause")
+    @commands.command()
     async def pause(self, ctx):
-        """Pause the currently playing song.
-        """
+        """Pause the currently playing song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -417,7 +415,7 @@ class Music(commands.Cog):
         player.paused = True
         await player.set_pause(True)
 
-    @commands.command(name="resume")
+    @commands.command()
     async def resume(self, ctx):
         """Resume a currently paused song.
         """
@@ -440,10 +438,9 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         await player.set_pause(False)
 
-    @commands.command(name="skip")
+    @commands.command()
     async def skip(self, ctx):
-        """Skip the current song.
-        """
+        """Skip the current song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -463,8 +460,7 @@ class Music(commands.Cog):
 
     @commands.command(name="stop", aliases=["leave"])
     async def stop(self, ctx):
-        """Stop the player, disconnect and clear the queue.
-        """
+        """Stop the player, disconnect and clear the queue."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -485,6 +481,7 @@ class Music(commands.Cog):
 
     @commands.command(name="seek")
     async def seek(self, ctx, *, position: str):
+        """Move to a specified spot in the song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -512,8 +509,7 @@ class Music(commands.Cog):
 
     @commands.command(name="volume", aliases=["vol", "v"])
     async def volume(self, ctx, *, volume: int):
-        """Change the player volume.
-        """
+        """Change the player volume."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -534,8 +530,7 @@ class Music(commands.Cog):
 
     @commands.command(name="queue", aliases=["q"])
     async def queue(self, ctx):
-        """Retrieve a list of currently queued songs.
-        """
+        """Retrieve a list of currently queued songs."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -559,8 +554,7 @@ class Music(commands.Cog):
 
     @commands.command(name="shuffle", aliases=["mix"])
     async def shuffle(self, ctx):
-        """Shuffle the current queue.
-        """
+        """Shuffle the current queue."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -589,8 +583,7 @@ class Music(commands.Cog):
 
     @commands.command(name="repeat", aliases=["loop"])
     async def repeat(self, ctx):
-        """Repeat the currently playing song.
-        """
+        """Repeat the currently playing song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -657,8 +650,7 @@ class Music(commands.Cog):
 
     @commands.command()
     async def llinfo(self, ctx):
-        """Retrieve various Music / WaveLink information.
-        """
+        """Retrieve various Music / WaveLink information."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
