@@ -1,31 +1,27 @@
 import discord
-import typing
-from discord.ext import commands
-from discord.ext.commands import Context
-import asyncio
-import datetime
-import random
 
 from typing import Tuple
 
 
 class Embed(discord.Embed):
-    def __init__(self, ctx: Context = None, *, title: str, **kwargs):
+    def __init__(self, ctx=None, *, title: str, **kwargs):
         super(Embed, self).__init__(**kwargs)
-        self.ctx = ctx if ctx else None
+
         if ctx:
             self.timestamp = ctx.message.created_at
 
         if ctx:
-            author_image = self.ctx.author.avatar_url
+            author_image = ctx.author.avatar_url
             self.set_author(name=title, icon_url=author_image)
         else:
             self.title = title
 
         # if kwargs have an argument called colour, set the embed to colour to that
         # else default to discord blurple
-
-        self.colour = int(kwargs.get("colour")) if kwargs.get("colour") else 0x7289DA
+        if kwargs.get("colour"):
+            self.colour = int(kwargs.get("colour"))
+        else:
+            self.colour = 0x7289DA
 
         self.description = kwargs.get("description")
 

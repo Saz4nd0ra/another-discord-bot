@@ -35,9 +35,9 @@ class Reddit(commands.Cog):
         )
 
     async def get_submission(self, subreddit: str, sorting: str):
-        if sorting is "hot":
+        if sorting == "hot":
             submissions = self.reddit.subreddit(subreddit).hot(limit=100)
-        if sorting is "new":
+        if sorting == "new":
             submissions = self.reddit.subreddit(subreddit).new(limit=3)
         else:
             submissions = self.reddit.subreddit(subreddit).top(limit=100)

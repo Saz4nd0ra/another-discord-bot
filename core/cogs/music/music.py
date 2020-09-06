@@ -116,7 +116,7 @@ class Player(wavelink.Player):
 
         if len(self.entries) > 0:
             data = "\n".join(
-                f'**-** `{t.title[0:45]}{".." if len(t.title) > 45 else ""}`\n{"-"*10}'
+                f'**-** {t.title[0:45]}{".." if len(t.title) > 45 else ""}\n{"-"*10}'
                 for t in itertools.islice(
                     [e for e in self.entries if not e.is_dead], 0, 3, None
                 )
@@ -124,20 +124,19 @@ class Player(wavelink.Player):
 
         e = Embed(
             title="Music Controller",
-            description=f"Now Playing:\n[{track.title}]({track.uri})",
+            description=f"Now Playing:\n[{track.title}]({track.uri})"
         )
         e.set_thumbnail(url=track.thumb)
 
         if track.is_stream:
-            e.add_field(name="Duration", value="🔴`Streaming`")
+            e.add_field(name="Duration", value="🔴Streaming")
         else:
             e.add_field(
                 name="Duration",
                 value=str(datetime.timedelta(milliseconds=int(track.length))),
             )
         e.add_fields(("Queue Length:", str(len(self.entries))),
-                     ("Volume:", str(self.volume)),
-                     ("Coming up:", data))
+                     ("Volume:", str(self.volume)))
 
         if not await self.is_current_fresh(track.channel) and self.controller_message:
             try:
@@ -361,13 +360,13 @@ class Music(commands.Cog):
                 await player.queue.put(Track(t.id, t.info, ctx=ctx))
 
             await ctx.embed(
-                f'```ini\nAdded the playlist \'{tracks.data["playlistInfo"]["name"]}\''
-                f" with {len(tracks.tracks)} songs to the queue.\n```"
+                f'\nAdded the playlist \'{tracks.data["playlistInfo"]["name"]}\''
+                f" with `{len(tracks.tracks)}` songs to the queue.\n"
             )
         else:
             track = tracks[0]
             await ctx.embed(
-                f"```ini\nAdded '{track.title}' to the Queue\n```", delete_after=10
+                f"\nAdded `{track.title}` to the Queue\n", 10
             )
             await player.queue.put(Track(track.id, track.info, ctx=ctx))
 
@@ -410,7 +409,7 @@ class Music(commands.Cog):
         if player.paused:
             return
 
-        await ctx.embed(f"{ctx.author.mention} has paused the song!", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} has paused the song!", 10)
         return await self.do_pause(ctx)
 
     async def do_pause(self, ctx):
@@ -525,7 +524,7 @@ class Music(commands.Cog):
             return await ctx.error("Please enter a value between 0 and 100.", 10)
 
         await player.set_volume(volume)
-        await ctx.embed(f"Volume set to **{volume}**%!", delete_after=10)
+        await ctx.embed(f"Volume set to **{volume}**%!", 10)
 
         if not player.updating and not player.update:
             await player.invoke_controller()
@@ -546,10 +545,10 @@ class Music(commands.Cog):
 
         if not upcoming:
             return await ctx.error(
-                "```\nNo more songs in the Queue!\n```", delete_after=10
+                "\nNo more songs in the Queue!\n", 10
             )
 
-        fmt = "\n".join(f"**`{str(song)}`**" for song in upcoming)
+        fmt = "\n".join(f"**{str(song)}**" for song in upcoming)
         e = Embed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
 
         await ctx.send(embed=e)
@@ -666,15 +665,15 @@ class Music(commands.Cog):
         cpu = node.stats.cpu_cores
 
         fmt = (
-            f"**WaveLink:** `{wavelink.__version__}`\n\n"
-            f"Connected to `{len(self.bot.wavelink.nodes)}` nodes.\n"
-            f"Best available Node `{self.bot.wavelink.get_best_node().__repr__()}`\n"
-            f"`{len(self.bot.wavelink.players)}` players are distributed on nodes.\n"
-            f"`{node.stats.players}` players are distributed on server.\n"
-            f"`{node.stats.playing_players}` players are playing on server.\n\n"
-            f"Server Memory: `{used}/{total}` | `({free} free)`\n"
-            f"Server CPU: `{cpu}`\n\n"
-            f"Server Uptime: `{datetime.timedelta(milliseconds=node.stats.uptime)}`\n"
+            f"**WaveLink:** {wavelink.__version__}\n\n"
+            f"Connected to {len(self.bot.wavelink.nodes)} nodes.\n"
+            f"Best available Node {self.bot.wavelink.get_best_node().__repr__()}\n"
+            f"{len(self.bot.wavelink.players)} players are distributed on nodes.\n"
+            f"{node.stats.players} players are distributed on server.\n"
+            f"{node.stats.playing_players} players are playing on server.\n\n"
+            f"Server Memory: {used}/{total} | ({free} free)\n"
+            f"Server CPU: {cpu}\n\n"
+            f"Server Uptime: {datetime.timedelta(milliseconds=node.stats.uptime)}\n"
         )
         await ctx.embed(fmt, 10)
 

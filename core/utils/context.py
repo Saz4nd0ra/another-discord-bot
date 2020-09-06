@@ -43,7 +43,7 @@ class Context(commands.Context):
         )
         await self.send(embed=e)
 
-    async def send_embed(self, message: str, auto_delete: int = None):
+    async def embed(self, message: str, auto_delete: int = None):
         """Sends a quick embed."""
         e = Embed(ctx=self, title=self.command.qualified_name, description=message)
         await self.send(
