@@ -21,6 +21,7 @@ class Reddit(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = self.bot.config
+        self.voting_message = None
         self.reactions = {
             "↑": "upvote",
             "↓": "downvote"
@@ -57,14 +58,28 @@ class Reddit(commands.Cog):
     async def downvote_post(self):
         pass
 
-    async def vote_reactions(self, message):
-        self.bot.loop.create_task(self.add_reactions(message))
+    async def reddit_embed(self, ctx, submission):
+        """Embed that includes a voting system."""
 
-    async def add_reactions(self, message):
+        e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        e.add_fields(
+            (":thumbsup: **Upvotes**:", f"{submission.ups}"),
+            (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+        )
+
+
+    async def reaction_voting(self):
+        self.reaction_task = self.bot.loop.create_task(self.add_reactions())
+
+        while self.voting_message:
+            if self.channel.id is None:
+                self.reaction_task.cancel()
+
+    async def add_reactions(self):
 
         for reaction in self.reactions:
             try:
-                await message.add_reaction(str(reaction))
+                await self.voting_message.add_reaction(str(reaction))
             except discord.HTTPException:
                 return
 
@@ -81,19 +96,8 @@ class Reddit(commands.Cog):
             if submission.over_18 is True and message.channel.is_nsfw() is not True:
                 await message.delete()
                 await ctx.send(f"{message.author.mention} this channel doesn't allow NSFW.")
-
-            e = Embed(
-                ctx,
-                title=f"Title: {submission.title}",
-                description=submission.selftext,
-                image=submission.url,
-            )
-            e.add_fields(
-                (":thumbsup: **Upvotes**:", f"{submission.ups}"),
-                (":envelepe: **Comments**:", f"{len(submission.comments)}"),
-            )
-            message = await ctx.send(embed=e)
-            await self.voting_reaction(message)
+            else:
+                await self.reddit_embed(ctx, submission)
 
 
     @commands.group()
@@ -117,7 +121,7 @@ class Reddit(commands.Cog):
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),
                 (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
-            await ctx.send(embed=e)
+            self.voting_message = await ctx.send(embed=e)
 
         else:  # use userprovided subreddit
 
@@ -135,7 +139,7 @@ class Reddit(commands.Cog):
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),
                 (":envelepe: **Comments**:", f"{len(submission.comments)}"),
             )
-            await ctx.send(embed=e)
+            self.voting_message = await ctx.send(embed=e)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):
@@ -146,7 +150,7 @@ class Reddit(commands.Cog):
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
         )
-        await ctx.send(embed=e)
+        self.voting_message = await ctx.send(embed=e)
 
     @browse.command()
     async def new(self, ctx, subreddit: str):
@@ -157,18 +161,18 @@ class Reddit(commands.Cog):
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
         )
-        await ctx.send(embed=e)
+        self.voting_message = await ctx.send(embed=e)
 
     @browse.command()
     async def top(self, ctx, subreddit: str):
         """Browse top submissions in a subreddit."""
-        submission = await self.get_hot_submission(subreddit, sorting="top")
+        submission = await self.get_submission(subreddit, sorting="top")
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         e.add_fields(
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
         )
-        await ctx.send(embed=e)
+        self.voting_message = await ctx.send(embed=e)
 
 
 def setup(bot):
