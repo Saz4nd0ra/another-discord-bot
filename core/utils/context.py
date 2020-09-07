@@ -28,7 +28,9 @@ class Context(commands.Context):
         if len(content) > 2000:
             fp = io.BytesIO(content.encode())
             kwargs.pop("file", None)
-            return await self.send(file=discord.File(fp, filename="message_too_long.txt"), **kwargs)
+            return await self.send(
+                file=discord.File(fp, filename="message_too_long.txt"), **kwargs
+            )
         else:
             return await self.send(content)
 

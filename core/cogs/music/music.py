@@ -8,11 +8,14 @@ import re
 import wavelink
 from discord.ext import commands
 from typing import Union
+import logging
 import humanize
 from ...utils.embed import Embed
 from ...utils.exceptions import *
 
 RURL = re.compile(r"https?:\/\/(?:www\.)?.+")
+
+log = logging.getLogger(__name__)
 
 
 class Track(wavelink.Track):
@@ -124,7 +127,7 @@ class Player(wavelink.Player):
 
         e = Embed(
             title="Music Controller",
-            description=f"Now Playing:\n[{track.title}]({track.uri})"
+            description=f"Now Playing:\n[{track.title}]({track.uri})",
         )
         e.set_thumbnail(url=track.thumb)
 
@@ -135,8 +138,9 @@ class Player(wavelink.Player):
                 name="Duration",
                 value=str(datetime.timedelta(milliseconds=int(track.length))),
             )
-        e.add_fields(("Queue Length:", str(len(self.entries))),
-                     ("Volume:", str(self.volume)))
+        e.add_fields(
+            ("Queue Length:", str(len(self.entries))), ("Volume:", str(self.volume))
+        )
 
         if not await self.is_current_fresh(track.channel) and self.controller_message:
             try:
@@ -296,19 +300,20 @@ class Music(commands.Cog):
         if isinstance(event, wavelink.TrackEnd):
             event.player.next_event.set()
         elif isinstance(event, wavelink.TrackException):
-            print(event.error)
+            log.error(event.error)
 
     @commands.command(name="reactcontrol", hidden=True)
     async def react_control(self, ctx):
         """Dummy command for error handling in our player."""
         pass
 
-    @commands.command(aliases=["c"])
+    @commands.command(name="connect", aliases=["c"])
     async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
         """Connect to voice."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't delete message.")
             pass
 
         if not channel:
@@ -325,12 +330,13 @@ class Music(commands.Cog):
 
         await player.connect(channel.id)
 
-    @commands.command(aliases=["p"])
+    @commands.command(name="play", aliases=["p"])
     async def play(self, ctx, *, query: str):
         """Queue a song or playlist for playback."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't play the track.")
             pass
 
         await ctx.trigger_typing()
@@ -365,15 +371,13 @@ class Music(commands.Cog):
             )
         else:
             track = tracks[0]
-            await ctx.embed(
-                f"\nAdded `{track.title}` to the Queue\n", 10
-            )
+            await ctx.embed(f"\nAdded `{track.title}` to the Queue\n", 10)
             await player.queue.put(Track(track.id, track.info, ctx=ctx))
 
         if player.controller_message and player.is_playing:
             await player.invoke_controller()
 
-    @commands.command(aliases=["np", "now"])
+    @commands.command(name="now_playing", aliases=["np", "now"])
     async def now_playing(self, ctx):
         """Invoke the player controller."""
         try:
@@ -392,12 +396,13 @@ class Music(commands.Cog):
 
         await player.invoke_controller()
 
-    @commands.command(aliases=["ps"])
+    @commands.command(naame="pause", aliases=["ps"])
     async def pause(self, ctx):
         """Pause the currently playing song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't pause the player.")
             pass
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         if not player:
@@ -417,7 +422,7 @@ class Music(commands.Cog):
         player.paused = True
         await player.set_pause(True)
 
-    @commands.command(aliases=["r"])
+    @commands.command(name="resume", aliases=["r"])
     async def resume(self, ctx):
         """Resume a currently paused song."""
         try:
@@ -429,6 +434,7 @@ class Music(commands.Cog):
         if not player.is_connected:
             raise NotConnected
 
+
         if not player.paused:
             return
 
@@ -439,7 +445,7 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         await player.set_pause(False)
 
-    @commands.command(aliases=["s"])
+    @commands.command(name="skip", aliases=["s"])
     async def skip(self, ctx):
         """Skip the current song."""
         try:
@@ -459,7 +465,7 @@ class Music(commands.Cog):
 
         await player.stop()
 
-    @commands.command(aliases=["sp"])
+    @commands.command(name="stop", aliases=["sp"])
     async def stop(self, ctx):
         """Stop the player, disconnect and clear the queue."""
         try:
@@ -544,16 +550,14 @@ class Music(commands.Cog):
         upcoming = list(itertools.islice(player.entries, 0, 10))
 
         if not upcoming:
-            return await ctx.error(
-                "\nNo more songs in the Queue!\n", 10
-            )
+            return await ctx.error("No more songs in the Queue!", 10)
 
         fmt = "\n".join(f"**{str(song)}**" for song in upcoming)
         e = Embed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
 
         await ctx.send(embed=e)
 
-    @commands.command(aliases=["mix"])
+    @commands.command(name="shuffle", aliases=["mix"])
     async def shuffle(self, ctx):
         """Shuffle the current queue."""
         try:
@@ -571,9 +575,7 @@ class Music(commands.Cog):
                 10,
             )
 
-        await ctx.embed(
-            f"{ctx.author.mention} has shuffled the playlist!", 10
-        )
+        await ctx.embed(f"{ctx.author.mention} has shuffled the playlist!", 10)
         return await self.do_shuffle(ctx)
 
     async def do_shuffle(self, ctx):
@@ -582,7 +584,7 @@ class Music(commands.Cog):
 
         player.update = True
 
-    @commands.command(liases=["r"])
+    @commands.command(name="repeat", liases=["r"])
     async def repeat(self, ctx):
         """Repeat the currently playing song."""
         try:
@@ -663,19 +665,14 @@ class Music(commands.Cog):
         total = humanize.naturalsize(node.stats.memory_allocated)
         free = humanize.naturalsize(node.stats.memory_free)
         cpu = node.stats.cpu_cores
-
-        fmt = (
-            f"**WaveLink:** {wavelink.__version__}\n\n"
-            f"Connected to {len(self.bot.wavelink.nodes)} nodes.\n"
-            f"Best available Node {self.bot.wavelink.get_best_node().__repr__()}\n"
-            f"{len(self.bot.wavelink.players)} players are distributed on nodes.\n"
-            f"{node.stats.players} players are distributed on server.\n"
-            f"{node.stats.playing_players} players are playing on server.\n\n"
-            f"Server Memory: {used}/{total} | ({free} free)\n"
-            f"Server CPU: {cpu}\n\n"
-            f"Server Uptime: {datetime.timedelta(milliseconds=node.stats.uptime)}\n"
-        )
-        await ctx.embed(fmt, 10)
+        e = Embed(ctx, title="Wavelink Info", description=f"Wavelink version: {wavelink.__version__}")
+        e.add_fields(("Connected Nodes:", str(len(self.bot.wavelink.nodes))),
+                     ("Best available Node:", self.bot.wavelink.get_best_node().__repr__()),
+                     ("Players on this server:", str(node.stats.playing_players)),
+                     ("Server Memory:", f"{used}/{total} | ({free} free)"),
+                     ("Server CPU Cores:", str(cpu)),
+                     ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))))
+        await ctx.send(embed=e, delete_after=10)
 
 
 def setup(bot):

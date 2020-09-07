@@ -22,15 +22,12 @@ class Reddit(commands.Cog):
         self.bot = bot
         self.config = self.bot.config
         self.voting_message = None
-        self.reactions = {
-            "↑": "upvote",
-            "↓": "downvote"
-        }
+        self.reactions = {"↑": "upvote", "↓": "downvote"}
         self.reddit = praw.Reddit(
-            client_id=self.config.praw_clientid, # connecting to reddit using appilcation details and account details
+            client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
-            password=self.config.praw_password, # the actual password of the application account
-            username=self.config.praw_username, # the actual username of the application account
+            password=self.config.praw_password,  # the actual password of the application account
+            username=self.config.praw_username,  # the actual username of the application account
             user_agent="another-discord-bot by /u/Saz4nd0ra",
         )
 
@@ -67,7 +64,6 @@ class Reddit(commands.Cog):
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
         )
 
-
     async def reaction_voting(self):
         self.reaction_task = self.bot.loop.create_task(self.add_reactions())
 
@@ -83,9 +79,6 @@ class Reddit(commands.Cog):
             except discord.HTTPException:
                 return
 
-
-
-
     @commands.Cog.listener()
     async def on_message(self, message):
         """Catch reddit links, check them, and then return them as a nice embed."""
@@ -95,10 +88,11 @@ class Reddit(commands.Cog):
             submission = await self.get_submission_from_url(url=submission_url)
             if submission.over_18 is True and message.channel.is_nsfw() is not True:
                 await message.delete()
-                await ctx.send(f"{message.author.mention} this channel doesn't allow NSFW.")
+                await ctx.send(
+                    f"{message.author.mention} this channel doesn't allow NSFW."
+                )
             else:
                 await self.reddit_embed(ctx, submission)
-
 
     @commands.group()
     async def browse(self, ctx):
@@ -114,7 +108,9 @@ class Reddit(commands.Cog):
             - Dank
             - NGE
         """
-        if category is None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
+        if (
+            category is None
+        ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.get_submission(subreddit="memes", sorting="hot")
             e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
             e.add_fields(
@@ -133,7 +129,9 @@ class Reddit(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await self.get_submission(subreddit=switcher.get(category), sorting="hot")
+            submission = await self.get_submission(
+                subreddit=switcher.get(category), sorting="hot"
+            )
             e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
             e.add_fields(
                 (":thumbsup: **Upvotes**:", f"{submission.ups}"),

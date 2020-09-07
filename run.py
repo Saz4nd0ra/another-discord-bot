@@ -18,7 +18,11 @@ def setup_logging():
         log = logging.getLogger()
         log.setLevel(logging.INFO)
         if not os.path.exists("logs/"):
+            log.info("Creating logs/ directory.")
             os.mkdir("logs/")
+        if not os.path.exists("data/"):
+            log.info("Creating data/ directory.")
+            os.mkdir("data/")
         handler = logging.FileHandler(
             filename="logs/adb.log", encoding="utf-8", mode="w"
         )

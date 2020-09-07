@@ -24,7 +24,12 @@ class Config:
         }.difference(config.sections())
 
         if confsections:
-            raise Exception(log.error("Config sections altered!\n" "Make sure you have a correctly formatted config!"))
+            raise Exception(
+                log.error(
+                    "Config sections altered!\n"
+                    "Make sure you have a correctly formatted config!"
+                )
+            )
 
         self.login_token = config.get("Credentials", "Token")
 

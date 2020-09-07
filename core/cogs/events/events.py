@@ -23,60 +23,11 @@ class Events(commands.Cog):
                 f.close()
                 log.info("Message logged")
 
+# TODO: all of that
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
-        """The event triggered when an error is raised while invoking a command.
-        Parameters"""
-        if hasattr(ctx.command, "on_error"):
-            return
-
-        cog = ctx.cog
-        if cog:
-            if cog._get_overridden_method(cog.cog_command_error) is not None:
-                return
-
-        ignored = (commands.CommandNotFound,)
-        error = getattr(error, "original", error)
-
-        if isinstance(error, ignored):
-            return
-
-        if isinstance(error, commands.DisabledCommand):
-            await ctx.error(f"{ctx.command} has been disabled.")
-
-        elif isinstance(error, commands.NoPrivateMessage):
-            try:
-                await ctx.author.error(f"{ctx.command} can not be used in Private Messages.")
-            except discord.HTTPException:
-                pass
-
-        elif isinstance(error, commands.BadArgument):
-            if ctx.command.qualified_name == "tag list":
-                await ctx.error("Wrong argument passed. Check the help command.")
-
-        else:
-            print(
-                "Ignoring exception in command {}:".format(ctx.command),
-                file=sys.stderr,
-            )
-            traceback.print_exception(type(error), error, error.__traceback__, file=sys.stderr)
-
-    @commands.command(name="do", aliases=["mimic", "copy"])
-    async def do_repeat(self, ctx, *, inp: str):
-        """A simple command which repeats your input!
-        Parameters"""
-        await ctx.send(inp)
-
-    @do_repeat.error
-    async def do_repeat_handler(self, ctx, error):
-        """A local Error Handler for our command do_repeat.
-        This will only listen for errors in do_repeat.
-        The global on_command_error will still be invoked after.
-        """
-
-        if isinstance(error, commands.MissingRequiredArgument):
-            if error.param.name == "inp":
-                await ctx.error("You forgot to give me input to repeat!")
+        """The event triggered when an error is raised while invoking a command."""
+        pass
 
 
 def setup(bot):
