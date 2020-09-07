@@ -1,9 +1,11 @@
 import discord
+import traceback
+import sys
 from discord.ext import commands
 import logging
-from ...utils import checks
 
-log = logging.getLogger(__name__)
+
+log = logging.getLogger("cogs.events")
 
 
 class Events(commands.Cog):
@@ -15,11 +17,17 @@ class Events(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         if self.bot.config.enable_msg_logging:
-            if str(message.channel.id) == self.bot.config.msg_logging_channel:
+            if str(message.channel.id) in self.bot.config.msg_logging_channel:
                 f = open("./data/msgs.txt", "a")
                 f.write(f"{message.author.name}: {message.content}\n")
                 f.close()
                 log.info("Message logged")
+
+# TODO: all of that
+    @commands.Cog.listener()
+    async def on_command_error(self, ctx, error):
+        """The event triggered when an error is raised while invoking a command."""
+        pass
 
 
 def setup(bot):

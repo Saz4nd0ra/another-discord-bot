@@ -1,16 +1,13 @@
 from discord.ext import commands
 import discord
 from .utils import context
-from .utils.help import HelpCommand
 from .utils.config import Config
-from .utils.embed import SimpleEmbed
 import datetime
 import json
 import logging
-import traceback
-import sys
 import aiohttp
-from collections import Counter, deque, defaultdict
+import traceback
+from collections import deque, defaultdict
 
 CONFIG = Config()
 
@@ -21,12 +18,10 @@ another-discord-bot (dev branch)
 log = logging.getLogger(__name__)
 
 cogs_to_load = {  # of course nothing works as planned
-    "admin",
-    "mod",
     "music",
     "reddit",
     "events",
-    "meta",
+    "general",
 }
 
 
@@ -37,7 +32,6 @@ class ADB(commands.AutoShardedBot):
             description=DESCRIPTION,
             fetch_offline_members=False,
             heartbeat_timeout=150.0,
-            help_command=HelpCommand(),
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
@@ -63,22 +57,6 @@ class ADB(commands.AutoShardedBot):
                 log.error(f"Failed to load extension {cog} due to {e}.")
                 traceback.print_exc()
 
-    async def on_command_error(self, ctx, error):
-        if isinstance(error, commands.NoPrivateMessage):
-            await ctx.author.send("This command cannot be used in private messages.")
-        elif isinstance(error, commands.DisabledCommand):
-            await ctx.author.send("Sorry. This command is disabled and cannot be used.")
-        elif isinstance(error, commands.CommandInvokeError):
-            original = error.original
-            if not isinstance(original, discord.HTTPException):
-                print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
-                traceback.print_tb(original.__traceback__)
-                print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
-        elif isinstance(error, commands.ArgumentParsingError):
-            await ctx.send(
-                "An error occured when invoking that command, check the logs."
-            )
-
     async def on_ready(self):  # maybe I should do it even fancier
         if not hasattr(self, "uptime"):
             self.uptime = datetime.datetime.utcnow()
@@ -101,11 +79,8 @@ class ADB(commands.AutoShardedBot):
         if ctx.command is None:
             return
 
-        #        if ctx.author.id in self.blacklist:
-        #            return
-        #
-        #        if ctx.guild is not None and ctx.guild.id in self.blacklist:
-        #            return
+        if str(message.author.id) in str(self.config.blacklisted_ids):
+            return
 
         await self.invoke(ctx)
 

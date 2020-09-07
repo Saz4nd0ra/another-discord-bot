@@ -8,10 +8,14 @@ import re
 import wavelink
 from discord.ext import commands
 from typing import Union
+import logging
 import humanize
-from ...utils.embed import SimpleEmbed
+from ...utils.embed import Embed
+from ...utils.exceptions import *
 
 RURL = re.compile(r"https?:\/\/(?:www\.)?.+")
+
+log = logging.getLogger(__name__)
 
 
 class Track(wavelink.Track):
@@ -113,30 +117,30 @@ class Player(wavelink.Player):
 
         self.updating = True
 
-        embed = SimpleEmbed(
-            title="Music Controller",
-            description=f"Now Playing:\n[{track.title}]({track.uri})",
-        )
-        embed.set_thumbnail(url=track.thumb)
-
-        if track.is_stream:
-            embed.add_field(name="Duration", value="🔴`Streaming`")
-        else:
-            embed.add_field(
-                name="Duration",
-                value=str(datetime.timedelta(milliseconds=int(track.length))),
-            )
-        embed.add_field(name="Queue Length", value=str(len(self.entries)))
-        embed.add_field(name="Volume", value=f"{self.volume}%")
-
         if len(self.entries) > 0:
             data = "\n".join(
-                f'**-** `{t.title[0:45]}{".." if len(t.title) > 45 else ""}`\n{"-"*10}'
+                f'**-** {t.title[0:45]}{".." if len(t.title) > 45 else ""}\n{"-"*10}'
                 for t in itertools.islice(
                     [e for e in self.entries if not e.is_dead], 0, 3, None
                 )
             )
-            embed.add_field(name="Coming Up:", value=data, inline=False)
+
+        e = Embed(
+            title="Music Controller",
+            description=f"Now Playing:\n[{track.title}]({track.uri})",
+        )
+        e.set_thumbnail(url=track.thumb)
+
+        if track.is_stream:
+            e.add_field(name="Duration", value="🔴Streaming")
+        else:
+            e.add_field(
+                name="Duration",
+                value=str(datetime.timedelta(milliseconds=int(track.length))),
+            )
+        e.add_fields(
+            ("Queue Length:", str(len(self.entries))), ("Volume:", str(self.volume))
+        )
 
         if not await self.is_current_fresh(track.channel) and self.controller_message:
             try:
@@ -144,12 +148,12 @@ class Player(wavelink.Player):
             except discord.HTTPException:
                 pass
 
-            self.controller_message = await track.channel.send(embed=embed)
+            self.controller_message = await track.channel.send(embed=e)
         elif not self.controller_message:
-            self.controller_message = await track.channel.send(embed=embed)
+            self.controller_message = await track.channel.send(embed=e)
         else:
             self.updating = False
-            return await self.controller_message.edit(embed=embed, content=None)
+            return await self.controller_message.edit(embed=e, content=None)
 
         try:
             self.reaction_task.cancel()
@@ -259,6 +263,7 @@ class Player(wavelink.Player):
 class Music(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.config = self.bot.config
 
         if not hasattr(bot, "wavelink"):
             self.bot.wavelink = wavelink.Client(bot=bot)
@@ -268,10 +273,10 @@ class Music(commands.Cog):
     async def initiate_nodes(self):
         nodes = {
             "MAIN": {
-                "host": self.bot.config.ll_host,
-                "port": self.bot.config.ll_port,
-                "rest_url": f"http://{self.bot.config.ll_host}:{self.bot.config.ll_port}",
-                "password": self.bot.config.ll_passwd,
+                "host": self.config.ll_host,
+                "port": self.config.ll_port,
+                "rest_url": f"http://{self.config.ll_host}:{self.config.ll_port}",
+                "password": self.config.ll_passwd,
                 "identifier": "MAIN",
                 "region": "europe",
             }
@@ -295,27 +300,27 @@ class Music(commands.Cog):
         if isinstance(event, wavelink.TrackEnd):
             event.player.next_event.set()
         elif isinstance(event, wavelink.TrackException):
-            print(event.error)
+            log.error(event.error)
 
     @commands.command(name="reactcontrol", hidden=True)
     async def react_control(self, ctx):
         """Dummy command for error handling in our player."""
         pass
 
-    @commands.command(name="connect")
+    @commands.command(name="connect", aliases=["c"])
     async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
-        """Connect to voice.
-        """
+        """Connect to voice."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't delete message.")
             pass
 
         if not channel:
             try:
                 channel = ctx.author.voice.channel
             except AttributeError:
-                raise modules.errors.MissingChannel
+                raise NoChannelProvided
 
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
@@ -325,13 +330,13 @@ class Music(commands.Cog):
 
         await player.connect(channel.id)
 
-    @commands.command(name="play")
+    @commands.command(name="play", aliases=["p"])
     async def play(self, ctx, *, query: str):
-        """Queue a song or playlist for playback.
-        """
+        """Queue a song or playlist for playback."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't play the track.")
             pass
 
         await ctx.trigger_typing()
@@ -352,7 +357,7 @@ class Music(commands.Cog):
 
         tracks = await self.bot.wavelink.get_tracks(query)
         if not tracks:
-            return await ctx.send(
+            return await ctx.error(
                 "No songs were found with that query. Please try again."
             )
 
@@ -360,15 +365,13 @@ class Music(commands.Cog):
             for t in tracks.tracks:
                 await player.queue.put(Track(t.id, t.info, ctx=ctx))
 
-            await ctx.send(
-                f'```ini\nAdded the playlist \'{tracks.data["playlistInfo"]["name"]}\''
-                f" with {len(tracks.tracks)} songs to the queue.\n```"
+            await ctx.embed(
+                f'\nAdded the playlist \'{tracks.data["playlistInfo"]["name"]}\''
+                f" with `{len(tracks.tracks)}` songs to the queue.\n"
             )
         else:
             track = tracks[0]
-            await ctx.send(
-                f"```ini\nAdded '{track.title}' to the Queue\n```", delete_after=10
-            )
+            await ctx.embed(f"\nAdded `{track.title}` to the Queue\n", 10)
             await player.queue.put(Track(track.id, track.info, ctx=ctx))
 
         if player.controller_message and player.is_playing:
@@ -376,8 +379,7 @@ class Music(commands.Cog):
 
     @commands.command(name="now_playing", aliases=["np", "now"])
     async def now_playing(self, ctx):
-        """Invoke the player controller.
-        """
+        """Invoke the player controller."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -394,25 +396,25 @@ class Music(commands.Cog):
 
         await player.invoke_controller()
 
-    @commands.command(name="pause")
+    @commands.command(naame="pause", aliases=["ps"])
     async def pause(self, ctx):
-        """Pause the currently playing song.
-        """
+        """Pause the currently playing song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
+            log.error("Couldn't pause the player.")
             pass
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         if not player:
             return
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
         if player.paused:
             return
 
-        await ctx.send(f"{ctx.author.mention} has paused the song!", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} has paused the song!", 10)
         return await self.do_pause(ctx)
 
     async def do_pause(self, ctx):
@@ -420,10 +422,9 @@ class Music(commands.Cog):
         player.paused = True
         await player.set_pause(True)
 
-    @commands.command(name="resume")
+    @commands.command(name="resume", aliases=["r"])
     async def resume(self, ctx):
-        """Resume a currently paused song.
-        """
+        """Resume a currently paused song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -431,22 +432,22 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
+
 
         if not player.paused:
             return
 
-        await ctx.send(f"{ctx.author.mention} has resumed the song!", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} has resumed the song!", 10)
         return await self.do_resume(ctx)
 
     async def do_resume(self, ctx):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         await player.set_pause(False)
 
-    @commands.command(name="skip")
+    @commands.command(name="skip", aliases=["s"])
     async def skip(self, ctx):
-        """Skip the current song.
-        """
+        """Skip the current song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -454,9 +455,9 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
-        await ctx.send(f"{ctx.author.mention} has skipped the song!", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} has skipped the song!", 10)
         return await self.do_skip(ctx)
 
     async def do_skip(self, ctx):
@@ -464,10 +465,9 @@ class Music(commands.Cog):
 
         await player.stop()
 
-    @commands.command(name="stop", aliases=["leave"])
+    @commands.command(name="stop", aliases=["sp"])
     async def stop(self, ctx):
-        """Stop the player, disconnect and clear the queue.
-        """
+        """Stop the player, disconnect and clear the queue."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -475,9 +475,9 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
-        await ctx.send(f"{ctx.author.mention} has stopped the player.", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} has stopped the player.", 10)
         return await self.do_stop(ctx)
 
     async def do_stop(self, ctx):
@@ -486,8 +486,9 @@ class Music(commands.Cog):
         await player.destroy_controller()
         await player.disconnect()
 
-    @commands.command(name="seek")
+    @commands.command(aliases=["sk"])
     async def seek(self, ctx, *, position: str):
+        """Seek through a song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -496,7 +497,7 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
         try:
             h, m, s = position.split(":")
@@ -511,12 +512,11 @@ class Music(commands.Cog):
         sec = int(h) * 3600 + int(m) * 60 + int(s)
 
         await player.seek(sec)
-        await ctx.send(f"Set the position to **{h}:{m}:{s}**.")
+        await ctx.embed(f"Set the position to **{h}:{m}:{s}**.", 10)
 
     @commands.command(name="volume", aliases=["vol", "v"])
     async def volume(self, ctx, *, volume: int):
-        """Change the player volume.
-        """
+        """Change the player volume."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -524,21 +524,20 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
         if not 0 <= volume <= 100:
-            return await ctx.send("Please enter a value between 0 and 100.")
+            return await ctx.error("Please enter a value between 0 and 100.", 10)
 
         await player.set_volume(volume)
-        await ctx.send(f"Volume set to **{volume}**%!", delete_after=10)
+        await ctx.embed(f"Volume set to **{volume}**%!", 10)
 
         if not player.updating and not player.update:
             await player.invoke_controller()
 
     @commands.command(name="queue", aliases=["q"])
     async def queue(self, ctx):
-        """Retrieve a list of currently queued songs.
-        """
+        """Retrieve a list of currently queued songs."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -546,24 +545,21 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
         upcoming = list(itertools.islice(player.entries, 0, 10))
 
         if not upcoming:
-            return await ctx.send(
-                "```\nNo more songs in the Queue!\n```", delete_after=10
-            )
+            return await ctx.error("No more songs in the Queue!", 10)
 
-        fmt = "\n".join(f"**`{str(song)}`**" for song in upcoming)
-        embed = SimpleEmbed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
+        fmt = "\n".join(f"**{str(song)}**" for song in upcoming)
+        e = Embed(title=f"Upcoming - Next {len(upcoming)}", description=fmt)
 
-        await ctx.send(embed=embed)
+        await ctx.send(embed=e)
 
     @commands.command(name="shuffle", aliases=["mix"])
     async def shuffle(self, ctx):
-        """Shuffle the current queue.
-        """
+        """Shuffle the current queue."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -571,17 +567,15 @@ class Music(commands.Cog):
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
-            raise modules.errors.NotConnected
+            raise NotConnected
 
         if len(player.entries) < 3:
-            return await ctx.send(
+            return await ctx.embed(
                 "Please add more songs to the queue before trying to shuffle.",
-                delete_after=10,
+                10,
             )
 
-        await ctx.send(
-            f"{ctx.author.mention} has shuffled the playlist!", delete_after=10
-        )
+        await ctx.embed(f"{ctx.author.mention} has shuffled the playlist!", 10)
         return await self.do_shuffle(ctx)
 
     async def do_shuffle(self, ctx):
@@ -590,10 +584,9 @@ class Music(commands.Cog):
 
         player.update = True
 
-    @commands.command(name="repeat", aliases=["loop"])
+    @commands.command(name="repeat", liases=["r"])
     async def repeat(self, ctx):
-        """Repeat the currently playing song.
-        """
+        """Repeat the currently playing song."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -603,7 +596,7 @@ class Music(commands.Cog):
         if not player.is_connected:
             return
 
-        await ctx.send(f"{ctx.author.mention} set the song on repeat!", delete_after=10)
+        await ctx.embed(f"{ctx.author.mention} set the song on repeat!", 10)
         return await self.do_repeat(ctx)
 
     async def do_repeat(self, ctx):
@@ -631,10 +624,10 @@ class Music(commands.Cog):
 
         if vol > 100:
             vol = 100
-            await ctx.send("Maximum volume reached!", delete_after=10)
+            await ctx.error("Maximum volume reached!", 10)
 
         await player.set_volume(vol)
-        await ctx.send(f"Volume set to **{vol}%**!")
+        await ctx.embed(f"Volume set to **{vol}%**!")
         player.update = True
 
     @commands.command(name="vol_down", hidden=True)
@@ -652,16 +645,15 @@ class Music(commands.Cog):
 
         if vol < 0:
             vol = 0
-            await ctx.send("Player is currently muted.", delete_after=10)
+            await ctx.error("Player is currently muted.", 10)
 
         await player.set_volume(vol)
-        await ctx.send(f"Volume set to **{vol}%**!")
+        await ctx.embed(f"Volume set to **{vol}%**!")
         player.update = True
 
     @commands.command()
     async def llinfo(self, ctx):
-        """Retrieve various Music / WaveLink information.
-        """
+        """Retrieve various Music / WaveLink information."""
         try:
             await ctx.message.delete()
         except discord.HTTPException:
@@ -673,19 +665,14 @@ class Music(commands.Cog):
         total = humanize.naturalsize(node.stats.memory_allocated)
         free = humanize.naturalsize(node.stats.memory_free)
         cpu = node.stats.cpu_cores
-
-        fmt = (
-            f"**WaveLink:** `{wavelink.__version__}`\n\n"
-            f"Connected to `{len(self.bot.wavelink.nodes)}` nodes.\n"
-            f"Best available Node `{self.bot.wavelink.get_best_node().__repr__()}`\n"
-            f"`{len(self.bot.wavelink.players)}` players are distributed on nodes.\n"
-            f"`{node.stats.players}` players are distributed on server.\n"
-            f"`{node.stats.playing_players}` players are playing on server.\n\n"
-            f"Server Memory: `{used}/{total}` | `({free} free)`\n"
-            f"Server CPU: `{cpu}`\n\n"
-            f"Server Uptime: `{datetime.timedelta(milliseconds=node.stats.uptime)}`\n"
-        )
-        await ctx.send(fmt, delete_after=10)
+        e = Embed(ctx, title="Wavelink Info", description=f"Wavelink version: {wavelink.__version__}")
+        e.add_fields(("Connected Nodes:", str(len(self.bot.wavelink.nodes))),
+                     ("Best available Node:", self.bot.wavelink.get_best_node().__repr__()),
+                     ("Players on this server:", str(node.stats.playing_players)),
+                     ("Server Memory:", f"{used}/{total} | ({free} free)"),
+                     ("Server CPU Cores:", str(cpu)),
+                     ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))))
+        await ctx.send(embed=e, delete_after=10)
 
 
 def setup(bot):

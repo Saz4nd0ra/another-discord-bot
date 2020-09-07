@@ -4,7 +4,7 @@ import shutil
 import codecs
 from configparser import SafeConfigParser
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("config")
 
 
 # TODO maybe add a fallback, in case the user forgets to set a setting
@@ -15,9 +15,13 @@ class Config:
             shutil.copyfile("config/example_options.ini", "config/options.ini")
 
         config.read("config/options.ini", encoding="utf-8")
-        confsections = {"Credentials", "IDs", "Bot", "Music", "Reddit"}.difference(
-            config.sections()
-        )
+        confsections = {
+            "Credentials",
+            "IDs",
+            "Bot",
+            "Music",
+            "Reddit",
+        }.difference(config.sections())
 
         if confsections:
             raise Exception(
@@ -29,12 +33,16 @@ class Config:
 
         self.login_token = config.get("Credentials", "Token")
 
-        self.ignored_ids = config.get("IDs", "IgnoredIDs")
+        self.privileged_users = config.get("IDs", "PrivilegedUsers")
+        self.admin_role_ids = config.get("IDs", "AdminRoleIDs")
+        self.mod_role_ids = config.get("IDs", "ModRoleIDs")
+        self.owner_id = config.get("IDs", "OwnerID")
         self.dev_ids = config.get("IDs", "DevIDs")
 
         self.prefix = config.get("Bot", "Prefix")
         self.enable_msg_logging = config.getboolean("Bot", "EnableMSGLogging")
         self.msg_logging_channel = config.get("Bot", "LoggingChannel")
+        self.blacklisted_ids = config.get("Bot", "BlacklistedIDs")
 
         self.vote_skip = config.getboolean("Music", "VoteSkip")
         self.skip_ratio = config.get("Music", "SkipRatio")
@@ -43,6 +51,8 @@ class Config:
         self.ll_port = config.get("Music", "LavalinkPort")
         self.ll_passwd = config.get("Music", "LavalinkPassword")
 
+        self.praw_username = config.get("Reddit", "PrawUsername")
+        self.praw_password = config.get("Reddit", "PrawPassword")
         self.praw_secret = config.get("Reddit", "PrawSecret")
         self.praw_clientid = config.get("Reddit", "PrawClientID")
 

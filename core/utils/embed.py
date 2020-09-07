@@ -1,43 +1,40 @@
 import discord
-import typing
-from discord.ext import commands
-import asyncio
-import datetime
 
-class SimpleEmbed(discord.Embed):
-    def __init__(
-        self, message: typing.Union[commands.Context, discord.Message] = None, **kwargs
-    ):
-        super().__init__(**kwargs)
-        asyncio.create_task(
-            self.__ainit__(message, **kwargs)
-        )  # basically creates a task to initiate our discord.Embed method
+from typing import Tuple
 
-    async def __ainit__(self, message, **kwargs):
-        if (
-            "color" in kwargs
-        ):  # if color is provided, set color, else use the discord blurple color
-            self.colour = kwargs.get("color")
+
+class Embed(discord.Embed):
+    def __init__(self, ctx=None, *, title: str, **kwargs):
+        super(Embed, self).__init__(**kwargs)
+
+        if ctx:
+            self.timestamp = ctx.message.created_at
+
+        if ctx:
+            author_image = ctx.author.avatar_url
+            self.set_author(name=title, icon_url=author_image)
         else:
-            self.color = discord.Color.blurple()
-        if isinstance(message, commands.Context):
-            message = message.message
-        title = kwargs.get("title")
-        description = kwargs.get("description")
+            self.title = title
 
-        self.set_author(name=str(message.author),
-                        icon_url=str(message.author.avatar_url))
+        # if kwargs have an argument called colour, set the embed to colour to that
+        # else default to discord blurple
+        if kwargs.get("colour"):
+            self.colour = int(kwargs.get("colour"))
+        else:
+            self.colour = 0x7289DA
+
+        self.description = kwargs.get("description")
 
         self.set_footer(
-            icon_url="https://i.imgur.com/gFHBoZA.png",
             text="Saz4nd0ra/another-discord-bot",
+            icon_url="https://i.imgur.com/gFHBoZA.png",
         )
 
+        if kwargs.get("image"):
+            self.set_image(url=kwargs.get("image"))
+        if kwargs.get("thumbnail"):
+            self.set_thumbnail(url=kwargs.get("thumbnail"))
 
-# Usage:
-# from ...utils.embed import
-#
-#
-# e = SimpleEmbed(description=foo, title=f'foor {bar}')
-#
-#
+    def add_fields(self, *fields: Tuple[str, str]):
+        for name, value in fields:
+            self.add_field(name=name, value=value)
