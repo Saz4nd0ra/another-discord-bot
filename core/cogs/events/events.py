@@ -23,7 +23,7 @@ class Events(commands.Cog):
                 f.close()
                 log.info("Message logged")
 
-# TODO: all of that
+    # TODO: all of that
     @commands.Cog.listener()
     async def on_command_error(self, ctx, error):
         """The event triggered when an error is raised while invoking a command."""

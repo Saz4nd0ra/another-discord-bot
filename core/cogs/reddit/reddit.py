@@ -2,7 +2,6 @@ import discord
 from ...utils import context
 from discord.ext import commands
 from ...utils.embed import Embed
-import praw
 from praw import Reddit
 import random
 
@@ -23,7 +22,7 @@ class Reddit(commands.Cog):
         self.config = self.bot.config
         self.voting_message = None
         self.reactions = {"↑": "upvote", "↓": "downvote"}
-        self.reddit = praw.Reddit(
+        self.reddit = Reddit(
             client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
             password=self.config.praw_password,  # the actual password of the application account
