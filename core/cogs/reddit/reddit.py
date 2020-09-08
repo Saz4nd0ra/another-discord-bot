@@ -2,6 +2,7 @@ import discord
 from ...utils import context
 from discord.ext import commands
 from ...utils.embed import Embed
+import praw
 from praw import Reddit
 import random
 
@@ -14,7 +15,7 @@ REDDIT_DOMAINS = [
 ]  # need to find more domains, if there are any
 
 
-class Reddit(commands.Cog):
+class RedditCog(commands.Cog):
     """Browse reddit with those commands."""
 
     def __init__(self, bot):
@@ -22,7 +23,7 @@ class Reddit(commands.Cog):
         self.config = self.bot.config
         self.voting_message = None
         self.reactions = {"↑": "upvote", "↓": "downvote"}
-        self.reddit = Reddit(
+        self.reddit = praw.Reddit(
             client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
             password=self.config.praw_password,  # the actual password of the application account
@@ -54,7 +55,7 @@ class Reddit(commands.Cog):
     async def downvote_post(self):
         pass
 
-    async def reddit_embed(self, ctx, submission):
+    async def build_embed(self, ctx, submission):
         """Embed that includes a voting system."""
 
         e = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
@@ -62,21 +63,6 @@ class Reddit(commands.Cog):
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
         )
-
-    async def reaction_voting(self):
-        self.reaction_task = self.bot.loop.create_task(self.add_reactions())
-
-        while self.voting_message:
-            if self.channel.id is None:
-                self.reaction_task.cancel()
-
-    async def add_reactions(self):
-
-        for reaction in self.reactions:
-            try:
-                await self.voting_message.add_reaction(str(reaction))
-            except discord.HTTPException:
-                return
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -173,4 +159,4 @@ class Reddit(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Reddit(bot))
+    bot.add_cog(RedditCog(bot))

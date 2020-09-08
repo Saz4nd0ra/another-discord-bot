@@ -8,7 +8,7 @@ import logging
 log = logging.getLogger("cogs.events")
 
 
-class Events(commands.Cog):
+class EventsCog(commands.Cog):
     """Custom events for Discord."""
 
     def __init__(self, bot):
@@ -31,4 +31,4 @@ class Events(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(Events(bot))
+    bot.add_cog(EventsCog(bot))

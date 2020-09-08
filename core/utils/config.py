@@ -44,9 +44,6 @@ class Config:
         self.msg_logging_channel = config.get("Bot", "LoggingChannel")
         self.blacklisted_ids = config.get("Bot", "BlacklistedIDs")
 
-        self.vote_skip = config.getboolean("Music", "VoteSkip")
-        self.skip_ratio = config.get("Music", "SkipRatio")
-
         self.ll_host = config.get("Music", "LavalinkHost")
         self.ll_port = config.get("Music", "LavalinkPort")
         self.ll_passwd = config.get("Music", "LavalinkPassword")

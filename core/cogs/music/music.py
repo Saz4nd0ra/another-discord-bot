@@ -120,27 +120,27 @@ class Player(wavelink.Player):
         channel = self.bot.get_channel(int(self.channel_id))
         qsize = self.queue.qsize()
 
-        e = Embed(ctx=Context,
-                  title=f"Music Controller | {channel.name}",
-                  description=f"Now Playing:\n**`{track.title}`**\n\n",
-                  thumbnail=track.thumb)
+        embed = Embed(ctx=self.context,
+                      title=f"Music Controller | {channel.name}",
+                      description=f"Now Playing:\n**`{track.title}`**\n\n",
+                      thumbnail=track.thumb)
 
         if track.is_stream:
-            e.add_field(name="Duration", value="🔴Streaming")
+            embed.add_field(name="Duration", value="🔴Streaming")
         else:
-            e.add_field(
+            embed.add_field(
                 name="Duration",
                 value=str(datetime.timedelta(milliseconds=int(track.length))),
             )
-        e.add_fields(
-            ("Queue Length:", str(len(self.entries))),
+        embed.add_fields(
+            ("Queue Length:", str(qsize)),
             ("Volume:", str(self.volume)),
             ("Requested by:", track.requester.mention),
             ("Current DJ:", self.dj.mention),
             ("Video URL:", f"[Click Here!]({track.uri})")
         )
 
-        return e
+        return embed
 
     async def is_position_fresh(self) -> bool:
         """Method which checks whether the player controller should be remade or updated."""
@@ -171,7 +171,7 @@ class Player(wavelink.Player):
 class InteractiveController(menus.Menu):
     """The Players interactive controller menu class."""
 
-    def __init__(self, *, embed, ):
+    def __init__(self, *, embed, player):
         super().__init__(timeout=None)
 
         self.embed = embed
@@ -297,6 +297,7 @@ class InteractiveController(menus.Menu):
 
         await self.bot.invoke(ctx)
 
+
 class PaginatorSource(menus.ListPageSource):
     """Player queue paginator class."""
 
@@ -316,8 +317,8 @@ class PaginatorSource(menus.ListPageSource):
         return True
 
 
-class Music(commands.Cog, wavelink.WavelinkMixin):
-    """Music Cog."""
+class MusicCog(commands.Cog, wavelink.WavelinkMixin):
+    """Listen to Music with friends."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -629,7 +630,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                 "Add more songs to the queue before shuffling.", 15
             )
 
-        if self.is_privileged(ctx):
         await ctx.embed(f"{ctx.author.mention} has shuffled the playlist.", 10)
         return random.shuffle(player.queue._queue)
 
@@ -825,5 +825,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                      ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))))
         await ctx.send(embed=e, delete_after=10)
 
+
 def setup(bot: commands.Bot):
-    bot.add_cog(Music(bot))
+    bot.add_cog(MusicCog(bot))
