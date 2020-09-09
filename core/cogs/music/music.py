@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 class Track(wavelink.Track):
     """Wavelink Track object with a requester attribute."""
 
-    __slots__ = ("requester",)
+    __slots__ = ("requester")
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
@@ -48,22 +48,14 @@ class Player(wavelink.Player):
         self.waiting = False
         self.updating = False
 
-        self.pause_votes = set()
-        self.resume_votes = set()
         self.skip_votes = set()
-        self.shuffle_votes = set()
-        self.stop_votes = set()
 
     async def do_next(self):
         if self.is_playing or self.waiting:
             return
 
         # Clear the votes for a new song...
-        self.pause_votes.clear()
-        self.resume_votes.clear()
         self.skip_votes.clear()
-        self.shuffle_votes.clear()
-        self.stop_votes.clear()
 
         try:
             self.waiting = True
@@ -87,7 +79,7 @@ class Player(wavelink.Player):
         self.updating = True
 
         if not self.controller:
-            self.controller = InteractiveController(
+            self.controller = InteractiveMessage(
                 embed=self.build_embed(), player=self
             )
             await self.controller.start(self.context)
@@ -100,7 +92,7 @@ class Player(wavelink.Player):
 
             self.controller.stop()
 
-            self.controller = InteractiveController(
+            self.controller = InteractiveMessage(
                 embed=self.build_embed(), player=self
             )
             await self.controller.start(self.context)
@@ -142,7 +134,7 @@ class Player(wavelink.Player):
 
         return embed
 
-    async def is_position_fresh(self) -> bool:
+    async def is_position_fresh(self):
         """Method which checks whether the player controller should be remade or updated."""
         try:
             async for message in self.context.channel.history(limit=5):
@@ -168,7 +160,7 @@ class Player(wavelink.Player):
             pass
 
 
-class InteractiveController(menus.Menu):
+class InteractiveMessage(menus.Menu):
     """The Players interactive controller menu class."""
 
     def __init__(self, *, embed, player):
@@ -204,7 +196,7 @@ class InteractiveController(menus.Menu):
 
     async def send_initial_message(
         self, ctx, channel: discord.TextChannel
-    ) -> discord.Message:
+    ):
         return await channel.send(embed=self.embed)
 
     @menus.button(emoji="\u25B6")
@@ -329,7 +321,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
 
         bot.loop.create_task(self.start_nodes())
 
-    async def start_nodes(self) -> None:
+    async def start_nodes(self):
         """Connect and intiate nodes."""
         await self.bot.wait_until_ready()
 
