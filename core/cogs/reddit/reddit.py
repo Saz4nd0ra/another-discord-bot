@@ -17,10 +17,9 @@ REDDIT_DOMAINS = [
 
 # TODO : finish up and clean up api stuff
 class API:
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, ctx=None):
 
-        self.context = kwargs.get("context")
+        self.context = ctx
         self.config = Config()
         self.connection = Reddit(
             client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
@@ -48,10 +47,10 @@ class API:
         submission = self.connection.submission(url)
         return submission
 
-    async def upvote_post(self, submission):
+    async def upvote_post(self):
         pass
 
-    async def downvote_post(self, submission):
+    async def downvote_post(self):
         pass
 
 
@@ -59,7 +58,7 @@ class API:
 class InteractiveMessage(menus.Menu):
     def __init__(self, *, embed, submission):
         super().__init__(timeout=60)
-        self.reddit = RedditCog()
+
         self.submission = submission
         self.embed = embed
 
@@ -124,8 +123,8 @@ class RedditCog(commands.Cog):
 
         embed = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         embed.add_fields(
-            (":thumbsup: **Upvotes**:", f"{submission.ups}"),
-            (":envelepe: **Comments**:", f"{len(submission.comments)}"),
+            ("Upvotes:", f"{submission.ups}"),
+            ("Comments:", f"{len(submission.comments)}"),
         )
 
         return embed
@@ -136,7 +135,7 @@ class RedditCog(commands.Cog):
         ctx = await self.bot.get_context(message, cls=context.Context)
         if any(x in message.content for x in REDDIT_DOMAINS):
             submission_url = message.content
-            submission = await API().get_submission_from_url(url=submission_url)
+            submission = await API(ctx).get_submission_from_url(submission_url)
             if submission.over_18 is True and message.channel.is_nsfw() is not True:
                 await message.delete()
                 await ctx.error(
@@ -162,7 +161,7 @@ class RedditCog(commands.Cog):
         if (
             category is None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
-            submission = await API(context=ctx).get_submission(subreddit="memes", sorting="hot")
+            submission = await API(ctx).get_submission(subreddit="memes", sorting="hot")
             await self.invoke_voting(ctx, submission)
 
         else:  # use userprovided subreddit
@@ -175,27 +174,27 @@ class RedditCog(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await API(context=ctx).get_submission(
-                subreddit=switcher.get(category), sorting="hot"
+            submission = await API(ctx).get_submission(
+                switcher.get(category), "hot"
             )
             await self.invoke_voting(ctx, submission)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
-        submission = await API(context=ctx).get_submission(subreddit, sorting="hot")
+        submission = await API(ctx).get_submission(subreddit, sorting="hot")
         await self.invoke_voting(ctx, submission)
 
     @browse.command()
     async def new(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
-        submission = await API(context=ctx).get_submission(subreddit, sorting="new")
+        submission = await API(ctx).get_submission(subreddit, sorting="new")
         await self.invoke_voting(ctx, submission)
 
     @browse.command()
     async def top(self, ctx, subreddit: str):
         """Browse top submissions in a subreddit."""
-        submission = await API(context=ctx).get_submission(subreddit, sorting="top")
+        submission = await API(ctx).get_submission(subreddit, sorting="top")
         await self.invoke_voting(ctx, submission)
 
 

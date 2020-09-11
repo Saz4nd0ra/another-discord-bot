@@ -769,28 +769,25 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
                 player.dj = m
                 return await ctx.embed(f"{member.mention} is now the DJ.")
 
-    @commands.command(name="repeat", liases=["r"])
-    async def repeat(self, ctx):
+    @commands.command(name='repeat', aliases=['replay'])
+    async def repeat_(self, ctx):
         """Repeat the currently playing song."""
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
-        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
-
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
         if not player.is_connected:
             return
 
-        await ctx.embed(f"{ctx.author.mention} set the song on repeat!", 10)
         return await self.do_repeat(ctx)
 
     async def do_repeat(self, ctx):
-        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
-
-        if not player.entries:
-            await player.queue.put(player.current)
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+        if not player.queue.entries:
+            player.queue.put(player.current)
         else:
-            player.queue._queue.appendleft(player.current)
+            player.queue.put_left(player.current)
 
         player.update = True
 
