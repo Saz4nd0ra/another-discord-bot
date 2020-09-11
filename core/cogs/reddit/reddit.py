@@ -117,11 +117,12 @@ class RedditCog(commands.Cog):
         self.voting_message = InteractiveMessage(
             embed=self.build_embed(ctx, submission),
             submission=submission)
+        await self.voting_message.start(ctx)
 
     async def build_embed(self, ctx, submission):
         """Embed that includes a voting system."""
 
-        embed= Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        embed = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
         embed.add_fields(
             (":thumbsup: **Upvotes**:", f"{submission.ups}"),
             (":envelepe: **Comments**:", f"{len(submission.comments)}"),
