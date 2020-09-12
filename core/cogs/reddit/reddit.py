@@ -1,5 +1,6 @@
 import discord
 from ...utils import context
+from discord.utils import get
 from discord.ext import commands, menus
 from ...utils.embed import Embed
 from ...utils.config import Config
@@ -17,9 +18,8 @@ REDDIT_DOMAINS = [
 
 # TODO : finish up and clean up api stuff
 class API:
-    def __init__(self, ctx=None):
+    def __init__(self):
 
-        self.context = ctx
         self.config = Config()
         self.connection = Reddit(
             client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
@@ -47,14 +47,14 @@ class API:
         submission = self.connection.submission(url)
         return submission
 
-    async def upvote_post(self):
+    async def upvote_post(self, submission):
         pass
 
-    async def downvote_post(self):
+    async def downvote_post(self, submission):
         pass
 
 
-# TODO check the message
+# TODO fix all of that
 class InteractiveMessage(menus.Menu):
     def __init__(self, *, embed, submission):
         super().__init__(timeout=60)
@@ -92,14 +92,14 @@ class InteractiveMessage(menus.Menu):
         """Upvote button"""
         ctx = self.update_context(payload)
 
-        await API().upvote_post(submission)
+        await API().upvote_post(submission=self.submission)
 
     @menus.button(emoji="\u2b06")
-    async def downvote_command(self, payload: discord.RawReactionActionEvent, submission):
+    async def downvote_command(self, payload: discord.RawReactionActionEvent):
         """Upvote button"""
         ctx = self.update_context(payload)
 
-        await API().downvote_post(submission)
+        await API().downvote_post(submission=self.submission)
 
 
 class RedditCog(commands.Cog):
@@ -107,24 +107,23 @@ class RedditCog(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.connection = API().connection
+        self.api = API()
         self.config = self.bot.config
         self.voting_message = None
-
-    async def invoke_voting(self, ctx, submission):
-
-        self.voting_message = InteractiveMessage(
-            embed=self.build_embed(ctx, submission),
-            submission=submission)
-        await self.voting_message.start(ctx)
 
     async def build_embed(self, ctx, submission):
         """Embed that includes a voting system."""
 
-        embed = Embed(ctx, title=f"Title: {submission.title}", image=submission.url)
+        # napkin math
+        downvotes = int(((submission.ups/(submission.upvote_ratio * 100)) * 100) - submission.ups)
+
+        embed = Embed(ctx, title=f"{submission.title}", image=submission.url)
+        embed.add_field(name="<:upvote:754073992771666020>", value=submission.ups)
+        embed.add_field(name="<:downvote:754073959791722569>", value=downvotes)
         embed.add_fields(
-            ("Upvotes:", f"{submission.ups}"),
-            ("Comments:", f"{len(submission.comments)}"),
+            (":keyboard:", f"{len(submission.comments)}"),
+            ("Vote ratio:", f"{int(submission.upvote_ratio * 100)}%"),
+            ("Shortlink:", f"[Click Here!]({submission.shortlink})")
         )
 
         return embed
@@ -135,14 +134,15 @@ class RedditCog(commands.Cog):
         ctx = await self.bot.get_context(message, cls=context.Context)
         if any(x in message.content for x in REDDIT_DOMAINS):
             submission_url = message.content
-            submission = await API(ctx).get_submission_from_url(submission_url)
+            submission = await self.api.get_submission_from_url(submission_url)
             if submission.over_18 is True and message.channel.is_nsfw() is not True:
                 await message.delete()
                 await ctx.error(
                     f"{message.author.mention} this channel doesn't allow NSFW.", 10
                 )
             else:
-                await self.invoke_voting(ctx, submission)
+                embed = await self.build_embed(ctx, submission)
+                await ctx.send(embed=embed)
 
     @commands.group()
     async def browse(self, ctx):
@@ -161,8 +161,9 @@ class RedditCog(commands.Cog):
         if (
             category is None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
-            submission = await API(ctx).get_submission(subreddit="memes", sorting="hot")
-            await self.invoke_voting(ctx, submission)
+            submission = await self.api.get_submission(subreddit="memes", sorting="hot")
+            embed = await self.build_embed(ctx, submission)
+            await ctx.send(embed=embed)
 
         else:  # use userprovided subreddit
 
@@ -174,28 +175,32 @@ class RedditCog(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await API(ctx).get_submission(
+            submission = await self.api.get_submission(
                 switcher.get(category), "hot"
             )
-            await self.invoke_voting(ctx, submission)
+            embed = await self.build_embed(ctx, submission)
+            await ctx.send(embed=embed)
 
     @browse.command()
     async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
-        submission = await API(ctx).get_submission(subreddit, sorting="hot")
-        await self.invoke_voting(ctx, submission)
+        submission = await self.api.get_submission(subreddit, sorting="hot")
+        embed = await self.build_embed(ctx, submission)
+        await ctx.send(embed=embed)
 
     @browse.command()
     async def new(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
-        submission = await API(ctx).get_submission(subreddit, sorting="new")
-        await self.invoke_voting(ctx, submission)
+        submission = await self.api.get_submission(subreddit, sorting="new")
+        embed = await self.build_embed(ctx, submission)
+        await ctx.send(embed=embed)
 
     @browse.command()
     async def top(self, ctx, subreddit: str):
         """Browse top submissions in a subreddit."""
-        submission = await API(ctx).get_submission(subreddit, sorting="top")
-        await self.invoke_voting(ctx, submission)
+        submission = await self.api.get_submission(subreddit, sorting="top")
+        embed = await self.build_embed(ctx, submission)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):

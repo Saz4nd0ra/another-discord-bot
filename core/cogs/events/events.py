@@ -36,7 +36,7 @@ class EventsCog(commands.Cog):
             if not isinstance(original, discord.HTTPException):
                 print(f'In {ctx.command.qualified_name}:', file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
-                log.error(f"{original.__class__.__name__}: {original}")
+                print(f"{original.__class__.__name__}: {original}")
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.send(error)
 
