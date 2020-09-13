@@ -43,8 +43,8 @@ class API:
             submission = next(x for x in submissions if not x.stickied)
         return submission
 
-    async def get_submission_from_url(self, url: str):
-        submission = self.connection.submission(url)
+    async def get_submission_from_url(self, reddit_url: str):
+        submission = self.connection.submission(url=reddit_url)
         return submission
 
     async def upvote_post(self, submission):
@@ -85,7 +85,7 @@ class InteractiveMessage(menus.Menu):
     async def send_initial_message(self, ctx, channel: discord.TextChannel):
         return await channel.send(embed=self.embed)
 
-# TODO implement method to undo a upvote
+    # TODO implement method to undo a upvote
 
     @menus.button(emoji="\u2b06")
     async def upvote_command(self, payload: discord.RawReactionActionEvent, submission):
@@ -110,20 +110,33 @@ class RedditCog(commands.Cog):
         self.api = API()
         self.config = self.bot.config
         self.voting_message = None
+        if self.config.enable_redditembed:
+            self.enable_embed = True
 
     async def build_embed(self, ctx, submission):
         """Embed that includes a voting system."""
 
         # napkin math
-        downvotes = int(((submission.ups/(submission.upvote_ratio * 100)) * 100) - submission.ups)
+        downvotes = int(
+            ((submission.ups / (submission.upvote_ratio * 100)) * 100) - submission.ups
+        )
 
-        embed = Embed(ctx, title=f"{submission.title}", image=submission.url)
+        VIDEO_URL = "v.redd.it"
+
+        if VIDEO_URL in submission.url:
+            image = "https://imgur.com/MKnguLq.png"
+        else:
+            image = submission.url
+
+        embed = Embed(ctx, title=f"{submission.title}", image=image)
+
         embed.add_field(name="<:upvote:754073992771666020>", value=submission.ups)
         embed.add_field(name="<:downvote:754073959791722569>", value=downvotes)
+
         embed.add_fields(
             (":keyboard:", f"{len(submission.comments)}"),
             ("Vote ratio:", f"{int(submission.upvote_ratio * 100)}%"),
-            ("Shortlink:", f"[Click Here!]({submission.shortlink})")
+            ("Link:", f"[Click Here!]({submission.shortlink})"),
         )
 
         return embed
@@ -132,24 +145,20 @@ class RedditCog(commands.Cog):
     async def on_message(self, message):
         """Catch reddit links, check them, and then return them as a nice embed."""
         ctx = await self.bot.get_context(message, cls=context.Context)
-        if any(x in message.content for x in REDDIT_DOMAINS):
-            submission_url = message.content
-            submission = await self.api.get_submission_from_url(submission_url)
-            if submission.over_18 is True and message.channel.is_nsfw() is not True:
-                await message.delete()
-                await ctx.error(
-                    f"{message.author.mention} this channel doesn't allow NSFW.", 10
-                )
-            else:
-                embed = await self.build_embed(ctx, submission)
-                await ctx.send(embed=embed)
+        if self.enable_embed:
+            if any(x in message.content for x in REDDIT_DOMAINS):
+                reddit_url = message.content
+                submission = await self.api.get_submission_from_url(reddit_url)
+                if submission.over_18 is True and message.channel.is_nsfw() is not True:
+                    await message.delete()
+                    await ctx.error(
+                        f"{message.author.mention} this channel doesn't allow NSFW.", 10
+                    )
+                else:
+                    embed = await self.build_embed(ctx, submission)
+                    await ctx.send(embed=embed)
 
-    @commands.group()
-    async def browse(self, ctx):
-        """Browses reddit."""
-        pass
-
-    @browse.command()
+    @commands.command()
     async def meme(self, ctx, category: str = None):
         """Get the hottest memes from a specific category.
         Available categories:
@@ -175,27 +184,25 @@ class RedditCog(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await self.api.get_submission(
-                switcher.get(category), "hot"
-            )
+            submission = await self.api.get_submission(switcher.get(category), "hot")
             embed = await self.build_embed(ctx, submission)
             await ctx.send(embed=embed)
 
-    @browse.command()
+    @commands.command()
     async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="hot")
         embed = await self.build_embed(ctx, submission)
         await ctx.send(embed=embed)
 
-    @browse.command()
+    @commands.command()
     async def new(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="new")
         embed = await self.build_embed(ctx, submission)
         await ctx.send(embed=embed)
 
-    @browse.command()
+    @commands.command()
     async def top(self, ctx, subreddit: str):
         """Browse top submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="top")
