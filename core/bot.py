@@ -79,7 +79,7 @@ class ADB(commands.AutoShardedBot):
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
 
-        if ctx.command is None:
+        if ctx.command == None:
             return
 
         if str(message.author.id) in str(self.config.blacklisted_ids):

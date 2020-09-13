@@ -74,7 +74,7 @@ class GlobalChannel(commands.Converter):
                 )
             else:
                 channel = ctx.bot.get_channel(channel_id)
-                if channel is None:
+                if channel == None:
                     raise commands.BadArgument(
                         f"Could not find a channel by ID {argument!r}."
                     )
@@ -116,7 +116,7 @@ class Admin(commands.Cog):
         return await self.bot.is_owner(ctx.author)
 
     def get_syntax_error(self, e):
-        if e.text is None:
+        if e.text == None:
             return f"```py\n{e.__class__.__name__}: {e}\n```"
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
 
@@ -272,7 +272,7 @@ class Admin(commands.Cog):
             except:
                 pass
 
-            if ret is None:
+            if ret == None:
                 if value:
                     await ctx.send(f"```py\n{value}\n```")
             else:
@@ -341,7 +341,7 @@ class Admin(commands.Cog):
                 else:
                     executor = eval
 
-            if executor is exec:
+            if executor == exec:
                 try:
                     code = compile(cleaned, "<repl session>", "exec")
                 except SyntaxError as e:
@@ -363,14 +363,14 @@ class Admin(commands.Cog):
                 fmt = f"```py\n{value}{traceback.format_exc()}\n```"
             else:
                 value = stdout.getvalue()
-                if result is not None:
+                if result == not None:
                     fmt = f"```py\n{value}{result}\n```"
                     variables["_"] = result
                 elif value:
                     fmt = f"```py\n{value}\n```"
 
             try:
-                if fmt is not None:
+                if fmt != None:
                     if len(fmt) > 2000:
                         await ctx.send("Content too big to be printed.")
                     else:

@@ -6,9 +6,9 @@ log = logging.getLogger("utils.checks")
 
 def is_owner():
     async def predicate(ctx):
-        if ctx.bot.config.owner_id is "auto" and ctx.author.id is ctx.bot.owner_id:
+        if ctx.bot.config.owner_id == "auto" and ctx.author.id == ctx.bot.owner_id:
             return True
-        elif str(ctx.author.id) is ctx.bot.config.owner_id:
+        elif str(ctx.author.id) == ctx.bot.config.owner_id:
             return True
         else:
             return False
@@ -26,7 +26,7 @@ def is_admin():
             str(ctx.author.roles[1].id) in ctx.bot.config.admin_role_ids
         ):  # checks the id for the role in the second place, since @everyone is at index [0]
             return True
-        elif is_owner() is True:  # bypass for owner
+        elif is_owner() == True:  # bypass for owner
             log.info("Owner used admin command.")
             return True
         else:
@@ -46,7 +46,7 @@ def is_mod():
             str(ctx.author.roles[1].id) in ctx.bot.config.mod_role_ids
         ):  # checking at [1] because @everyone is at [0]
             return True
-        elif is_owner() is True:  # again, bypass for owner
+        elif is_owner() == True:  # again, bypass for owner
             log.info("Owner used mod command.")
             return True
         else:
@@ -62,7 +62,7 @@ def is_dev():
             raise commands.NoPrivateMessage()
         elif str(ctx.author.id) in ctx.bot.config.dev_ids:
             return True
-        elif is_owner() is True:  # again, bypass for owner
+        elif is_owner() == True:  # again, bypass for owner
             log.info("Owner used developer command.")
             return True
         else:

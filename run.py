@@ -53,7 +53,7 @@ def run_bot():
 @click.pass_context
 def main(ctx):
     """Launches the bot."""
-    if ctx.invoked_subcommand is None:
+    if ctx.invoked_subcommand == None:
         loop = asyncio.get_event_loop()
         with setup_logging():
             run_bot()

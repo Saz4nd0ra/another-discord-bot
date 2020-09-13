@@ -369,7 +369,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
 
         channel = self.bot.get_channel(int(player.channel_id))
 
-        if member == player.dj and after.channel is None:
+        if member == player.dj and after.channel == None:
             for m in channel.members:
                 if m.bot:
                     continue
@@ -463,7 +463,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             return
 
         channel = getattr(ctx.author.voice, "channel", channel)
-        if channel is None:
+        if channel == None:
             raise NoChannelProvided
 
         await player.connect(channel.id)
@@ -730,7 +730,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
 
         if member and member not in members:
             return await ctx.error(
-                f"{member} is not currently in voice, so can not be a DJ.", 15
+                f"{member} != currently in voice, so can not be a DJ.", 15
             )
 
         if member and member == player.dj:

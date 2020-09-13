@@ -55,7 +55,7 @@ class GeneralCog(commands.Cog):
     @commands.group()
     async def server(self, ctx):
         """Check info about current server"""
-        if ctx.invoked_subcommand is None:
+        if ctx.invoked_subcommand == None:
             findbots = sum(1 for member in ctx.guild.members if member.bot)
 
             if ctx.guild.icon:
@@ -118,7 +118,7 @@ class GeneralCog(commands.Cog):
         """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
         branch = "master"
-        if command is None:
+        if command == None:
             return await ctx.send(source_url)
 
         if command == "help":
@@ -127,7 +127,7 @@ class GeneralCog(commands.Cog):
             filename = inspect.getsourcefile(src)
         else:
             obj = self.bot.get_command(command.replace(".", " "))
-            if obj is None:
+            if obj == None:
                 return await ctx.error("Could not find command.")
 
             # since we found the command we're looking for, presumably anyway, let's

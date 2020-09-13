@@ -149,7 +149,7 @@ class RedditCog(commands.Cog):
             if any(x in message.content for x in REDDIT_DOMAINS):
                 reddit_url = message.content
                 submission = await self.api.get_submission_from_url(reddit_url)
-                if submission.over_18 is True and message.channel.is_nsfw() is not True:
+                if submission.over_18 and message.channel.is_nsfw():
                     await message.delete()
                     await ctx.error(
                         f"{message.author.mention} this channel doesn't allow NSFW.", 10
@@ -168,7 +168,7 @@ class RedditCog(commands.Cog):
             - NGE
         """
         if (
-            category is None
+            category == None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.api.get_submission(subreddit="memes", sorting="hot")
             embed = await self.build_embed(ctx, submission)
