@@ -363,7 +363,7 @@ class Admin(commands.Cog):
                 fmt = f"```py\n{value}{traceback.format_exc()}\n```"
             else:
                 value = stdout.getvalue()
-                if result == not None:
+                if result == None:
                     fmt = f"```py\n{value}{result}\n```"
                     variables["_"] = result
                 elif value:
