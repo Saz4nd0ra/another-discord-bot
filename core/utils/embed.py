@@ -32,6 +32,7 @@ class Embed(discord.Embed):
 
         if kwargs.get("image"):
             self.set_image(url=kwargs.get("image"))
+
         if kwargs.get("thumbnail"):
             self.set_thumbnail(url=kwargs.get("thumbnail"))
 

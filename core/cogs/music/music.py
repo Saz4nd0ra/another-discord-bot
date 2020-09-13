@@ -24,7 +24,7 @@ log = logging.getLogger(__name__)
 class Track(wavelink.Track):
     """Wavelink Track object with a requester attribute."""
 
-    __slots__ = ("requester")
+    __slots__ = "requester"
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args)
@@ -79,9 +79,7 @@ class Player(wavelink.Player):
         self.updating = True
 
         if not self.controller:
-            self.controller = InteractiveMessage(
-                embed=self.build_embed(), player=self
-            )
+            self.controller = InteractiveMessage(embed=self.build_embed(), player=self)
             await self.controller.start(self.context)
 
         elif not await self.is_position_fresh():
@@ -92,9 +90,7 @@ class Player(wavelink.Player):
 
             self.controller.stop()
 
-            self.controller = InteractiveMessage(
-                embed=self.build_embed(), player=self
-            )
+            self.controller = InteractiveMessage(embed=self.build_embed(), player=self)
             await self.controller.start(self.context)
 
         else:
@@ -112,10 +108,12 @@ class Player(wavelink.Player):
         channel = self.bot.get_channel(int(self.channel_id))
         qsize = self.queue.qsize()
 
-        embed = Embed(ctx=self.context,
-                      title=f"Music Controller | {channel.name}",
-                      description=f"Now Playing:\n**`{track.title}`**\n\n",
-                      thumbnail=track.thumb)
+        embed = Embed(
+            ctx=self.context,
+            title=f"Music Controller | {channel.name}",
+            description=f"Now Playing:\n**`{track.title}`**\n\n",
+            thumbnail=track.thumb,
+        )
 
         if track.is_stream:
             embed.add_field(name="Duration", value="🔴Streaming")
@@ -129,7 +127,7 @@ class Player(wavelink.Player):
             ("Volume:", str(self.volume)),
             ("Requested by:", track.requester.mention),
             ("Current DJ:", self.dj.mention),
-            ("Video URL:", f"[Click Here!]({track.uri})")
+            ("Video URL:", f"[Click Here!]({track.uri})"),
         )
 
         return embed
@@ -194,9 +192,7 @@ class InteractiveMessage(menus.Menu):
 
         return payload.emoji in self.buttons
 
-    async def send_initial_message(
-        self, ctx, channel: discord.TextChannel
-    ):
+    async def send_initial_message(self, ctx, channel: discord.TextChannel):
         return await channel.send(embed=self.embed)
 
     @menus.button(emoji="\u25B6")
@@ -404,14 +400,13 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
 
     async def cog_before_invoke(self, ctx):
         """Coroutine called before command invocation."""
-        player = self.bot.wavelink.get_player(
-            ctx.guild.id, cls=Player, context=ctx
-        )
+        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
 
         if player.context:
             if player.context.channel != ctx.channel:
                 await ctx.error(
-                    f"{ctx.author.mention}, you must be in {player.context.channel.mention} for this session.", 10
+                    f"{ctx.author.mention}, you must be in {player.context.channel.mention} for this session.",
+                    10,
                 )
                 raise IncorrectChannelError
 
@@ -430,7 +425,8 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
         if player.is_connected:
             if ctx.author not in channel.members:
                 await ctx.error(
-                    f"{ctx.author.mention}, you must be in `{channel.name}` to use voice commands.", 10
+                    f"{ctx.author.mention}, you must be in `{channel.name}` to use voice commands.",
+                    10,
                 )
                 raise IncorrectChannelError
 
@@ -457,9 +453,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
     @commands.command()
-    async def connect(
-        self, ctx, *, channel: discord.VoiceChannel = None
-    ):
+    async def connect(self, ctx, *, channel: discord.VoiceChannel = None):
         """Connect to a voice channel."""
         player = self.bot.wavelink.get_player(
             guild_id=ctx.guild.id, cls=Player, context=ctx
@@ -507,9 +501,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             )
         else:
             track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
-            await ctx.embed(
-                f"```ini\nAdded {track.title} to the Queue\n```", 15
-            )
+            await ctx.embed(f"```ini\nAdded {track.title} to the Queue\n```", 15)
             await player.queue.put(track)
 
         if not player.is_playing:
@@ -618,9 +610,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.queue.qsize() < 3:
-            return await ctx.error(
-                "Add more songs to the queue before shuffling.", 15
-            )
+            return await ctx.error("Add more songs to the queue before shuffling.", 15)
 
         await ctx.embed(f"{ctx.author.mention} has shuffled the playlist.", 10)
         return random.shuffle(player.queue._queue)
@@ -687,9 +677,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             joined = "\n".join(eqs.keys())
             return await ctx.error(f"Invalid EQ provided. Valid EQs:\n\n{joined}")
 
-        await ctx.embed(
-            f"Successfully changed equalizer to {equalizer}", 15
-        )
+        await ctx.embed(f"Successfully changed equalizer to {equalizer}", 15)
         await player.set_eq(eq)
 
     @commands.command(aliases=["q"])
@@ -703,9 +691,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.queue.qsize() == 0:
-            return await ctx.error(
-                "There are no more songs in the queue.", 15
-            )
+            return await ctx.error("There are no more songs in the queue.", 15)
 
         entries = [track.title for track in player.queue._queue]
         pages = PaginatorSource(entries=entries)
@@ -738,22 +724,17 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.error(
-                "Only admins and the DJ may use this command.", 15
-            )
+            return await ctx.error("Only admins and the DJ may use this command.", 15)
 
         members = self.bot.get_channel(int(player.channel_id)).members
 
         if member and member not in members:
             return await ctx.error(
-                f"{member} is not currently in voice, so can not be a DJ.",
-                15
+                f"{member} is not currently in voice, so can not be a DJ.", 15
             )
 
         if member and member == player.dj:
-            return await ctx.error(
-                "Cannot swap DJ to the current DJ... :)", 15
-            )
+            return await ctx.error("Cannot swap DJ to the current DJ... :)", 15)
 
         if len(members) <= 2:
             return await ctx.error("No more members to swap to.", 15)
@@ -769,7 +750,7 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
                 player.dj = m
                 return await ctx.embed(f"{member.mention} is now the DJ.")
 
-    @commands.command(name='repeat', aliases=['replay'])
+    @commands.command(name="repeat", aliases=["replay"])
     async def repeat_(self, ctx):
         """Repeat the currently playing song."""
         player = self.bot.wavelink.get_player(
@@ -805,13 +786,19 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
         total = humanize.naturalsize(node.stats.memory_allocated)
         free = humanize.naturalsize(node.stats.memory_free)
         cpu = node.stats.cpu_cores
-        e = Embed(ctx, title="Wavelink Info", description=f"Wavelink version: {wavelink.__version__}")
-        e.add_fields(("Connected Nodes:", str(len(self.bot.wavelink.nodes))),
-                     ("Best available Node:", self.bot.wavelink.get_best_node().__repr__()),
-                     ("Players on this server:", str(node.stats.playing_players)),
-                     ("Server Memory:", f"{used}/{total} | ({free} free)"),
-                     ("Server CPU Cores:", str(cpu)),
-                     ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))))
+        e = Embed(
+            ctx,
+            title="Wavelink Info",
+            description=f"Wavelink version: {wavelink.__version__}",
+        )
+        e.add_fields(
+            ("Connected Nodes:", str(len(self.bot.wavelink.nodes))),
+            ("Best available Node:", self.bot.wavelink.get_best_node().__repr__()),
+            ("Players on this server:", str(node.stats.playing_players)),
+            ("Server Memory:", f"{used}/{total} | ({free} free)"),
+            ("Server CPU Cores:", str(cpu)),
+            ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))),
+        )
         await ctx.send(embed=e, delete_after=10)
 
 

@@ -25,16 +25,17 @@ class HelpSource(menus.ListPageSource):
         self.ctx = ctx
         self.prefix = prefix
         self.menu_author = author
-        sorted_cogs = sorted(
-            cogs,
-            key=lambda cog: cog.qualified_name if cog else "ZZ"
-        )
+        sorted_cogs = sorted(cogs, key=lambda cog: cog.qualified_name if cog else "ZZ")
         super().__init__(
             [(cog, cogs[cog]) for cog in sorted_cogs],
             per_page=1,
         )
 
-    async def format_page(self, menu: menus.Menu, cog_tuple: t.Tuple[t.Optional[commands.Cog], t.List[commands.Command]]) -> discord.Embed:
+    async def format_page(
+        self,
+        menu: menus.Menu,
+        cog_tuple: t.Tuple[t.Optional[commands.Cog], t.List[commands.Command]],
+    ) -> discord.Embed:
         """Format the pages."""
         cog, command_list = cog_tuple
         embed = Embed(
@@ -51,7 +52,7 @@ class HelpSource(menus.ListPageSource):
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ""}
                 """
-            )
+            ),
         )
         for command in await self.filter_commands(command_list):
             embed.add_field(
@@ -110,7 +111,7 @@ class HelpCommand(commands.HelpCommand):
                 Command prefix: `{prefix}`
                 {cog.description}
                 """
-            )
+            ),
         )
         for command in await self.filter_commands(cog.get_commands()):
             embed.add_field(
@@ -133,7 +134,7 @@ class HelpCommand(commands.HelpCommand):
                 `[t.Optional arguments]`
                 {command.help}
                 """
-            )
+            ),
         )
         if command.aliases:
             embed.add_field(name="Aliases :", value="\n".join(command.aliases))
@@ -157,7 +158,7 @@ class HelpCommand(commands.HelpCommand):
                 `[t.Optional arguments]`
                 {group.help}
                 """
-            )
+            ),
         )
         for command in await self.filter_commands(group.commands, sort=True):
             embed.add_field(
@@ -178,7 +179,7 @@ def setup(bot: commands.Bot) -> None:
     bot.old_help_command = bot.help_command
     bot.help_command = HelpCommand(
         verify_checks=False,
-        command_attrs={'hidden': True},
+        command_attrs={"hidden": True},
     )
 
 

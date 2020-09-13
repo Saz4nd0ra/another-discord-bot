@@ -2,7 +2,7 @@ import logging
 import os
 import shutil
 import codecs
-from configparser import SafeConfigParser
+from configparser import RawConfigParser
 
 log = logging.getLogger("config")
 
@@ -10,7 +10,7 @@ log = logging.getLogger("config")
 # TODO maybe add a fallback, in case the user forgets to set a setting
 class Config:
     def __init__(self):
-        config = SafeConfigParser(interpolation=None)
+        config = RawConfigParser(interpolation=None)
         if not os.path.exists("config/options.ini"):
             shutil.copyfile("config/example_options.ini", "config/options.ini")
 
@@ -48,6 +48,7 @@ class Config:
         self.ll_port = config.get("Music", "LavalinkPort")
         self.ll_passwd = config.get("Music", "LavalinkPassword")
 
+        self.enable_redditembed = config.getboolean("Reddit", "RedditEmbed")
         self.praw_username = config.get("Reddit", "PrawUsername")
         self.praw_password = config.get("Reddit", "PrawPassword")
         self.praw_secret = config.get("Reddit", "PrawSecret")

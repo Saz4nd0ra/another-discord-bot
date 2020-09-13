@@ -23,6 +23,7 @@ cogs_to_load = {  # of course nothing works as planned
     "reddit",
     "events",
     "general",
+    "admin",
 }
 
 
@@ -33,7 +34,7 @@ class ADB(commands.AutoShardedBot):
             description=DESCRIPTION,
             fetch_offline_members=False,
             heartbeat_timeout=150.0,
-            help_command=HelpCommand()
+            help_command=HelpCommand(),
         )
 
         self.session = aiohttp.ClientSession(loop=self.loop)
