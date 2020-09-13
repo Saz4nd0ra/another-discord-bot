@@ -12,6 +12,7 @@ import re
 import sys
 import copy
 import subprocess
+from ...utils import checks
 from typing import Optional
 
 
@@ -119,6 +120,7 @@ class Admin(commands.Cog):
             return f"```py\n{e.__class__.__name__}: {e}\n```"
         return f'```py\n{e.text}{"^":>{e.offset}}\n{e.__class__.__name__}: {e}```'
 
+    @checks.is_admin()
     @commands.command()
     async def load(self, ctx, *, module):
         """Loads a module."""
@@ -129,6 +131,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send("\N{OK HAND SIGN}")
 
+    @checks.is_admin()
     @commands.command()
     async def unload(self, ctx, *, module):
         """Unloads a module."""
@@ -139,6 +142,7 @@ class Admin(commands.Cog):
         else:
             await ctx.send("\N{OK HAND SIGN}")
 
+    @checks.is_admin()
     @commands.group(name="reload", invoke_without_command=True)
     async def _reload(self, ctx, *, module):
         """Reloads a module."""
@@ -227,6 +231,7 @@ class Admin(commands.Cog):
             "\n".join(f"{status}: `{module}`" for status, module in statuses)
         )
 
+    @checks.is_admin()
     @commands.command(pass_context=True, name="eval")
     async def _eval(self, ctx, *, body: str):
         """Evaluates a code"""
@@ -274,6 +279,7 @@ class Admin(commands.Cog):
                 self._last_result = ret
                 await ctx.send(f"```py\n{value}{ret}\n```")
 
+    @checks.is_admin()
     @commands.command(
         pass_context=True,
     )
@@ -374,6 +380,7 @@ class Admin(commands.Cog):
             except discord.HTTPException as e:
                 await ctx.send(f"Unexpected error: `{e}`")
 
+    @checks.is_admin()
     @commands.command()
     async def sudo(
         self, ctx, channel: Optional[GlobalChannel], who: discord.User, *, command: str
@@ -387,6 +394,7 @@ class Admin(commands.Cog):
         new_ctx = await self.bot.get_context(msg, cls=type(ctx))
         await self.bot.invoke(new_ctx)
 
+    @checks.is_admin()
     @commands.command()
     async def do(self, ctx, times: int, *, command):
         """Repeats a command a specified number of times."""
