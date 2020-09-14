@@ -305,7 +305,7 @@ class PaginatorSource(menus.ListPageSource):
         return True
 
 
-class MusicCog(commands.Cog, wavelink.WavelinkMixin):
+class Music(commands.Cog, wavelink.WavelinkMixin):
     """Listen to Music with friends."""
 
     def __init__(self, bot):
@@ -803,4 +803,4 @@ class MusicCog(commands.Cog, wavelink.WavelinkMixin):
 
 
 def setup(bot: commands.Bot):
-    bot.add_cog(MusicCog(bot))
+    bot.add_cog(Music(bot))

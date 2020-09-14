@@ -102,7 +102,7 @@ class InteractiveMessage(menus.Menu):
         await API().downvote_post(submission=self.submission)
 
 
-class RedditCog(commands.Cog):
+class Reddit(commands.Cog):
     """Browse reddit with those commands."""
 
     def __init__(self, bot):
@@ -211,4 +211,4 @@ class RedditCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(RedditCog(bot))
+    bot.add_cog(Reddit(bot))

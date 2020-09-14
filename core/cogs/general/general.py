@@ -11,7 +11,7 @@ import os
 log = logging.getLogger("cogs.general")
 
 
-class GeneralCog(commands.Cog):
+class General(commands.Cog):
     """General commands"""
 
     def __init__(self, bot):
@@ -166,4 +166,4 @@ class GeneralCog(commands.Cog):
 
 
 def setup(bot):
-    bot.add_cog(GeneralCog(bot))
+    bot.add_cog(General(bot))

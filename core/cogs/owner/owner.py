@@ -8,7 +8,7 @@ from ...utils.embed import Embed
 log = logging.getLogger(__name__)
 
 
-class OwnerCog(commands.Cog):
+class Owner(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.config = self.bot.config
