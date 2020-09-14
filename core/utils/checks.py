@@ -4,6 +4,12 @@ import logging
 log = logging.getLogger("utils.checks")
 
 
+async def check_guild_permissions(ctx, perms, *, check=all):
+
+    resolved = ctx.author.guild_permissions
+    return check(getattr(resolved, name, None) == value for name, value in perms.items())
+
+
 def is_owner():
     async def predicate(ctx):
         if ctx.bot.config.owner_id == "auto" and ctx.author.id == ctx.bot.owner_id:
@@ -20,7 +26,7 @@ def is_admin():
     async def predicate(ctx):
         if not ctx.message.guild:
             raise commands.NoPrivateMessage()
-        elif ctx.author.guild_permissions.administrator:
+        elif await check_guild_permissions(ctx, {'administrator': True}):
             return True
         elif (
             str(ctx.author.roles[1].id) in ctx.bot.config.admin_role_ids
@@ -31,7 +37,6 @@ def is_admin():
             return True
         else:
             return False
-            ctx.send("You do not have the necessary permissions to use that command.")
 
     return commands.check(predicate)
 
@@ -40,18 +45,17 @@ def is_mod():
     async def predicate(ctx):
         if not ctx.message.guild:
             raise commands.NoPrivateMessage()
-        elif ctx.author.guild_permissions.delete_messages:
+        elif await check_guild_permissions(ctx, {'manage_guild': True}):
             return True
         elif (
             str(ctx.author.roles[1].id) in ctx.bot.config.mod_role_ids
         ):  # checking at [1] because @everyone is at [0]
             return True
-        elif is_owner() == True:  # again, bypass for owner
+        elif is_owner():  # again, bypass for owner
             log.info("Owner used mod command.")
             return True
         else:
             return False
-            ctx.send("You do not have the necessary permissions to use that command.")
 
     return commands.check(predicate)
 
@@ -67,6 +71,5 @@ def is_dev():
             return True
         else:
             return False
-            ctx.send("You do not have the necessary permissions to use that command.")
 
     return commands.check(predicate)

@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands
 import asyncio
 from ...utils.embed import Embed
-from ...utils.context import Context
 from ...utils import checks
 
 
@@ -110,12 +109,48 @@ class Mod(commands.Cog):
 
     @checks.is_mod()
     @commands.command()
-    async def purge(self, ctx, messages: int):
-        """Delete messages a certain number of messages from a channel."""
-        if messages > 99:
-            messages = 99
-        await ctx.channel.purge(limit=messages + 1)
-        await ctx.embed(f"{messages} messages deleted.", 5)
+    async def removereactions(self, ctx, *, messageid: str):
+        """Removes all reactions from a message."""
+        message = await ctx.channel.get_message(messageid)
+        await message.clear_reactions()
+        await ctx.embed("Removed reactions.")
+
+    @checks.is_mod()
+    @commands.command()
+    async def hierarchy(self, ctx):
+        """Lists the role hierarchy of the server."""
+        msg = f"Role hierarchy of {ctx.guild}:\n\n"
+        roles = {}
+
+        for role in ctx.guild.roles:
+            if role.is_default():
+                roles[role.position] = "everyone"
+            else:
+                roles[role.position] = role.name
+
+        for role in sorted(roles.items(), reverse=True):
+            msg += role[1] + "\n"
+        await ctx.embed(msg)
+
+    @checks.is_mod()
+    @commands.command()
+    async def addrole(self, ctx, member: discord.Member, * , rolename: str):
+        """Adds a specified role to a specified user."""
+        role = discord.utils.get(ctx.guild.roles, name=rolename)
+        await member.add_roles(role)
+        await ctx.embed(
+            f"{member.mention} has been given `{role.name}`."
+        )
+
+    @checks.is_mod()
+    @commands.command()
+    async def removerole(self, ctx, member: discord.Member, *, rolename: str):
+        """Removes a specified role from a specified user."""
+        role = discord.utils.get(ctx.guild.roles, name=rolename)
+        await member.remove_roles(role)
+        await ctx.send(
+            f"{member.mention} has been given `{role.name}`."
+        )
 
 
 def setup(bot):
