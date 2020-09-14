@@ -134,13 +134,11 @@ class Mod(commands.Cog):
 
     @checks.is_mod()
     @commands.command()
-    async def addrole(self, ctx, member: discord.Member, * , rolename: str):
+    async def addrole(self, ctx, member: discord.Member, *, rolename: str):
         """Adds a specified role to a specified user."""
         role = discord.utils.get(ctx.guild.roles, name=rolename)
         await member.add_roles(role)
-        await ctx.embed(
-            f"{member.mention} has been given `{role.name}`."
-        )
+        await ctx.embed(f"{member.mention} has been given `{role.name}`.")
 
     @checks.is_mod()
     @commands.command()
@@ -148,9 +146,7 @@ class Mod(commands.Cog):
         """Removes a specified role from a specified user."""
         role = discord.utils.get(ctx.guild.roles, name=rolename)
         await member.remove_roles(role)
-        await ctx.send(
-            f"{member.mention} has been given `{role.name}`."
-        )
+        await ctx.send(f"{member.mention} has been given `{role.name}`.")
 
 
 def setup(bot):

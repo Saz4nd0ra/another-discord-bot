@@ -7,7 +7,9 @@ log = logging.getLogger("utils.checks")
 async def check_guild_permissions(ctx, perms, *, check=all):
 
     resolved = ctx.author.guild_permissions
-    return check(getattr(resolved, name, None) == value for name, value in perms.items())
+    return check(
+        getattr(resolved, name, None) == value for name, value in perms.items()
+    )
 
 
 def is_owner():
@@ -26,7 +28,7 @@ def is_admin():
     async def predicate(ctx):
         if not ctx.message.guild:
             raise commands.NoPrivateMessage()
-        elif await check_guild_permissions(ctx, {'administrator': True}):
+        elif await check_guild_permissions(ctx, {"administrator": True}):
             return True
         elif (
             str(ctx.author.roles[1].id) in ctx.bot.config.admin_role_ids
@@ -45,7 +47,7 @@ def is_mod():
     async def predicate(ctx):
         if not ctx.message.guild:
             raise commands.NoPrivateMessage()
-        elif await check_guild_permissions(ctx, {'manage_guild': True}):
+        elif await check_guild_permissions(ctx, {"manage_guild": True}):
             return True
         elif (
             str(ctx.author.roles[1].id) in ctx.bot.config.mod_role_ids

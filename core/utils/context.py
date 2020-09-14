@@ -50,5 +50,16 @@ class Context(commands.Context):
         e = Embed(ctx=self, title=self.command.qualified_name, description=message)
         await self.send(
             embed=e,
-            delete_after=auto_delete if auto_delete else auto_delete == None,
+            delete_after=auto_delete if auto_delete else auto_delete is None,
         )
+
+    def tick(self, opt, label=None):
+        lookup = {
+            True: "✅",
+            False: "❌",
+            None: "❔",
+        }
+        emoji = lookup.get(opt, "❌")
+        if label is not None:
+            return f"{emoji}: {label}"
+        return emoji

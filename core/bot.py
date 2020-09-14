@@ -24,7 +24,7 @@ cogs_to_load = {  # of course nothing works as planned
     "events",
     "general",
     "admin",
-    "mod"
+    "mod",
 }
 
 

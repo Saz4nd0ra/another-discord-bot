@@ -5,7 +5,6 @@ from discord.ext import commands, menus
 from ...utils.embed import Embed
 from ...utils.config import Config
 import praw
-from praw import Reddit
 import copy
 from praw import Reddit
 import random
@@ -21,7 +20,7 @@ class API:
     def __init__(self):
 
         self.config = Config()
-        self.connection = Reddit(
+        self.connection = praw.Reddit(
             client_id=self.config.praw_clientid,  # connecting to reddit using appilcation details and account details
             client_secret=self.config.praw_secret,
             password=self.config.praw_password,  # the actual password of the application account
