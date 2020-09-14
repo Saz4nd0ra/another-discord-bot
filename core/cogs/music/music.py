@@ -275,16 +275,6 @@ class InteractiveMessage(menus.Menu):
 
         await self.bot.invoke(ctx)
 
-    @menus.button(emoji="\U0001F501")
-    async def repeat_command(self, payload: discord.RawReactionActionEvent):
-        """Player queue button."""
-        ctx = self.update_context(payload)
-
-        command = self.bot.get_command("repeat")
-        ctx.command = command
-
-        await self.bot.invoke(ctx)
-
 
 class PaginatorSource(menus.ListPageSource):
     """Player queue paginator class."""
@@ -544,13 +534,13 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.embed("An admin or DJ has skipped the song.", delete_after=10)
+            await ctx.embed("An admin or DJ has skipped the song.", 10)
             player.skip_votes.clear()
 
             return await player.stop()
 
         if ctx.author == player.current.requester:
-            await ctx.embed("The song requester has skipped the song.", delete_after=10)
+            await ctx.embed("The song requester has skipped the song.", 10)
             player.skip_votes.clear()
 
             return await player.stop()
@@ -559,12 +549,12 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.skip_votes.add(ctx.author)
 
         if len(player.skip_votes) >= required:
-            await ctx.embed("Vote to skip passed. Skipping song.", delete_after=10)
+            await ctx.embed("Vote to skip passed. Skipping song.", 10)
             player.skip_votes.clear()
             await player.stop()
         else:
             await ctx.embed(
-                f"{ctx.author.mention} has voted to skip the song.", delete_after=15
+                f"{ctx.author.mention} has voted to skip the song.", 15
             )
 
     @commands.command()
@@ -597,7 +587,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.error("Please enter a value between 1 and 100.")
 
         await player.set_volume(vol)
-        await ctx.embed(f"Set the volume to **{vol}**%", delete_after=7)
+        await ctx.embed(f"Set the volume to **{vol}**%", 7)
 
     @commands.command(aliases=["mix"])
     async def shuffle(self, ctx):
@@ -629,7 +619,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         if vol > 100:
             vol = 100
-            await ctx.error("Maximum volume reached", delete_after=7)
+            await ctx.error("Maximum volume reached", 7)
 
         await player.set_volume(vol)
 
@@ -749,28 +739,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             else:
                 player.dj = m
                 return await ctx.embed(f"{member.mention} is now the DJ.")
-
-    @commands.command(name="repeat", aliases=["replay"])
-    async def repeat_(self, ctx):
-        """Repeat the currently playing song."""
-        player = self.bot.wavelink.get_player(
-            guild_id=ctx.guild.id, cls=Player, context=ctx
-        )
-        if not player.is_connected:
-            return
-
-        return await self.do_repeat(ctx)
-
-    async def do_repeat(self, ctx):
-        player = self.bot.wavelink.get_player(
-            guild_id=ctx.guild.id, cls=Player, context=ctx
-        )
-        if not player.queue.entries:
-            player.queue.put(player.current)
-        else:
-            player.queue.put_left(player.current)
-
-        player.update = True
 
     @commands.command(name="wavelinkinfo", aliases=["wvi"])
     async def wavelinkinfo(self, ctx):

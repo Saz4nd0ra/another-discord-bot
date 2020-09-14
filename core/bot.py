@@ -13,7 +13,7 @@ from collections import deque, defaultdict
 CONFIG = Config()
 
 DESCRIPTION = """
-another-discord-bot (dev branch)
+another-discord-bot
 """
 
 log = logging.getLogger(__name__)
@@ -43,9 +43,6 @@ class ADB(commands.AutoShardedBot):
         self.config = CONFIG
 
         self._prev_events = deque(maxlen=10)
-
-        # need to rework blacklist, already prepared a setting in config for ids to ignore, gonna elaborate more on it
-        self.blacklist = None
 
         # shard_id: List[datetime.datetime]
         # shows the last attempted IDENTIFYs and RESUMEs

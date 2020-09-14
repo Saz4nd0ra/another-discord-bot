@@ -107,7 +107,7 @@ class HelpCommand(commands.HelpCommand):
             title=cog.qualified_name,
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required argument>`. `[t.Optional argument]`
+                Help syntax : `<Required argument>`. `[Optional Argument]`
                 Command prefix: `{prefix}`
                 {cog.description}
                 """
@@ -131,7 +131,7 @@ class HelpCommand(commands.HelpCommand):
             description=textwrap.dedent(
                 f"""
                 Help syntax : `<Required arguments`.
-                `[t.Optional arguments]`
+                `[Optional Arguments]`
                 {command.help}
                 """
             ),
@@ -155,7 +155,7 @@ class HelpCommand(commands.HelpCommand):
             description=textwrap.dedent(
                 f"""
                 Help syntax : `<Required arguments>`.
-                `[t.Optional arguments]`
+                `[Optional Arguments]`
                 {group.help}
                 """
             ),
