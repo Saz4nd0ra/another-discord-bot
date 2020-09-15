@@ -37,7 +37,9 @@ class EventsCog(commands.Cog):
                 print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}")
-                await ctx.error("`Something went wrong when invoking the command. Check the logs.`")
+                await ctx.error(
+                    "`Something went wrong when invoking the command. Check the logs.`"
+                )
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.embed(error)
 

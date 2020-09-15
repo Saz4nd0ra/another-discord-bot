@@ -3,6 +3,7 @@ from discord.ext import commands
 import asyncio
 from ...utils.embed import Embed
 from collections import Counter
+from ...utils.exceptions import MemberNotFound
 from ...utils import checks
 import shlex
 import argparse
@@ -14,24 +15,96 @@ class Arguments(argparse.ArgumentParser):
         raise RuntimeError(message)
 
 
+async def resolve_member(
+    guild, member_id
+):  # this returns a member when passing an id, could be useful quite often
+    member = guild.get_member(member_id)
+    if member is None:
+        if guild.chunked:
+            raise MemberNotFound()
+        try:
+            member = await guild.fetch_member(member_id)
+        except discord.NotFound:
+            raise MemberNotFound() from None
+    return member
+
+
+def can_execute_action(
+    ctx, user, target
+):  # checks if the bot is allowed to ban the member
+    return (
+        user.id == ctx.bot.owner_id
+        or user == ctx.guild.owner
+        or user.top_role > target.top_role
+    )
+
+
+class MemberID(commands.Converter):
+    async def convert(self, ctx, argument):
+        try:
+            m = await commands.MemberConverter().convert(ctx, argument)
+        except commands.BadArgument:
+            try:
+                member_id = int(argument, base=10)
+                m = await resolve_member(ctx.guild, member_id)
+            except ValueError:
+                raise commands.BadArgument(f"{argument} is not a valid member or member ID.") from None
+            except MemberNotFound:
+                # hackban case
+                return type('_Hackban', (), {'id': member_id, '__str__': lambda s: f'Member ID {s.id}'})()
+
+        if not can_execute_action(ctx, ctx.author, m):
+            raise commands.BadArgument('You cannot do this action on this user due to role hierarchy.')
+        return m
+
+
+class ActionReason(commands.Converter):
+    async def convert(self, ctx, argument):
+        ret = f"{ctx.author} (ID: {ctx.author.id}): {argument}"
+
+        if len(ret) > 512:
+            reason_max = 512 - len(ret) + len(argument)
+            raise commands.BadArgument(
+                f"Reason is too long ({len(argument)}/{reason_max})"
+            )
+        return ret
+
+
+def safe_reason_append(base, to_append):
+    appended = base + f"({to_append})"
+    if len(appended) > 512:
+        return base
+    return appended
+
+
+class BannedMember(commands.Converter):
+    async def convert(self, ctx, argument):
+        if argument.isdigit():
+            member_id = int(argument, base=10)
+            try:
+                return await ctx.guild.fetch_ban(discord.Object(id=member_id))
+            except discord.NotFound:
+                raise commands.BadArgument(
+                    "This member has not been banned before."
+                ) from None
+
+        ban_list = await ctx.guild.bans()
+        ban = discord.utils.find(lambda u: str(u.user) == argument, ban_list)
+
+        if ban is None:
+            raise commands.BadArgument("This member has not been banned before.")
+        return ban
+
+
 class Mod(commands.Cog):
     """Commands for moderators in a guild."""
 
     def __init__(self, bot):
         self.bot = bot
 
-    async def get_ban(self, name_or_id: str):
-        """Get a ban in the guild."""
-        for ban in await self.guild.bans():
-            if name_or_id.isdigit():
-                if ban.user.id == int(name_or_id):
-                    return ban
-            if str(ban.user).lower().startswith(name_or_id.lower()):
-                return ban
-
     async def do_removal(self, ctx, limit, predicate, *, before=None, after=None):
         if limit > 2000:
-            return await ctx.error(f'Too many messages to search given ({limit}/2000)')
+            return await ctx.error(f"Too many messages to search given ({limit}/2000)")
 
         if before is None:
             before = ctx.message
@@ -42,86 +115,104 @@ class Mod(commands.Cog):
             after = discord.Object(id=after)
 
         try:
-            deleted = await ctx.channel.purge(limit=limit, before=before, after=after, check=predicate)
+            deleted = await ctx.channel.purge(
+                limit=limit, before=before, after=after, check=predicate
+            )
         except discord.Forbidden as e:
-            return await ctx.error('I do not have permissions to delete messages.')
+            return await ctx.error("I do not have permissions to delete messages.")
         except discord.HTTPException as e:
-            return await ctx.error(f'Error: {e} (try a smaller search?)')
+            return await ctx.error(f"Error: {e} (try a smaller search?)")
 
         spammers = Counter(m.author.display_name for m in deleted)
         deleted = len(deleted)
         messages = [f'{deleted} message{" was" if deleted == 1 else "s were"} removed.']
         if deleted:
-            messages.append('')
+            messages.append("")
             spammers = sorted(spammers.items(), key=lambda t: t[1], reverse=True)
-            messages.extend(f'**{name}**: {count}' for name, count in spammers)
+            messages.extend(f"**{name}**: {count}" for name, count in spammers)
 
-        to_send = '\n'.join(messages)
+        to_send = "\n".join(messages)
 
         if len(to_send) > 2000:
-            await ctx.embed(f'Successfully removed {deleted} messages.', 10)
+            await ctx.embed(f"Successfully removed {deleted} messages.", 10)
         else:
             await ctx.embed(to_send, 10)
 
     @checks.is_mod()
     @commands.command()
-    async def kick(self, ctx, user: discord.Member, *, reason=None):
-        """Kick a member from the guild"""
-        await ctx.guild.kick(user, reason=reason)
-        await ctx.embed(f"Done. {user.name} was kicked.")
+    async def kick(self, ctx, member: MemberID, *, reason: ActionReason = None):
+        """Kicks a member from the server."""
+
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.kick(member, reason=reason)
+        await ctx.embed(f"{member.mention} was kicked.")
 
     @checks.is_mod()
     @commands.command()
-    async def ban(self, ctx, user: discord.Member, *, reason=None):
-        """Ban a member from the guild"""
-        await ctx.guild.ban(user, reason=reason)
-        await ctx.embed(f"Done. {user.name} was banned.")
+    async def ban(self, ctx, member: MemberID, *, reason: ActionReason = None):
+        """Bans a member from the server."""
+
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.ban(member, reason=reason)
+        await ctx.embed(f"{member.mention} was banned.")
 
     @checks.is_mod()
     @commands.command()
-    async def unban(self, ctx, name_or_id, *, reason=None):
-        """Unban a member from the guild"""
-        ban = await ctx.get_ban(name_or_id)
-        if not ban:
-            return await ctx.send("No user found.")
-        await ctx.guild.unban(ban.user, reason=reason)
-        await ctx.embed(f"Unbanned *{ban.user}* from the server.")
+    async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
+        """Unbans a member from the server.
+        You can pass either the ID of the banned member or the Name#Discrim
+        combination of the member. Typically the ID is easiest to use.
+        In order for this to work, the bot must have Ban Member permissions.
+        To use this command you must have Ban Members permissions.
+        """
+
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.unban(member.user, reason=reason)
+        if member.reason:
+            await ctx.embed(
+                f"Unbanned {member.user} (ID: {member.user.id}), previously banned for {member.reason}."
+            )
+        else:
+            await ctx.embed(f"Unbanned {member.user} (ID: {member.user.id}).")
 
     @checks.is_mod()
     @commands.command()
-    async def softban(self, ctx, member: discord.Member, *, reason=None):
-        """Kicks a members and deletes their messages."""
-        await member.ban(reason=f"Softban - {reason}")
-        await member.unban(reason="Softban unban.")
-        await ctx.embed(f"Done. {member.name} was softbanned.")
+    async def softban(self, ctx, member: MemberID, *, reason: ActionReason = None):
+        """Soft bans a member from the server."""
 
-    @checks.is_mod()
-    @commands.command()
-    async def hackban(self, ctx, user_id: int, *, reason=None):
-        """Bans a user that is currently not in the server.
-        Only accepts user IDs."""
-        await ctx.guild.ban(discord.Object(id=user_id), reason=reason)
-        await ctx.embed(f"{self.bot.get_user(user_id)} just got hackbanned!")
+        if reason is None:
+            reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"
+
+        await ctx.guild.ban(member, reason=reason)
+        await ctx.guild.unban(member, reason=reason)
+        await ctx.embed(f"{member.mention} was softbanned.")
 
     @checks.is_mod()
     @commands.command()
     async def mute(self, ctx, user: discord.Member, time: int = 15):
         """Mute a member in the guild"""
         secs = time * 60
-        for channel in ctx.guild.channels: # muting
+        for channel in ctx.guild.channels:  # muting
             if isinstance(channel, discord.TextChannel):
                 await ctx.channel.set_permissions(user, send_messages=False)
             elif isinstance(channel, discord.VoiceChannel):
                 await channel.set_permissions(user, connect=False)
         await ctx.embed(f"{user.mention} has been muted for {time} minutes.")
         await asyncio.sleep(secs)
-        for channel in ctx.guild.channels: # unmuting
+        for channel in ctx.guild.channels:  # unmuting
             if isinstance(channel, discord.TextChannel):
                 await ctx.channel.set_permissions(user, send_messages=None)
             elif isinstance(channel, discord.VoiceChannel):
                 await channel.set_permissions(user, connect=None)
         await ctx.embed(f"{user.mention} has been unmuted from the guild.")
 
+    # TODO: rework the un/mute command 
     @checks.is_mod()
     @commands.command()
     async def unmute(self, ctx, user: discord.Member):
@@ -199,20 +290,26 @@ class Mod(commands.Cog):
         --bot --embeds --files --emoji --reactions --or --not`
         """
         parser = Arguments(add_help=False, allow_abbrev=False)
-        parser.add_argument('--user', nargs='+')
-        parser.add_argument('--contains', nargs='+')
-        parser.add_argument('--starts', nargs='+')
-        parser.add_argument('--ends', nargs='+')
-        parser.add_argument('--or', action='store_true', dest='_or')
-        parser.add_argument('--not', action='store_true', dest='_not')
-        parser.add_argument('--emoji', action='store_true')
-        parser.add_argument('--bot', action='store_const', const=lambda m: m.author.bot)
-        parser.add_argument('--embeds', action='store_const', const=lambda m: len(m.embeds))
-        parser.add_argument('--files', action='store_const', const=lambda m: len(m.attachments))
-        parser.add_argument('--reactions', action='store_const', const=lambda m: len(m.reactions))
-        parser.add_argument('--search', type=int)
-        parser.add_argument('--after', type=int)
-        parser.add_argument('--before', type=int)
+        parser.add_argument("--user", nargs="+")
+        parser.add_argument("--contains", nargs="+")
+        parser.add_argument("--starts", nargs="+")
+        parser.add_argument("--ends", nargs="+")
+        parser.add_argument("--or", action="store_true", dest="_or")
+        parser.add_argument("--not", action="store_true", dest="_not")
+        parser.add_argument("--emoji", action="store_true")
+        parser.add_argument("--bot", action="store_const", const=lambda m: m.author.bot)
+        parser.add_argument(
+            "--embeds", action="store_const", const=lambda m: len(m.embeds)
+        )
+        parser.add_argument(
+            "--files", action="store_const", const=lambda m: len(m.attachments)
+        )
+        parser.add_argument(
+            "--reactions", action="store_const", const=lambda m: len(m.reactions)
+        )
+        parser.add_argument("--search", type=int)
+        parser.add_argument("--after", type=int)
+        parser.add_argument("--before", type=int)
 
         try:
             args = parser.parse_args(shlex.split(args))
@@ -234,7 +331,7 @@ class Mod(commands.Cog):
             predicates.append(args.reactions)
 
         if args.emoji:
-            custom_emoji = re.compile(r'<:(\w+):(\d+)>')
+            custom_emoji = re.compile(r"<:(\w+):(\d+)>")
             predicates.append(lambda m: custom_emoji.search(m.content))
 
         if args.user:
@@ -254,12 +351,15 @@ class Mod(commands.Cog):
             predicates.append(lambda m: any(sub in m.content for sub in args.contains))
 
         if args.starts:
-            predicates.append(lambda m: any(m.content.startswith(s) for s in args.starts))
+            predicates.append(
+                lambda m: any(m.content.startswith(s) for s in args.starts)
+            )
 
         if args.ends:
             predicates.append(lambda m: any(m.content.endswith(s) for s in args.ends))
 
         op = all if not args._or else any
+
         def predicate(m):
             r = op(p(m) for p in predicates)
             if args._not:
@@ -273,8 +373,10 @@ class Mod(commands.Cog):
         if args.search is None:
             args.search = 100
 
-        args.search = max(0, min(2000, args.search)) # clamp from 0-2000
-        await self.do_removal(ctx, args.search, predicate, before=args.before, after=args.after)
+        args.search = max(0, min(2000, args.search))  # clamp from 0-2000
+        await self.do_removal(
+            ctx, args.search, predicate, before=args.before, after=args.after
+        )
 
 
 def setup(bot):

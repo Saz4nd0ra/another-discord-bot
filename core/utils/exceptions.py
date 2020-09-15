@@ -25,3 +25,9 @@ class RedditAPIError(commands.CommandError):
     """Error raised when the bot runs into an API error."""
 
     pass
+
+
+class MemberNotFound(Exception):
+    """Error raised when a Member couldn't be found by the id."""
+
+    pass

@@ -553,9 +553,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.embed(
-                f"{ctx.author.mention} has voted to skip the song.", 15
-            )
+            await ctx.embed(f"{ctx.author.mention} has voted to skip the song.", 15)
 
     @commands.command()
     async def stop(self, ctx):
