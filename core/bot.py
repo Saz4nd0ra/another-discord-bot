@@ -89,6 +89,12 @@ class ADB(commands.AutoShardedBot):
         if message.author.bot:
             return
         await self.process_commands(message)
+        if self.config.enable_msg_logging:
+            if str(message.channel.id) in self.config.msg_logging_channel:
+                f = open("./data/msgs.txt", "a")
+                f.write(f"{message.author.name}: {message.content}\n")
+                f.close()
+                log.info("Message logged")
 
     async def close(self):
         await super().close()

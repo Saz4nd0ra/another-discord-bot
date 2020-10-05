@@ -48,7 +48,7 @@ class HelpSource(menus.ListPageSource):
             ),
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required argument>`. `[Optional Argument]`
+                Help syntax : `<Required argument>` `[Optional Argument]`
                 Command prefix: `{self.prefix}`
                 {cog.description if cog else ""}
                 """
@@ -107,7 +107,7 @@ class HelpCommand(commands.HelpCommand):
             title=cog.qualified_name,
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required argument>`. `[Optional Argument]`
+                Help syntax : `<Required argument>` `[Optional Argument]`
                 Command prefix: `{prefix}`
                 {cog.description}
                 """
@@ -130,8 +130,7 @@ class HelpCommand(commands.HelpCommand):
             title=f"{prefix}{self.get_command_signature(command)}",
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required arguments`.
-                `[Optional Arguments]`
+                Help syntax : `<Required arguments` `[Optional Arguments]`
                 {command.help}
                 """
             ),
@@ -154,8 +153,7 @@ class HelpCommand(commands.HelpCommand):
             ),
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required arguments>`.
-                `[Optional Arguments]`
+                Help syntax : `<Required arguments>` `[Optional Arguments]`
                 {group.help}
                 """
             ),

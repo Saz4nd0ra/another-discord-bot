@@ -163,12 +163,7 @@ class Mod(commands.Cog):
     @checks.is_mod()
     @commands.command()
     async def unban(self, ctx, member: BannedMember, *, reason: ActionReason = None):
-        """Unbans a member from the server.
-        You can pass either the ID of the banned member or the Name#Discrim
-        combination of the member. Typically the ID is easiest to use.
-        In order for this to work, the bot must have Ban Member permissions.
-        To use this command you must have Ban Members permissions.
-        """
+        """Unbans a member from the server."""
 
         if reason is None:
             reason = f"Action done by {ctx.author} (ID: {ctx.author.id})"

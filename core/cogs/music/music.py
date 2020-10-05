@@ -585,7 +585,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.error("Please enter a value between 1 and 100.")
 
         await player.set_volume(vol)
-        await ctx.embed(f"Set the volume to **{vol}**%", 7)
+        await ctx.embed(f"Set the volume to **{vol}**%.", 7)
 
     @commands.command(aliases=["mix"])
     async def shuffle(self, ctx):
@@ -635,7 +635,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         if vol < 0:
             vol = 0
-            await ctx.error("Player is currently muted", 10)
+            await ctx.error("Player is currently muted.", 10)
 
         await player.set_volume(vol)
 
@@ -665,7 +665,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             joined = "\n".join(eqs.keys())
             return await ctx.error(f"Invalid EQ provided. Valid EQs:\n\n{joined}")
 
-        await ctx.embed(f"Successfully changed equalizer to {equalizer}", 15)
+        await ctx.embed(f"Successfully changed equalizer to {equalizer}.", 15)
         await player.set_eq(eq)
 
     @commands.command(aliases=["q"])
@@ -722,10 +722,10 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             )
 
         if member and member == player.dj:
-            return await ctx.error("Cannot swap DJ to the current DJ... :)", 15)
+            return await ctx.error(f"{member.mention} is already the DJ.", 15)
 
         if len(members) <= 2:
-            return await ctx.error("No more members to swap to.", 15)
+            return await ctx.error("There are no other members to swap DJ to.", 15)
 
         if member:
             player.dj = member
