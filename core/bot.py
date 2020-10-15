@@ -19,7 +19,6 @@ another-discord-bot
 log = logging.getLogger(__name__)
 
 cogs_to_load = {  # of course nothing works as planned
-    "music",
     "reddit",
     "events",
     "general",
