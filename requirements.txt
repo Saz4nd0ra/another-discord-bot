@@ -9,3 +9,4 @@ praw
 wavelink
 aiohttp
 click
+lavalink
