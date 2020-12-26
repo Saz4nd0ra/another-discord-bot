@@ -1,6 +1,6 @@
 import discord
 from . import api
-from .api import Sync, Rule34
+from .api import Rule34
 from ...utils import checks
 import asyncio
 import random
