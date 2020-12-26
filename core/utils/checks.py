@@ -79,7 +79,12 @@ def is_dev():
 
 def is_nsfw_channel():
     async def predicate(ctx):
-        if ctx.channel.is_nsfw():
+        if ctx.message.guild:
+            if ctx.channel.is_nsfw():
+                return True
+            else:
+                return False
+        else:
             return True
 
     return commands.check(predicate)
