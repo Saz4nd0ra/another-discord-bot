@@ -7,7 +7,7 @@ import textwrap
 # Base class for exceptions
 class ADBException(Exception):
     def __init__(self, message, *, expire_in=0):
-        super().__init__(message) # ???
+        super().__init__(message)  # ???
         self._message = message
         self.expire_in = expire_in
 
@@ -28,12 +28,22 @@ class CommandError(ADBException):
 class PermissionsError(CommandError):
     @property
     def message(self):
-        return "You don't have permission to use that command.\nReason: " + self._message
+        return (
+            "You don't have permission to use that command.\nReason: " + self._message
+        )
 
 
 # Error with pretty formatting for hand-holding users through various errors
 class HelpfulError(ADBException):
-    def __init__(self, issue, solution, *, preface="An error has occured:", footnote='', expire_in=0):
+    def __init__(
+        self,
+        issue,
+        solution,
+        *,
+        preface="An error has occured:",
+        footnote="",
+        expire_in=0
+    ):
         self.issue = issue
         self.solution = solution
         self.preface = preface
@@ -44,33 +54,35 @@ class HelpfulError(ADBException):
     @property
     def message(self):
         return self._message_fmt.format(
-            preface  = self.preface,
-            problem  = self._pretty_wrap(self.issue,    "  Problem:"),
-            solution = self._pretty_wrap(self.solution, "  Solution:"),
-            footnote = self.footnote
+            preface=self.preface,
+            problem=self._pretty_wrap(self.issue, "  Problem:"),
+            solution=self._pretty_wrap(self.solution, "  Solution:"),
+            footnote=self.footnote,
         )
 
     @property
     def message_no_format(self):
         return self._message_fmt.format(
-            preface  = self.preface,
-            problem  = self._pretty_wrap(self.issue,    "  Problem:", width=None),
-            solution = self._pretty_wrap(self.solution, "  Solution:", width=None),
-            footnote = self.footnote
+            preface=self.preface,
+            problem=self._pretty_wrap(self.issue, "  Problem:", width=None),
+            solution=self._pretty_wrap(self.solution, "  Solution:", width=None),
+            footnote=self.footnote,
         )
 
     @staticmethod
     def _pretty_wrap(text, pretext, *, width=-1):
         if width is None:
-            return '\n'.join((pretext.strip(), text))
+            return "\n".join((pretext.strip(), text))
         elif width == -1:
-            pretext = pretext.rstrip() + '\n'
+            pretext = pretext.rstrip() + "\n"
             width = shutil.get_terminal_size().columns
 
         lines = textwrap.wrap(text, width=width - 5)
-        lines = (('    ' + line).rstrip().ljust(width-1).rstrip() + '\n' for line in lines)
+        lines = (
+            ("    " + line).rstrip().ljust(width - 1).rstrip() + "\n" for line in lines
+        )
 
-        return pretext + ''.join(lines).rstrip()
+        return pretext + "".join(lines).rstrip()
 
 
 class HelpfulWarning(HelpfulError):

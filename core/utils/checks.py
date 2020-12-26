@@ -75,3 +75,11 @@ def is_dev():
             return False
 
     return commands.check(predicate)
+
+
+def is_nsfw_channel():
+    async def predicate(ctx):
+        if ctx.channel.is_nsfw():
+            return True
+
+    return commands.check(predicate)

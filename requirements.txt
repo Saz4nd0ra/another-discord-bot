@@ -9,4 +9,5 @@ praw
 wavelink
 aiohttp
 click
-lavalink
+wavelink
+defusedxml

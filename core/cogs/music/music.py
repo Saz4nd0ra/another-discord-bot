@@ -283,7 +283,7 @@ class PaginatorSource(menus.ListPageSource):
         super().__init__(entries, per_page=per_page)
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(title="Coming Up...", colour=0x4F0321)
+        embed = discord.Embed(title="Coming Up...")
         embed.description = "\n".join(
             f"`{index}. {title}`" for index, title in enumerate(page, 1)
         )
@@ -443,7 +443,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
     @commands.command()
-    async def connect(self, ctx, *, channel = None):
+    async def connect(self, ctx, *, channel=None):
         """Connect to a voice channel."""
         player = self.bot.wavelink.get_player(
             guild_id=ctx.guild.id, cls=Player, context=ctx
@@ -485,7 +485,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                 await player.queue.put(track)
 
             await ctx.embed(
-                f'```ini\nAdded the playlist {tracks.data["playlistInfo"]["name"]}'	
+                f'```ini\nAdded the playlist {tracks.data["playlistInfo"]["name"]}'
                 f" with {len(tracks.tracks)} songs to the queue.\n```",
                 15,
             )
@@ -702,7 +702,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         await player.invoke_controller()
 
     @commands.command(aliases=["swap"])
-    async def swap_dj(self, ctx, *, member = None):
+    async def swap_dj(self, ctx, *, member=None):
         """Swap the current DJ to another member in the voice channel."""
         player = self.bot.wavelink.get_player(
             guild_id=ctx.guild.id, cls=Player, context=ctx

@@ -23,7 +23,8 @@ cogs_to_load = {  # of course nothing works as planned
     "general",
     "admin",
     "mod",
-    "music"
+    "music",
+    "nsfw"
 }
 
 
