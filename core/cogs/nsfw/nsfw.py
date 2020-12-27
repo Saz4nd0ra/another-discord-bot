@@ -1,6 +1,5 @@
 import discord
-from . import api
-from .api import Rule34
+import rule34
 from ...utils import checks
 import asyncio
 import random
@@ -21,7 +20,7 @@ class NSFW(commands.Cog):
         self.bot = bot
         self.config = self.bot.config
         self.loop = asyncio.get_event_loop()
-        self.rule34 = api.Rule34(self.loop)
+        self.rule34 = rule34.Rule34(self.loop)
 
     # TODO work on a blacklist system and user configs (yikes)
     @checks.is_nsfw_channel()
@@ -44,6 +43,11 @@ class NSFW(commands.Cog):
                 embed.add_field(name="Source:", value=f"[Click Here!]({file.source})")
             await ctx.send(embed=embed)
 
+    @checks.is_nsfw_channel()
+    @commands.command()
+    async def danbooru(self, ctx, *, search):
+
+        await ctx.send("Not working yet.")
 
 
 

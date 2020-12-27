@@ -11,3 +11,5 @@ aiohttp
 click
 wavelink
 defusedxml
+rule34
+Pybooru
