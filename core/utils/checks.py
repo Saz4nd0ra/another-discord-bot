@@ -83,7 +83,7 @@ def is_nsfw_channel():
             if ctx.channel.is_nsfw():
                 return True
             else:
-                return False
+                raise commands.NSFWChannelRequired(ctx.channel)
         else:
             return True
 

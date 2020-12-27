@@ -8,6 +8,7 @@ import json
 import logging
 import aiohttp
 import traceback
+import sys
 from collections import deque, defaultdict
 
 CONFIG = Config()
@@ -84,6 +85,22 @@ class ADB(commands.AutoShardedBot):
             return
 
         await self.invoke(ctx)
+
+    async def on_command_error(self, ctx, error):
+        if isinstance(error, commands.NoPrivateMessage):
+            await ctx.author.error("This command cannot be used in private messages.")
+        elif isinstance(error, commands.DisabledCommand):
+            await ctx.author.error("Sorry. This command is disabled and cannot be used.")
+        elif isinstance(error, commands.CommandInvokeError):
+            original = error.original
+            if not isinstance(original, discord.HTTPException):
+                print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
+                traceback.print_tb(original.__traceback__)
+                print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
+        elif isinstance(error, commands.ArgumentParsingError):
+            await ctx.error("Something went wrong when parsing the arguments. Make sure you didn't mistype.", 10)
+        elif isinstance(error, commands.NSFWChannelRequired):
+            await ctx.error("To use that command you must be in a NSFW channel.", 10)
 
     async def on_message(self, message):
         if message.author.bot:

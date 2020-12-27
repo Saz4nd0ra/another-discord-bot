@@ -40,7 +40,7 @@ class Context(commands.Context):
             ctx=self,
             title="Something went wrong.",
             description=message,
-            color=0xE82243,
+            colour=0xE82243,
             delete_after=auto_delete if auto_delete else auto_delete == None,
         )
         await self.send(embed=e)
