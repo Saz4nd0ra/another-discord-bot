@@ -23,9 +23,9 @@ class NSFW(commands.Cog):
         file, is_video, has_source = await self.rule34.get_random_post_url(search)
         # TODO work on filtering videos, so we can actually send them
         if is_video:
-            embed = Embed(ctx, title="Video found.", image=file.preview_url)
+            embed = Embed(ctx, title="Video found.", thumbnail=file.preview_url)
         else:
-            embed = Embed(ctx, title="Image found.", image=file.preview_url)
+            embed = Embed(ctx, title="Image found.", image=file.file_url)
         if has_source:
             embed.add_field(name="Source:", value=f"[Click Here!]({file.source})")
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file.file_url})")
