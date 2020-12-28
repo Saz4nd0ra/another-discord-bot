@@ -208,7 +208,7 @@ class General(commands.Cog):
     async def source(self, ctx, *, command: str = None):
         """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
-        branch = "master"
+        branch = "dev"
         if command == None:
             return await ctx.send(source_url)
 
@@ -271,6 +271,8 @@ class General(commands.Cog):
         perms.read_message_history = True
         perms.attach_files = True
         perms.add_reactions = True
+        perms.speak = True
+        perms.move_members = True
         await ctx.send(f"<{discord.utils.oauth_url(self.bot.client_id, perms)}>")
 
 

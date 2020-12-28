@@ -125,8 +125,8 @@ class Player(wavelink.Player):
         embed.add_fields(
             ("Queue Length:", str(qsize)),
             ("Volume:", str(self.volume)),
-            ("Requested by:", track.requester.mention),
-            ("Current DJ:", self.dj.mention),
+            ("Requested by:", track.requester),
+            ("Current DJ:", self.dj),
             ("Video URL:", f"[Click Here!]({track.uri})"),
         )
 
@@ -395,7 +395,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.context:
             if player.context.channel != ctx.channel:
                 await ctx.error(
-                    f"{ctx.author.mention}, you must be in {player.context.channel.mention} for this session.",
+                    f"**{ctx.author}**, you must be in {player.context.channel} for this session.",
                     10,
                 )
                 raise IncorrectChannelError
@@ -415,7 +415,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.is_connected:
             if ctx.author not in channel.members:
                 await ctx.error(
-                    f"{ctx.author.mention}, you must be in `{channel.name}` to use voice commands.",
+                    f"**{ctx.author}**, you must be in `{channel.name}` to use voice commands.",
                     10,
                 )
                 raise IncorrectChannelError
@@ -507,7 +507,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.is_paused or not player.is_connected:
             return
 
-        await ctx.embed(f"{ctx.author.mention} has resumed the player.", 15)
+        await ctx.embed(f"**{ctx.author}** has resumed the player.", 15)
         await player.set_pause(True)
 
     @commands.command()
@@ -520,7 +520,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_paused or not player.is_connected:
             return
 
-        await ctx.embed(f"{ctx.author.mention} has resumed the player.", 15)
+        await ctx.embed(f"**{ctx.author}** has resumed the player.", 15)
         return await player.set_pause(False)
 
     @commands.command()
@@ -553,7 +553,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.embed(f"{ctx.author.mention} has voted to skip the song.", 15)
+            await ctx.embed(f"**{ctx.author}** has voted to skip the song.", 15)
 
     @commands.command()
     async def stop(self, ctx):
@@ -565,7 +565,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
 
-        await ctx.embed(f"{ctx.author.mention} stopped the player.", 10)
+        await ctx.embed(f"**{ctx.author}** stopped the player.", 10)
         return await player.teardown()
 
     @commands.command(aliases=["v", "vol"])
@@ -600,7 +600,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.queue.qsize() < 3:
             return await ctx.error("Add more songs to the queue before shuffling.", 15)
 
-        await ctx.embed(f"{ctx.author.mention} has shuffled the playlist.", 10)
+        await ctx.embed(f"**{ctx.author}** has shuffled the playlist.", 10)
         return random.shuffle(player.queue._queue)
 
     @commands.command(hidden=True)
@@ -722,21 +722,21 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             )
 
         if member and member == player.dj:
-            return await ctx.error(f"{member.mention} is already the DJ.", 15)
+            return await ctx.error(f"**{member}** is already the DJ.", 15)
 
         if len(members) <= 2:
             return await ctx.error("There are no other members to swap DJ to.", 15)
 
         if member:
             player.dj = member
-            return await ctx.embed(f"{member.mention} is now the DJ.")
+            return await ctx.embed(f"**{member}** is now the DJ.")
 
         for m in members:
             if m == player.dj or m.bot:
                 continue
             else:
                 player.dj = m
-                return await ctx.embed(f"{member.mention} is now the DJ.")
+                return await ctx.embed(f"**{member}** is now the DJ.")
 
     @commands.command(name="wavelinkinfo", aliases=["wvi"])
     async def wavelinkinfo(self, ctx):
