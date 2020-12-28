@@ -1,6 +1,6 @@
 import discord
-from .api import Rule34API
-from .api import DanbooruAPI
+from saucenao_api.saucenao_api import SauceNao
+from .api import Rule34API, DanbooruAPI, SauceNaoAPI
 from ...utils import checks
 import asyncio
 import random
@@ -15,6 +15,7 @@ class NSFW(commands.Cog):
         self.config = self.bot.config
         self.rule34 = Rule34API()
         self.danbooru = DanbooruAPI()
+        self.saucenao = SauceNaoAPI()
 
     # TODO work on a blacklist system and user configs (yikes)
     @checks.is_nsfw_channel()
@@ -28,7 +29,9 @@ class NSFW(commands.Cog):
         else:
             embed = Embed(ctx, title="Image found.", image=file.file_url)
         if has_source:
-            embed.add_field(name="Source:", value=f"[Click Here!]({file.source})")
+            embed.add_field(name="Sauce from Rule34:", value=f"[Click Here!]({file.source})")
+        sauce = self.saucenao.get_sauce_from_url(file_url)
+        embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce})")
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file.file_url})")
 
         await ctx.send(embed=embed)
@@ -48,10 +51,17 @@ class NSFW(commands.Cog):
         else:
             embed = Embed(ctx, title="Image found.", image=file_url)
         if has_source:
-            embed.add_field(name="Source:", value=f"[Click Here!]({file_source})")
+            embed.add_field(name="Sauce from Danbooru:", value=f"[Click Here!]({file_source})")
+        sauce = self.saucenao.get_sauce_from_url(file_url)
+        embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce})")
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file_url})")
 
         await ctx.send(embed=embed)
+
+    @checks.is_nsfw_channel()
+    @commands.command()
+    async def saucenao(self, ctx, *, url):
+        pass
 
 
 def setup(bot):

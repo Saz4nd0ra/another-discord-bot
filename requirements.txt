@@ -13,3 +13,4 @@ wavelink
 defusedxml
 rule34
 Pybooru
+saucenao_api
