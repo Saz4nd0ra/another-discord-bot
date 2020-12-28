@@ -9,3 +9,8 @@ praw
 wavelink
 aiohttp
 click
+wavelink
+defusedxml
+rule34
+Pybooru
+saucenao_api

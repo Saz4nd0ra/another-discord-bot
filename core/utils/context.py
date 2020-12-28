@@ -38,10 +38,10 @@ class Context(commands.Context):
         """Triggers our Error embed to send the error message needed."""
         e = Embed(
             ctx=self,
-            title="An error occurred:",
+            title="Something went wrong.",
             description=message,
-            color=0xE82243,
-            delete_after=auto_delete if auto_delete else auto_delete is None,
+            colour=0xE82243,
+            delete_after=auto_delete if auto_delete else auto_delete == None,
         )
         await self.send(embed=e)
 
@@ -52,3 +52,14 @@ class Context(commands.Context):
             embed=e,
             delete_after=auto_delete if auto_delete else auto_delete is None,
         )
+
+    def tick(self, opt, label=None):
+        lookup = {
+            True: "✅",
+            False: "❌",
+            None: "❔",
+        }
+        emoji = lookup.get(opt, "❌")
+        if label is not None:
+            return f"{emoji}: {label}"
+        return emoji

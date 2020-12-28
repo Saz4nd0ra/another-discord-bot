@@ -1,8 +1,8 @@
-## another-discord-bot
+# another-discord-bot
 
 A bot made for servers that I like! 
 
-## Running
+### Before we start
 
 You can setup your own instance of ADB, yet you should consider inviting the already hosted instance to your server. 
 If you want to host it yourself, go ahead and read through the instructions.
@@ -10,19 +10,45 @@ If you want to host it yourself, go ahead and read through the instructions.
 
 ## Installation
 
-1. **Make sure to get Python 3.7 or higher, 3.8 is recommended.**
+These are the instructions to install Lavalink and the bot itself. The bot is written with Linux in mind,
+so Windows support isn't confirmed. Any major distro should work, these instructions are written using Arch.
 
-This is required to actually run the bot.
+### Installation: Lavalink
 
-2. **Set up venv**
+1. **First, install docker and get it running.**
 
-Just do `python3.8 -m venv adb`. If you don't have Python 3.8 installed, please Google instructions for your OS.
+TODO
 
-3. **Install dependencies**
+### Installation: Python
 
-To install the requirements do `pip3.8 install -U -r requirements.txt`.
+1. **Checking the version of Python**
 
-4. **Setup configuration**
+Some distros come with Python 3.8 preinstalled. You can check the version with either `python --version` or `python3 --version`.
+If one of the commands gave the output `Python 3.8.x` you can skip the installation of Python.
+
+2. **Installing Python**
+
+TODO
+
+### Installation: Venv and dependencies
+
+1. **Set up a virtual environment.**
+
+Just do `python3.8 -m venv venv`. If you followed the instructions above, this should work flawlessly. 
+
+2. **Install dependencies**
+
+first you need to activate the venv with `source /venv/bin/activate`.
+You are now using the venv, well done. Now use `pip install wheel`,
+after that is finished, install the requirements with `pip install -r requirements.txt`, this could take a while.
+
+You finished with the installation, now you can go ahead and set everything up.
+
+## Setup
+
+### Bot configuration
+
+**Setup configuration**
 
 Change these settings in the `config/options.ini` to make the bot work. If the file doesn't exist, start the bot once to generate it. 
 
@@ -38,10 +64,6 @@ LavalinkPort = ...
 LavalinkPassword = ...
 ```
 
+## Other stuff
 
-## Requirements
-
-- Python 3.7+
-- discord.py
-- wavelink
-
+TODO

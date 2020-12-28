@@ -11,7 +11,7 @@ class Embed(discord.Embed):
             self.timestamp = ctx.message.created_at
 
         if ctx:
-            author_image = ctx.author.avatar_url
+            author_image = ctx.bot.user.avatar_url
             self.set_author(name=title, icon_url=author_image)
         else:
             self.title = title
@@ -32,6 +32,7 @@ class Embed(discord.Embed):
 
         if kwargs.get("image"):
             self.set_image(url=kwargs.get("image"))
+
         if kwargs.get("thumbnail"):
             self.set_thumbnail(url=kwargs.get("thumbnail"))
 
