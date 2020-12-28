@@ -21,6 +21,7 @@ class NSFW(commands.Cog):
     @checks.is_nsfw_channel()
     @commands.command()
     async def r34(self, ctx, *, search):
+        """Browse rule34.xxx. Only available in NSFW channels."""
 
         file, is_video, has_source = await self.rule34.get_random_r34(search)
         # TODO work on filtering videos, so we can actually send them
@@ -30,15 +31,20 @@ class NSFW(commands.Cog):
             embed = Embed(ctx, title="Image found.", image=file.file_url)
         if has_source:
             embed.add_field(name="Sauce from Rule34:", value=f"[Click Here!]({file.source})")
-        sauce = self.saucenao.get_sauce_from_url(file_url)
-        embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce})")
+        sauce = self.saucenao.get_sauce_from_url(file.file_url)
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file.file_url})")
+
+        try:
+            embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
+        except IndexError:
+            pass
 
         await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
     @commands.command()
     async def danbooru(self, ctx, *, search):
+        """Browse danbooru.me. Only available in NSFW channels."""
 
         file, is_video, has_source = self.danbooru.get_random_danbooru(search)
 
@@ -53,16 +59,33 @@ class NSFW(commands.Cog):
         if has_source:
             embed.add_field(name="Sauce from Danbooru:", value=f"[Click Here!]({file_source})")
         sauce = self.saucenao.get_sauce_from_url(file_url)
-        embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce})")
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file_url})")
+
+        try:
+            embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
+        except IndexError:
+            pass
 
         await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
     @commands.command()
     async def saucenao(self, ctx, *, url):
-        pass
+        """Get the sauce from pictures via an URL or file. Only available in NSFW channels."""
+        sauce = self.saucenao.get_sauce_from_url(url)
 
+        embed = Embed(ctx, title="Sauce found.", image=url)
+        embed.add_fields(("Author:", f"{sauce.author}"),
+                         ("Similarity:", f"{round(sauce.similarity)}%"))
+
+        try:
+            embed.add_field(name="Link:", value=f"[Click Here!]({sauce.urls[0]})")
+        except IndexError:
+            pass
+
+        await ctx.send(embed=embed)
+
+        await ctx.message.delete()
 
 def setup(bot):
     bot.add_cog(NSFW(bot))
