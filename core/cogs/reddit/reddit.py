@@ -6,60 +6,11 @@ from ...utils.embed import Embed
 from .api import API
 from ...utils.config import Config
 import copy
-from praw import Reddit
 
 REDDIT_DOMAINS = [
     "reddit.com",
     "redd.it",
 ]  # need to find more domains, if there are any
-
-
-# TODO fix all of that
-class InteractiveMessage(menus.Menu):
-    def __init__(self, *, embed, submission):
-        super().__init__(timeout=60)
-
-        self.submission = submission
-        self.embed = embed
-
-    def update_context(self, payload: discord.RawReactionActionEvent):
-
-        ctx = copy.copy(self.ctx)
-        ctx.author = payload.member
-
-        return ctx
-
-    def reaction_check(self, payload: discord.RawReactionActionEvent):
-        if payload.event_type == "REACTION_REMOVE":
-            return False
-
-        if not payload.member:
-            return False
-        if payload.member.bot:
-            return False
-        if payload.message_id != self.message.id:
-            return False
-
-        return payload.emoji in self.buttons
-
-    async def send_initial_message(self, ctx, channel: discord.TextChannel):
-        return await channel.send(embed=self.embed)
-
-    # TODO implement method to undo a upvote
-
-    @menus.button(emoji="\u2b06")
-    async def upvote_command(self, payload: discord.RawReactionActionEvent, submission):
-        """Upvote button"""
-        ctx = self.update_context(payload)
-
-        await API().upvote_post(submission=self.submission)
-
-    @menus.button(emoji="\u2b06")
-    async def downvote_command(self, payload: discord.RawReactionActionEvent):
-        """Upvote button"""
-        ctx = self.update_context(payload)
-
-        await API().downvote_post(submission=self.submission)
 
 
 class Reddit(commands.Cog):
@@ -73,8 +24,8 @@ class Reddit(commands.Cog):
         if self.config.enable_redditembed:
             self.enable_embed = True
 
-    async def build_embed(self, ctx, submission):
-        """Embed that includes a voting system."""
+    async def send_embed(self, ctx, submission):
+        """Embed that doesn't include a voting system."""
 
         # napkin math
         downvotes = int(
@@ -85,8 +36,10 @@ class Reddit(commands.Cog):
 
         if VIDEO_URL in submission.url:
             image = "https://imgur.com/MKnguLq.png"
+            has_video = True
         else:
             image = submission.url
+            has_video = False
 
         embed = Embed(ctx, title=f"{submission.title}", image=image)
 
@@ -99,7 +52,10 @@ class Reddit(commands.Cog):
             ("Link:", f"[Click Here!]({submission.shortlink})"),
         )
 
-        return embed
+        if has_video:
+            await ctx.send(submission.url, embed=embed)
+        else:
+            await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
@@ -109,14 +65,14 @@ class Reddit(commands.Cog):
             if any(x in message.content for x in REDDIT_DOMAINS):
                 reddit_url = message.content
                 submission = await self.api.get_submission_from_url(reddit_url)
-                if submission.over_18 and message.channel.is_nsfw():
+                if submission.over_18 and not message.channel.is_nsfw():
                     await message.delete()
                     await ctx.error(
                         f"{message.author.mention} this channel doesn't allow NSFW.", 10
                     )
                 else:
-                    embed = await self.build_embed(ctx, submission)
-                    await ctx.send(embed=embed)
+                    await message.delete()
+                    await self.send_embed(ctx, submission)
 
     @commands.command()
     async def meme(self, ctx, category: str = None):
@@ -131,8 +87,7 @@ class Reddit(commands.Cog):
             category == None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.api.get_submission(subreddit="memes", sorting="hot")
-            embed = await self.build_embed(ctx, submission)
-            await ctx.send(embed=embed)
+            await self.send_embed(ctx, submission)
 
         else:  # use userprovided subreddit
 
@@ -145,29 +100,25 @@ class Reddit(commands.Cog):
             }
 
             submission = await self.api.get_submission(switcher.get(category), "hot")
-            embed = await self.build_embed(ctx, submission)
-            await ctx.send(embed=embed)
+            await self.send_embed(ctx, submission)
 
     @commands.command()
     async def hot(self, ctx, subreddit: str):
         """Browse hot submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="hot")
-        embed = await self.build_embed(ctx, submission)
-        await ctx.send(embed=embed)
+        await self.send_embed(ctx, submission)
 
     @commands.command()
     async def new(self, ctx, subreddit: str):
         """Browse new submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="new")
-        embed = await self.build_embed(ctx, submission)
-        await ctx.send(embed=embed)
+        await self.send_embed(ctx, submission)
 
     @commands.command()
     async def top(self, ctx, subreddit: str):
         """Browse top submissions in a subreddit."""
         submission = await self.api.get_submission(subreddit, sorting="top")
-        embed = await self.build_embed(ctx, submission)
-        await ctx.send(embed=embed)
+        await self.send_embed(ctx, submission)
 
 
 def setup(bot):

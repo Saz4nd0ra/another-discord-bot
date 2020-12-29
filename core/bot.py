@@ -95,8 +95,10 @@ class ADB(commands.AutoShardedBot):
             original = error.original
             if not isinstance(original, discord.HTTPException):
                 print(f"In {ctx.command.qualified_name}:", file=sys.stderr)
+                log.error(f"In {ctx.command.qualified_name}:", file=sys.stderr)
                 traceback.print_tb(original.__traceback__)
                 print(f"{original.__class__.__name__}: {original}", file=sys.stderr)
+                log.error(f"{original.__class__.__name__}: {original}", file=sys.stderr)
         elif isinstance(error, commands.ArgumentParsingError):
             await ctx.error("Something went wrong when parsing the arguments. Make sure you didn't mistype.", 10)
         elif isinstance(error, commands.NSFWChannelRequired):

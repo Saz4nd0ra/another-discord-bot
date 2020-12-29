@@ -32,9 +32,3 @@ class API:
     async def get_submission_from_url(self, reddit_url: str):
         submission = self.connection.submission(url=reddit_url)
         return submission
-
-    async def upvote_post(self, submission):
-        pass
-
-    async def downvote_post(self, submission):
-        pass
