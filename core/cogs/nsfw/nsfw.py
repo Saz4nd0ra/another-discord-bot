@@ -31,12 +31,12 @@ class NSFW(commands.Cog):
             embed = Embed(ctx, title="Image found.", image=file.file_url)
         if has_source:
             embed.add_field(name="Sauce from Rule34:", value=f"[Click Here!]({file.source})")
-        sauce = self.saucenao.get_sauce_from_url(file.file_url)
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file.file_url})")
 
         try:
             embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
-        except IndexError:
+            sauce = self.saucenao.get_sauce_from_url(file.file_url)
+        except:
             pass
 
         await ctx.send(embed=embed)
@@ -58,12 +58,12 @@ class NSFW(commands.Cog):
             embed = Embed(ctx, title="Image found.", image=file_url)
         if has_source:
             embed.add_field(name="Sauce from Danbooru:", value=f"[Click Here!]({file_source})")
-        sauce = self.saucenao.get_sauce_from_url(file_url)
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file_url})")
 
         try:
+            sauce = self.saucenao.get_sauce_from_url(file.file_url)
             embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
-        except IndexError:
+        except:
             pass
 
         await ctx.send(embed=embed)
