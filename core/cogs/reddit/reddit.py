@@ -41,7 +41,7 @@ class Reddit(commands.Cog):
             image = submission.url
             has_video = False
 
-        embed = Embed(ctx, title=f"{submission.title}", image=image)
+        embed = Embed(ctx, title=f"Title: {submission.title}", image=image)
 
         embed.add_field(name="<:upvote:754073992771666020>", value=submission.ups)
         embed.add_field(name="<:downvote:754073959791722569>", value=downvotes)

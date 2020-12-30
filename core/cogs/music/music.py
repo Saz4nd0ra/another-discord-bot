@@ -534,7 +534,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.embed("An admin or DJ has skipped the song.", 10)
+            await ctx.embed("A priviliged user skipped the song.", 10)
             player.skip_votes.clear()
 
             return await player.stop()
@@ -553,7 +553,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             player.skip_votes.clear()
             await player.stop()
         else:
-            await ctx.embed(f"**{ctx.author}** has voted to skip the song.", 15)
+            await ctx.embed(f"**{ctx.author}** has voted to skip the song.")
 
     @commands.command()
     async def stop(self, ctx):
@@ -702,7 +702,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         await player.invoke_controller()
 
     @commands.command(aliases=["swap"])
-    async def swap_dj(self, ctx, *, member=None):
+    async def swapdj(self, ctx, *, member=None):
         """Swap the current DJ to another member in the voice channel."""
         player = self.bot.wavelink.get_player(
             guild_id=ctx.guild.id, cls=Player, context=ctx
@@ -752,12 +752,12 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         total = humanize.naturalsize(node.stats.memory_allocated)
         free = humanize.naturalsize(node.stats.memory_free)
         cpu = node.stats.cpu_cores
-        e = Embed(
+        embed = Embed(
             ctx,
             title="Wavelink Info",
             description=f"Wavelink version: {wavelink.__version__}",
         )
-        e.add_fields(
+        embed.add_fields(
             ("Connected Nodes:", str(len(self.bot.wavelink.nodes))),
             ("Best available Node:", self.bot.wavelink.get_best_node().__repr__()),
             ("Players on this server:", str(node.stats.playing_players)),
@@ -765,7 +765,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             ("Server CPU Cores:", str(cpu)),
             ("Server Uptime:", str(datetime.timedelta(milliseconds=node.stats.uptime))),
         )
-        await ctx.send(embed=e, delete_after=10)
+        await ctx.send(embed=embed)
 
 
 def setup(bot):
