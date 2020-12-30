@@ -13,13 +13,7 @@ class HelpSource(menus.ListPageSource):
 
     def __init__(
         self,
-        signature: t.Callable,
-        filter_commands: t.Coroutine,
-        ctx,
-        prefix: str,
-        author: discord.User,
-        cogs: t.Dict[t.Optional[commands.Cog], t.List[commands.Command]],
-    ) -> None:
+        signature: t.Callable, filter_commands: t.Coroutine, ctx, prefix: str, author: discord.User, cogs: t.Dict[t.Optional[commands.Cog], t.List[commands.Command]]) -> None:
         self.get_command_signature = signature
         self.filter_commands = filter_commands
         self.ctx = ctx

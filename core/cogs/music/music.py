@@ -276,23 +276,18 @@ class InteractiveMessage(menus.Menu):
         await self.bot.invoke(ctx)
 
 
-class PaginatorSource(menus.ListPageSource):
-    """Player queue paginator class."""
+class PaginatedQueue(menus.ListPageSource):
+    """Paginated queue."""
 
-    def __init__(self, entries, *, per_page=8):
-        super().__init__(entries, per_page=per_page)
+    def __init__(self, entries):
+        super().__init__(entries, per_page=8)
 
     async def format_page(self, menu, page):
-        embed = discord.Embed(title="Coming Up...")
+        embed = Embed(ctx=menu.ctx)
         embed.description = "\n".join(
-            f"`{index}. {title}`" for index, title in enumerate(page, 1)
-        )
+            f"`{index}. {title}`" for index, title in enumerate(page, 1))
 
         return embed
-
-    def is_paginating(self):
-        # We always want to embed even on 1 page of results...
-        return True
 
 
 class Music(commands.Cog, wavelink.WavelinkMixin):
@@ -323,7 +318,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                 "port": self.config.ll_port,
                 "rest_uri": f"http://{self.config.ll_host}:{self.config.ll_port}",
                 "password": self.config.ll_passwd,
-                "identifier": "MAIN",
+                "identifier": "ADB",
                 "region": "eu",
             }
         }
@@ -682,7 +677,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.error("There are no more songs in the queue.", 15)
 
         entries = [track.title for track in player.queue._queue]
-        pages = PaginatorSource(entries=entries)
+        pages = PaginatorSource(entries)
         paginator = menus.MenuPages(
             source=pages, timeout=None, delete_message_after=True
         )

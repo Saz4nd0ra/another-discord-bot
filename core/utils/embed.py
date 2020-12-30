@@ -12,9 +12,12 @@ class Embed(discord.Embed):
 
         if ctx:
             author_image = ctx.bot.user.avatar_url
-            self.set_author(name=title, icon_url=author_image)
+            self.set_author(
+                name=f"{ctx.bot.user.name} | {ctx.prefix}{ctx.command.qualified_name} | {title}",
+                icon_url=author_image,
+            )
         else:
-            self.title = title
+            self.title = f"{title}"
 
         # if kwargs have an argument called colour, set the embed to colour to that
         # else default to discord blurple

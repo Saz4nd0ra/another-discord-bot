@@ -39,7 +39,7 @@ class NSFW(commands.Cog):
             embed.add_field(
                 name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
             )
-            
+
         except:
             pass
 
@@ -85,9 +85,9 @@ class NSFW(commands.Cog):
             sauce = self.saucenao.get_sauce_from_url(url)
             embed = Embed(ctx, title="Sauce found.", image=url)
             embed.add_fields(
-            ("Author:", f"{sauce.author}"),
-            ("Similarity:", f"{round(sauce.similarity)}%"),
-        )
+                ("Author:", f"{sauce.author}"),
+                ("Similarity:", f"{round(sauce.similarity)}%"),
+            )
             embed.add_field(name="Link:", value=f"[Click Here!]({sauce.urls[0]})")
             await ctx.send(embed=embed)
             await ctx.message.delete()
