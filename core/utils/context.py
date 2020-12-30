@@ -49,7 +49,7 @@ class Context(commands.Context):
         """Sends a quick embed."""
         e = Embed(
             ctx=self,
-            title=f"{ctx.bot.user.name} | {ctx.command_prefix}{ctx.command.qualified_name}",
+            title=f"{self.bot.user.name} | {self.command_prefix}{self.command.qualified_name}",
             description=message,
         )
         await self.send(
