@@ -13,12 +13,28 @@ import logging
 from ...utils.exceptions import *
 from ...utils.embed import Embed
 from ...utils.context import Context
+from ...utils.paginator import ADBPages
 from discord.ext import commands, menus
 
 # URL matching REGEX...
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
 log = logging.getLogger(__name__)
+
+
+class QueuePaginator(menus.ListPageSource):
+    def __init__(self, data: list, *, per_page: int, title):
+        super().__init__(data, per_page=per_page)
+
+        self.title = title
+
+    async def format_page(self, menu: menus.Menu, page: list):
+        embed = Embed(ctx=menu.ctx, title=self.title)
+        embed.description = "\n".join(
+            [f"`{index}`. {item}" for index, item in enumerate(page, 1)]
+        )
+
+        return embed
 
 
 class Track(wavelink.Track):
@@ -283,9 +299,10 @@ class PaginatedQueue(menus.ListPageSource):
         super().__init__(entries, per_page=8)
 
     async def format_page(self, menu, page):
-        embed = Embed(ctx=menu.ctx)
+        embed = Embed(ctx=menu.ctx, title=f"Queue for {menu.ctx.channel.name}")
         embed.description = "\n".join(
-            f"`{index}. {title}`" for index, title in enumerate(page, 1))
+            f"`{index}. {title}`" for index, title in enumerate(page, 1)
+        )
 
         return embed
 
@@ -339,14 +356,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     @commands.Cog.listener()
     async def on_voice_state_update(
         self,
-        member,
-        before,
-        after,
+        member: discord.Member,
+        before: discord.VoiceState,
+        after: discord.VoiceState,
     ):
         if member.bot:
             return
 
-        player = self.bot.wavelink.get_player(member.guild.id, cls=Player)
+        player: Player = self.bot.wavelink.get_player(member.guild.id, cls=Player)
 
         if not player.channel_id or not player.context:
             player.node.players.pop(member.guild.id)
@@ -354,7 +371,10 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         channel = self.bot.get_channel(int(player.channel_id))
 
-        if member == player.dj and after.channel == None:
+        if len(channel.members) == 1:
+            return await player.teardown()
+
+        if member == player.dj and after.channel is None:
             for m in channel.members:
                 if m.bot:
                     continue
@@ -480,13 +500,13 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                 await player.queue.put(track)
 
             await ctx.embed(
-                f'```ini\nAdded the playlist {tracks.data["playlistInfo"]["name"]}'
-                f" with {len(tracks.tracks)} songs to the queue.\n```",
+                f'`Added the playlist {tracks.data["playlistInfo"]["name"]}'
+                f" with {len(tracks.tracks)} songs to the queue.\n`",
                 15,
             )
         else:
             track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
-            await ctx.embed(f"```ini\nAdded {track.title} to the Queue\n```", 15)
+            await ctx.embed(f"`Added {track.title} to the Queue\n`", 15)
             await player.queue.put(track)
 
         if not player.is_playing:
@@ -665,22 +685,29 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command(aliases=["q"])
     async def queue(self, ctx):
-        """Display the players queued songs."""
-        player = self.bot.wavelink.get_player(
-            guild_id=ctx.guild.id, cls=Player, context=ctx
-        )
+        """Displays the current songs that are queued."""
+
+        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
 
         if not player.is_connected:
             return
 
         if player.queue.qsize() == 0:
-            return await ctx.error("There are no more songs in the queue.", 15)
+            return await ctx.embed("There are no more songs in the queue...", 10)
 
+        channel = self.bot.get_channel(int(player.channel_id))
+        # noinspection PyProtectedMember
         entries = [track.title for track in player.queue._queue]
-        pages = PaginatorSource(entries)
-        paginator = menus.MenuPages(
-            source=pages, timeout=None, delete_message_after=True
+        requester = [track.requester.name for track in player.queue._queue]
+        string_list1 = [f"`{x} " for x in entries]
+        string_list2 = [f"requested by {x}`" for x in requester]
+        final_string = []
+        for i in range(0, len(string_list1)):
+            final_string.append(string_list1[i] + string_list2[i])
+        pages = QueuePaginator(
+            final_string, per_page=10, title=f"Queue for {channel.name}"
         )
+        paginator = ADBPages(pages)
 
         await paginator.start(ctx)
 

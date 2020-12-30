@@ -13,7 +13,13 @@ class HelpSource(menus.ListPageSource):
 
     def __init__(
         self,
-        signature: t.Callable, filter_commands: t.Coroutine, ctx, prefix: str, author: discord.User, cogs: t.Dict[t.Optional[commands.Cog], t.List[commands.Command]]) -> None:
+        signature: t.Callable,
+        filter_commands: t.Coroutine,
+        ctx,
+        prefix: str,
+        author: discord.User,
+        cogs: t.Dict[t.Optional[commands.Cog], t.List[commands.Command]],
+    ) -> None:
         self.get_command_signature = signature
         self.filter_commands = filter_commands
         self.ctx = ctx
@@ -35,15 +41,11 @@ class HelpSource(menus.ListPageSource):
         embed = Embed(
             ctx=self.ctx,
             title=textwrap.dedent(
-                f"""
-                Help for {cog.qualified_name if cog else 'unclassified commands'}
-                Page {menu.current_page+1}/{self.get_max_pages()}
-                """
+                f"""Help for {cog.qualified_name if cog else 'unclassified commands'}"""
             ),
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required argument>` `[Optional Argument]`
-                Command prefix: `{self.prefix}`
+                **Page {menu.current_page+1}/{self.get_max_pages()}**
                 {cog.description if cog else ""}
                 """
             ),
@@ -101,8 +103,7 @@ class HelpCommand(commands.HelpCommand):
             title=cog.qualified_name,
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required argument>` `[Optional Argument]`
-                Command prefix: `{prefix}`
+                **Page {menu.current_page+1}/{self.get_max_pages()}**
                 {cog.description}
                 """
             ),
@@ -124,7 +125,6 @@ class HelpCommand(commands.HelpCommand):
             title=f"{prefix}{self.get_command_signature(command)}",
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required arguments` `[Optional Arguments]`
                 {command.help}
                 """
             ),
@@ -147,7 +147,6 @@ class HelpCommand(commands.HelpCommand):
             ),
             description=textwrap.dedent(
                 f"""
-                Help syntax : `<Required arguments>` `[Optional Arguments]`
                 {group.help}
                 """
             ),
@@ -166,7 +165,7 @@ class HelpCommand(commands.HelpCommand):
         await ctx.bot.httpcat(ctx, 404, error)
 
 
-def setup(bot: commands.Bot) -> None:
+def setup(bot) -> None:
     """Add the help command."""
     bot.old_help_command = bot.help_command
     bot.help_command = HelpCommand(
@@ -175,6 +174,6 @@ def setup(bot: commands.Bot) -> None:
     )
 
 
-def teardown(bot: commands.Bot) -> None:
+def teardown(bot) -> None:
     """Remove the help command."""
     bot.help_command = bot.old_help_command

@@ -36,7 +36,7 @@ class Context(commands.Context):
 
     async def error(self, message: str, auto_delete: int = None):
         """Triggers our Error embed to send the error message needed."""
-        e = Embed(
+        e = Embed.error(
             ctx=self,
             title="Something went wrong.",
             description=message,
@@ -49,7 +49,7 @@ class Context(commands.Context):
         """Sends a quick embed."""
         e = Embed(
             ctx=self,
-            title=f"{self.bot.user.name} | {self.prefix}{self.command.qualified_name}",
+            title=f"{self.prefix}{self.command.qualified_name}",
             description=message,
         )
         await self.send(
