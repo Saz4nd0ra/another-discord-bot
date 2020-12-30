@@ -47,7 +47,11 @@ class Context(commands.Context):
 
     async def embed(self, message: str, auto_delete: int = None):
         """Sends a quick embed."""
-        e = Embed(ctx=self, title=f"{ctx.bot.user.name} | {ctx.command_prefix}{ctx.command.qualified_name}", description=message)
+        e = Embed(
+            ctx=self,
+            title=f"{ctx.bot.user.name} | {ctx.command_prefix}{ctx.command.qualified_name}",
+            description=message,
+        )
         await self.send(
             embed=e,
             delete_after=auto_delete if auto_delete else auto_delete is None,

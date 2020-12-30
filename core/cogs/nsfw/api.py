@@ -12,7 +12,6 @@ VIDEO_FORMATS = [
 
 
 class Rule34API:
-
     def __init__(self):
         self.loop = asyncio.get_event_loop()
         self.rule34 = Rule34(self.loop)
@@ -39,7 +38,6 @@ class Rule34API:
 
 
 class DanbooruAPI:
-
     def __init__(self):
         self.danbooru = Danbooru("danbooru")
 
@@ -66,7 +64,6 @@ class DanbooruAPI:
 
 
 class SauceNaoAPI:
-
     def __init__(self):
         self.saucenao = SauceNao()
 
