@@ -11,6 +11,8 @@ import traceback
 import sys
 from collections import deque, defaultdict
 
+CONFIG = Config()
+
 DESCRIPTION = """
 another-discord-bot
 """
@@ -30,7 +32,7 @@ cogs_to_load = {  # of course nothing works as planned
 class ADB(commands.AutoShardedBot):
     def __init__(self):
         super().__init__(
-            command_prefix=Config.prefix,
+            command_prefix=CONFIG.prefix,
             description=DESCRIPTION,
             fetch_offline_members=False,
             heartbeat_timeout=150.0,
@@ -39,7 +41,7 @@ class ADB(commands.AutoShardedBot):
 
         self.session = aiohttp.ClientSession(loop=self.loop)
 
-        self.config = Config()
+        self.config = CONFIG
 
         self._prev_events = deque(maxlen=10)
 
