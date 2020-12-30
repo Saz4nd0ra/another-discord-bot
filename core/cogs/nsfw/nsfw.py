@@ -91,7 +91,7 @@ class NSFW(commands.Cog):
             embed.add_field(name="Link:", value=f"[Click Here!]({sauce.urls[0]})")
             await ctx.send(embed=embed)
             await ctx.message.delete()
-        except:
+        except Exception as e:
             await ctx.error("Something went wrong with the API.")
 
 
