@@ -92,6 +92,7 @@ class NSFW(commands.Cog):
             await ctx.send(embed=embed)
             await ctx.message.delete()
         except Exception as e:
+            print(e)
             await ctx.error("Something went wrong with the API.")
 
 
