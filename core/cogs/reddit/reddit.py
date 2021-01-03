@@ -35,13 +35,9 @@ class Reddit(commands.Cog):
         VIDEO_URL = "v.redd.it"
 
         if VIDEO_URL in submission.url:
-            image = submission.thumbnail
-            has_video = True
+            embed = Embed(ctx, title=submission.title, thumbnail=submission.preview["images"][0]["source"]["url"])
         else:
-            image = submission.url
-            has_video = False
-
-        embed = Embed(ctx, title=f"Title: {submission.title}", image=image)
+            embed = Embed(ctx, title=submission.title, image=submission.url)
 
         embed.add_field(name="<:upvote:754073992771666020>", value=submission.ups)
         embed.add_field(name="<:downvote:754073959791722569>", value=downvotes)
@@ -52,11 +48,7 @@ class Reddit(commands.Cog):
             ("Link:", f"[Click Here!]({submission.shortlink})"),
         )
 
-        if has_video:
-            await ctx.send(submission.url, embed=embed)
-            print(vars(submission))
-        else:
-            await ctx.send(embed=embed)
+        await ctx.send(submission.url, embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):
