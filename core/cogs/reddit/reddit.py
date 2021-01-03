@@ -35,7 +35,12 @@ class Reddit(commands.Cog):
         VIDEO_URL = "v.redd.it"
 
         if VIDEO_URL in submission.url:
-            embed = Embed(ctx, title=submission.title, thumbnail=submission.preview["images"][0]["source"]["url"])
+            if hasattr(submission, 'preview'):
+                preview_image_link = submission.preview["images"][0]["source"]["url"]
+                embed = Embed(ctx, title=submission.title, thumbnail=preview_image_link)
+            else:
+                preview_image_link = "https://imgur.com/MKnguLq.png"
+            embed = Embed(ctx, title=submission.title, thumbnail=preview_image_link)
         else:
             embed = Embed(ctx, title=submission.title, image=submission.url)
 
