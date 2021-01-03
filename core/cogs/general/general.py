@@ -275,6 +275,20 @@ class General(commands.Cog):
         perms.move_members = True
         await ctx.send(f"<{discord.utils.oauth_url(self.bot.client_id, perms)}>")
 
+    @commands.command()
+    async def bug(self, ctx, *, command: str = None):
+        """Report a bug to the owner of the bot instance."""
+
+        if self.bot.config.owner_id == "auto":
+            owner_id = ctx.bot.owner_id
+        else:
+            owner_id = self.bot.config.owner_id
+
+        owner = await self.bot.get_user_info(owner_id)
+
+        await self.bot.send_message(owner, f"{ctx.message.author} ran into an error. Used command: {command}.")
+        await ctx.embed("Thank you, the message has been sent.")
+
 
 def setup(bot):
     bot.add_cog(General(bot))

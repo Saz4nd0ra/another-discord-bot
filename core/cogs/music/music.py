@@ -10,31 +10,16 @@ import re
 import typing
 import wavelink
 import logging
-from ...utils.exceptions import *
+from ...utils import exceptions
 from ...utils.embed import Embed
 from ...utils.context import Context
-from ...utils.paginator import ADBPages
+from ...utils.paginator import ADBPages, QueuePaginator
 from discord.ext import commands, menus
 
 # URL matching REGEX...
 URL_REG = re.compile(r"https?://(?:www\.)?.+")
 
 log = logging.getLogger(__name__)
-
-
-class QueuePaginator(menus.ListPageSource):
-    def __init__(self, data: list, *, per_page: int, title):
-        super().__init__(data, per_page=per_page)
-
-        self.title = title
-
-    async def format_page(self, menu: menus.Menu, page: list):
-        embed = Embed(ctx=menu.ctx, title=self.title)
-        embed.description = "\n".join(
-            [f"`{index}`. {item}" for index, item in enumerate(page, 1)]
-        )
-
-        return embed
 
 
 class Track(wavelink.Track):
@@ -292,21 +277,6 @@ class InteractiveMessage(menus.Menu):
         await self.bot.invoke(ctx)
 
 
-class PaginatedQueue(menus.ListPageSource):
-    """Paginated queue."""
-
-    def __init__(self, entries):
-        super().__init__(entries, per_page=8)
-
-    async def format_page(self, menu, page):
-        embed = Embed(ctx=menu.ctx, title=f"Queue for {menu.ctx.channel.name}")
-        embed.description = "\n".join(
-            f"`{index}. {title}`" for index, title in enumerate(page, 1)
-        )
-
-        return embed
-
-
 class Music(commands.Cog, wavelink.WavelinkMixin):
     """Listen to Music with friends."""
 
@@ -385,16 +355,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         elif after.channel == channel and player.dj not in channel.members:
             player.dj = member
 
-    async def cog_command_error(self, ctx, error):
-        """Cog wide error handler."""
-        if isinstance(error, IncorrectChannelError):
-            return
-
-        if isinstance(error, NoChannelProvided):
-            return await ctx.error(
-                "You must be in a voice channel or provide one to connect to.", 10
-            )
-
     async def cog_check(self, ctx):
         """Cog wide check, which disallows commands in DMs."""
         if not ctx.guild:
@@ -413,7 +373,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                     f"**{ctx.author}**, you must be in {player.context.channel} for this session.",
                     10,
                 )
-                raise IncorrectChannelError
 
         if ctx.command.name == "connect" and not player.context:
             return
@@ -433,7 +392,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                     f"**{ctx.author}**, you must be in `{channel.name}` to use voice commands.",
                     10,
                 )
-                raise IncorrectChannelError
 
     def required(self, ctx):
         """Method which returns required votes based on amount of members in a channel."""
@@ -468,12 +426,12 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         channel = getattr(ctx.author.voice, "channel", channel)
-        if channel == None:
-            raise NoChannelProvided
+        if channel is None:
+            raise exceptions.NoChannelProvided
 
         await player.connect(channel.id)
 
-    @commands.command()
+    @commands.command(aliases=["p"])
     async def play(self, ctx, *, query):
         """Play or queue a song with the given query."""
         player = self.bot.wavelink.get_player(
@@ -512,7 +470,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_playing:
             await player.do_next()
 
-    @commands.command()
+    @commands.command(aliases=["v", "vol"])
     async def pause(self, ctx):
         """Pause the currently playing song."""
         player = self.bot.wavelink.get_player(

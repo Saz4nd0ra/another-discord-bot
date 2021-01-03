@@ -10,9 +10,10 @@ class Embed(discord.Embed):
         )
 
         self.timestamp = ctx.message.created_at
+        self.title(f"{ctx.author.mention} | {title}")
         self.set_author(
-            name=f"{ctx.author.mention} | {title}",
-            icon_url=ctx.author.avatar_url,
+            name="",
+            icon_url=ctx.author.avatar_url, url="https://github.com/Saz4nd0ra/another-discord-bot"
         )
 
         self.description = kwargs.get("description")

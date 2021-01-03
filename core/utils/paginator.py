@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands, menus
+from discord.ext.commands import Paginator as CommandPaginator
 from .embed import Embed
 import asyncio
 
@@ -17,22 +18,32 @@ class ADBPages(menus.MenuPages):
         except discord.HTTPException:
             pass
 
-    @menus.button("\N{PUBLIC ADDRESS LOUDSPEAKER}", position=menus.Last(6))
-    async def announcements(self, payload):
-        """Announcements go here"""
 
-        embed = Embed(
-            self.ctx,
-            title=self.bot.announcement["title"],
-            description=self.bot.announcement["message"],
+class QueuePaginator(menus.ListPageSource):
+    """Paginated queue."""
+
+    def __init__(self, entries):
+        super().__init__(entries, per_page=8)
+
+    async def format_page(self, menu, page):
+        embed = Embed(ctx=menu.ctx, title=f"Queue for {menu.ctx.channel.name}")
+        embed.description = "\n".join(
+            f"`{index}. {title}`" for index, title in enumerate(page, 1)
         )
 
-        await self.message.edit(content=None, embed=embed)
-
-        async def go_back_to_current_page():
-            await asyncio.sleep(30.0)
-            await self.show_page(self.current_page)
-
-        self.bot.loop.create_task(go_back_to_current_page())
+        return embed
 
 
+class TextPageSource(menus.ListPageSource):
+    def __init__(self, text, *, prefix='```', suffix='```', max_size=2000):
+        pages = CommandPaginator(prefix=prefix, suffix=suffix, max_size=max_size - 200)
+        for line in text.split('\n'):
+            pages.add_line(line)
+
+        super().__init__(entries=pages, per_page=1)
+
+    async def format_page(self, menu, content):
+        maximum = self.get_max_pages()
+        if maximum > 1:
+            return f'{content}\nPage {menu.current_page + 1}/{maximum}'
+        return content

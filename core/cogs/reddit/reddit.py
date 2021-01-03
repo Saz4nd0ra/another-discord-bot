@@ -53,7 +53,7 @@ class Reddit(commands.Cog):
             ("Link:", f"[Click Here!]({submission.shortlink})"),
         )
 
-        await ctx.send(submission.url, embed=embed)
+        await ctx.send(embed=embed)
 
     @commands.Cog.listener()
     async def on_message(self, message):

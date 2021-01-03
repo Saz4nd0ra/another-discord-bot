@@ -1,31 +1,38 @@
-from discord.ext import commands
+class ADBExcpetion(Exception):
+    def __init__(self, ctx, message, *, expire_in=0):
+        super().__init__(ctx, message)
+        self.ctx = ctx
+        self._message = message
+        self.expire_in = expire_in
+
+    @property
+    def message(self):
+        return self._message
 
 
-class NoChannelProvided(commands.CommandError):
-    """Error raised when no suitable voice channel was supplied."""
-
+# Something went wrong during processing of a command
+class CommandError(ADBExcpetion):
     pass
 
 
-class IncorrectChannelError(commands.CommandError):
-    """Error raised when commands are issued outside of the players session channel."""
-
+class NoChannelProvided(ADBExcpetion):
     pass
 
 
-class NotConnected(commands.CommandError):
-    """Error raised when a music player gets invoked, but no connection to a voice channel was established before."""
-
+# Something went wrong when parsing the argument(s)
+class ArgumentError(ADBExcpetion):
     pass
 
 
-class RedditAPIError(commands.CommandError):
-    """Error raised when the bot runs into an API error."""
+# The command is not available. (Possible because you aren't on a server).
+class CommandNotAvailable(ADBExcpetion):
+    @property
+    def message(self):
+        return "This command is not available.\nAdditional Info: " + self._message
 
-    pass
 
-
-class MemberNotFound(Exception):
-    """Error raised when a Member couldn't be found by the id."""
-
-    pass
+# The user doesn't have permission to use this command
+class PermissionsError(CommandError):
+    @property
+    def message(self):
+        return "You don't have permission to use that command.\nAdditional Info: " + self._message
