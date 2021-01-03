@@ -33,16 +33,14 @@ class Config:
 
         self.login_token = config.get("Credentials", "Token")
 
-        self.privileged_users = config.get("IDs", "PrivilegedUsers")
-        self.admin_role_ids = config.get("IDs", "AdminRoleIDs")
-        self.mod_role_ids = config.get("IDs", "ModRoleIDs")
+        self.privileged_users = config.getint("IDs", "PrivilegedUsers")
         self.owner_id = config.get("IDs", "OwnerID")
-        self.dev_ids = config.get("IDs", "DevIDs")
+        self.dev_ids = config.getint("IDs", "DevIDs")
 
         self.prefix = config.get("Bot", "Prefix")
         self.enable_msg_logging = config.getboolean("Bot", "EnableMSGLogging")
         self.msg_logging_channel = config.get("Bot", "LoggingChannel")
-        self.blacklisted_ids = config.get("Bot", "BlacklistedIDs")
+        self.blacklisted_ids = config.getint("Bot", "BlacklistedIDs")
 
         self.ll_host = config.get("Music", "LavalinkHost")
         self.ll_port = config.get("Music", "LavalinkPort")
@@ -55,7 +53,6 @@ class Config:
         self.praw_clientid = config.get("Reddit", "PrawClientID")
 
 
-# TODO need to implement a fallback, in case the user fucks something up
 class FallbackConfig:
 
     token = None
