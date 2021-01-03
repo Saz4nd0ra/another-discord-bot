@@ -360,7 +360,6 @@ class Admin(commands.Cog):
         msg.author = who
         msg.content = ctx.prefix + command
         new_ctx = await self.bot.get_context(msg, cls=type(ctx))
-        new_ctx._db = ctx._db
         await self.bot.invoke(new_ctx)
 
     @checks.is_admin()
@@ -371,7 +370,6 @@ class Admin(commands.Cog):
         msg.content = ctx.prefix + command
 
         new_ctx = await self.bot.get_context(msg, cls=type(ctx))
-        new_ctx._db = ctx._db
 
         for i in range(times):
             await new_ctx.reinvoke()

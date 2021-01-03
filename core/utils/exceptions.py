@@ -15,6 +15,12 @@ class CommandError(ADBExcpetion):
     pass
 
 
+# The given member could not be found.
+class MemberNotFound(ADBExcpetion):
+    pass
+
+
+# There was no channel provided for the bot to join.
 class NoChannelProvided(ADBExcpetion):
     pass
 

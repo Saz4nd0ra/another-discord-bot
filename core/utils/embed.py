@@ -10,9 +10,8 @@ class Embed(discord.Embed):
         )
 
         self.timestamp = ctx.message.created_at
-        self.title(f"{ctx.author.mention} | {title}")
         self.set_author(
-            name="",
+            name=title,
             icon_url=ctx.author.avatar_url, url="https://github.com/Saz4nd0ra/another-discord-bot"
         )
 
@@ -20,7 +19,7 @@ class Embed(discord.Embed):
 
         self.set_footer(
             text="Saz4nd0ra/another-discord-bot",
-            icon_url="https://i.imgur.com/gFHBoZA.png",
+            icon_url=ctx.bot.user.avatar_url,
         )
 
         if kwargs.get("image"):

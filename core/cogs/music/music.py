@@ -10,7 +10,7 @@ import re
 import typing
 import wavelink
 import logging
-from ...utils import exceptions
+from ...utils.exceptions import NoChannelProvided
 from ...utils.embed import Embed
 from ...utils.context import Context
 from ...utils.paginator import ADBPages, QueuePaginator
@@ -126,8 +126,8 @@ class Player(wavelink.Player):
         embed.add_fields(
             ("Queue Length:", str(qsize)),
             ("Volume:", str(self.volume)),
-            ("Requested by:", track.requester),
-            ("Current DJ:", self.dj),
+            ("Requested by:", track.requester.name),
+            ("Current DJ:", self.dj.name),
             ("Video URL:", f"[Click Here!]({track.uri})"),
         )
 
@@ -427,7 +427,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         channel = getattr(ctx.author.voice, "channel", channel)
         if channel is None:
-            raise exceptions.NoChannelProvided
+            raise NoChannelProvided
 
         await player.connect(channel.id)
 
@@ -470,7 +470,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_playing:
             await player.do_next()
 
-    @commands.command(aliases=["v", "vol"])
+    @commands.command()
     async def pause(self, ctx):
         """Pause the currently playing song."""
         player = self.bot.wavelink.get_player(

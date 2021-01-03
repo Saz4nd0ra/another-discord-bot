@@ -19,8 +19,8 @@ class NSFW(commands.Cog):
 
     # TODO work on a blacklist system and user configs (yikes)
     @checks.is_nsfw_channel()
-    @commands.command()
-    async def r34(self, ctx, *, search):
+    @commands.command(aliases=["r34"])
+    async def rule34(self, ctx, *, search):
         """Browse rule34.xxx. Only available in NSFW channels."""
 
         file, is_video, has_source = await self.rule34.get_random_r34(search)
@@ -39,7 +39,6 @@ class NSFW(commands.Cog):
             embed.add_field(
                 name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
             )
-
         except:
             pass
 
@@ -77,7 +76,7 @@ class NSFW(commands.Cog):
         await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
-    @commands.command()
+    @commands.command(aliases=["sauce"])
     async def saucenao(self, ctx, *, url):
         """Get the sauce from pictures via an URL or file. Only available in NSFW channels."""
 
@@ -89,8 +88,11 @@ class NSFW(commands.Cog):
                 ("Similarity:", f"{round(sauce.similarity)}%"),
             )
             embed.add_field(name="Link:", value=f"[Click Here!]({sauce.urls[0]})")
+            try:
+                await ctx.message.delete()
+            except:
+                pass
             await ctx.send(embed=embed)
-            await ctx.message.delete()
         except Exception as e:
             print(e)
             await ctx.error("Something went wrong with the API.")
