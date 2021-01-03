@@ -83,9 +83,7 @@ class Reddit(commands.Cog):
             - Dank
             - NGE
         """
-        if (
-            category == None
-        ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
+        if category is None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.api.get_submission(subreddit="memes", sorting="hot")
             await self.send_embed(ctx, submission)
 
@@ -95,11 +93,11 @@ class Reddit(commands.Cog):
                 "anime": "animemes",
                 "dank": "dankmemes",
                 "minecraft": "MinecraftMemes",
-                "evangelion": "evangelionmemes",
+                "nge": "evangelionmemes",
                 # TODO implement more subreddits
             }
 
-            submission = await self.api.get_submission(switcher.get(category), "hot")
+            submission = await self.api.get_submission(switcher.get(category.lower()), "hot")
             await self.send_embed(ctx, submission)
 
     @commands.command()
