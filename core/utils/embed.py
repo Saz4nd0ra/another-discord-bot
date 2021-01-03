@@ -11,7 +11,7 @@ class Embed(discord.Embed):
 
         self.timestamp = ctx.message.created_at
         self.set_author(
-            name=f"{ctx.prefix}{ctx.command.qualified_name} | {title}",
+            name=f"{ctx.author.mention} | {title}",
             icon_url=ctx.author.avatar_url,
         )
 
