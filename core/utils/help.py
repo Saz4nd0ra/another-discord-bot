@@ -103,7 +103,7 @@ class HelpCommand(commands.HelpCommand):
             title=cog.qualified_name,
             description=textwrap.dedent(
                 f"""
-                **Page {menu.current_page+1}/{self.get_max_pages()}**
+                Help syntax : `<Required argument>` `[Optional Argument]`
                 {cog.description}
                 """
             ),
@@ -125,6 +125,7 @@ class HelpCommand(commands.HelpCommand):
             title=f"{prefix}{self.get_command_signature(command)}",
             description=textwrap.dedent(
                 f"""
+                Help syntax : `<Required argument>` `[Optional Argument]`
                 {command.help}
                 """
             ),
@@ -141,6 +142,7 @@ class HelpCommand(commands.HelpCommand):
             ctx,
             title=textwrap.dedent(
                 f"""
+                Help syntax : `<Required argument>` `[Optional Argument]`
                 Help for group {prefix}
                 {self.get_command_signature(group)}
                 """
@@ -165,7 +167,7 @@ class HelpCommand(commands.HelpCommand):
         await ctx.bot.httpcat(ctx, 404, error)
 
 
-def setup(bot) -> None:
+def setup(bot):
     """Add the help command."""
     bot.old_help_command = bot.help_command
     bot.help_command = HelpCommand(
@@ -174,6 +176,6 @@ def setup(bot) -> None:
     )
 
 
-def teardown(bot) -> None:
+def teardown(bot):
     """Remove the help command."""
     bot.help_command = bot.old_help_command
