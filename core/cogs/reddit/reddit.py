@@ -35,7 +35,7 @@ class Reddit(commands.Cog):
         VIDEO_URL = "v.redd.it"
 
         if VIDEO_URL in submission.url:
-            image = "https://imgur.com/MKnguLq.png"
+            image = submission.thumbnail
             has_video = True
         else:
             image = submission.url
@@ -54,6 +54,7 @@ class Reddit(commands.Cog):
 
         if has_video:
             await ctx.send(submission.url, embed=embed)
+            print(vars(submission))
         else:
             await ctx.send(embed=embed)
 
