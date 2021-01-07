@@ -1,8 +1,8 @@
 from discord.ext import commands
 import discord
-from .utils import context
-from .utils.help import HelpCommand
-from .utils.config import Config
+from cogs.utils import context
+from cogs.utils.help import HelpCommand
+from cogs.utils.config import Config
 import datetime
 import json
 import logging
@@ -19,14 +19,15 @@ another-discord-bot
 
 log = logging.getLogger(__name__)
 
-cogs_to_load = {  # of course nothing works as planned
-    "reddit",
-    "general",
-    "admin",
-    "mod",
-    "music",
-    "nsfw",
-}
+
+initial_extensions = (
+    "cogs.admin",
+    "cogs.general",
+    "cogs.mod",
+    "cogs.music",
+    "cogs.nsfw",
+    "cogs.reddit",
+)
 
 
 class ADB(commands.AutoShardedBot):
@@ -50,13 +51,11 @@ class ADB(commands.AutoShardedBot):
         self.resumes = defaultdict(list)
         self.identifies = defaultdict(list)
 
-        for cog in cogs_to_load:
+        for extension in initial_extensions:
             try:
-                cog_path = f"core.cogs.{cog}.{cog}"
-                self.load_extension(cog_path)
-                log.info(f"Loaded {cog}")
+                self.load_extension(extension)
             except Exception as e:
-                log.error(f"Failed to load extension {cog} due to {e}.")
+                print(f'Failed to load extension {extension}.', file=sys.stderr)
                 traceback.print_exc()
 
     async def on_ready(self):  # maybe I should do it even fancier
@@ -78,7 +77,7 @@ class ADB(commands.AutoShardedBot):
     async def process_commands(self, message):
         ctx = await self.get_context(message, cls=context.Context)
 
-        if ctx.command == None:
+        if ctx.command is None:
             return
 
         if str(message.author.id) in str(self.config.blacklisted_ids):

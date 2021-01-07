@@ -1,11 +1,7 @@
-import discord
-from ...utils import context
-from discord.utils import get
-from discord.ext import commands, menus
-from ...utils.embed import Embed
-from .api import API
-from ...utils.config import Config
-import copy
+from .utils.context import Context
+from discord.ext import commands
+from .utils.embed import Embed
+from .utils.api import RedditAPI
 
 REDDIT_DOMAINS = [
     "reddit.com",
@@ -18,7 +14,7 @@ class Reddit(commands.Cog):
 
     def __init__(self, bot):
         self.bot = bot
-        self.api = API()
+        self.api = RedditAPI()
         self.config = self.bot.config
         self.voting_message = None
         if self.config.enable_redditembed:
@@ -58,7 +54,7 @@ class Reddit(commands.Cog):
     @commands.Cog.listener()
     async def on_message(self, message):
         """Catch reddit links, check them, and then return them as a nice embed."""
-        ctx = await self.bot.get_context(message, cls=context.Context)
+        ctx = await self.bot.get_context(message, cls=Context)
         if self.enable_embed:
             if any(x in message.content for x in REDDIT_DOMAINS):
                 reddit_url = message.content
@@ -74,7 +70,7 @@ class Reddit(commands.Cog):
 
     @commands.command()
     async def meme(self, ctx, category: str = None):
-        """Get the hottest memes from a specific category.
+        """Get memes from a specific category.
         Available categories:
             - Anime
             - Minecraft

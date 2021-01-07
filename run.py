@@ -5,7 +5,7 @@ import os
 
 import click
 
-from core.bot import ADB
+from bot import ADB
 
 
 @contextlib.contextmanager
@@ -53,7 +53,7 @@ def run_bot():
 @click.pass_context
 def main(ctx):
     """Launches the bot."""
-    if ctx.invoked_subcommand == None:
+    if ctx.invoked_subcommand is None:
         loop = asyncio.get_event_loop()
         with setup_logging():
             run_bot()

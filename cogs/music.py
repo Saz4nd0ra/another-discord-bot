@@ -10,10 +10,10 @@ import re
 import typing
 import wavelink
 import logging
-from ...utils.exceptions import NoChannelProvided
-from ...utils.embed import Embed
-from ...utils.context import Context
-from ...utils.paginator import ADBPages, QueuePaginator
+from .utils.exceptions import NoChannelProvided
+from .utils.embed import Embed
+from .utils.context import Context
+from .utils.paginator import ADBPages, QueuePaginator
 from discord.ext import commands, menus
 
 # URL matching REGEX...

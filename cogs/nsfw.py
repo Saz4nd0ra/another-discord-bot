@@ -1,12 +1,7 @@
-import discord
-from saucenao_api.saucenao_api import SauceNao
-from .api import Rule34API, DanbooruAPI, SauceNaoAPI
-from ...utils import checks
-import asyncio
-import random
-from ...utils.exceptions import *
-from ...utils.embed import Embed
 from discord.ext import commands
+from .utils import checks
+from .utils.api import Rule34API, DanbooruAPI, SauceNaoAPI
+from .utils.embed import Embed
 
 
 class NSFW(commands.Cog):

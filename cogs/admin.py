@@ -14,7 +14,7 @@ import copy
 import time
 import subprocess
 from typing import Union, Optional
-from ...utils import checks
+from .utils import checks
 
 
 class PerformanceMocker:

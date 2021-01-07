@@ -1,8 +1,8 @@
 import logging
 import discord
 from discord.ext import commands
-from ...utils.embed import Embed
-from ...utils import time, formats
+from .utils.embed import Embed
+from .utils import time, formats
 from collections import Counter
 import random
 import humanize
@@ -36,14 +36,14 @@ class General(commands.Cog):
             else "None"
         )
 
-        e = Embed(ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
+        embed = Embed(ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
 
         if hasattr(user, "nick"):
             nick = user.nick
         else:
             nick = user.name
 
-        e.add_fields(
+        embed.add_fields(
             ("Username:", f"{user}"),
             ("Nickname:", f"{user.nick}"),
             ("ID:", f"{user.id}"),
@@ -87,15 +87,15 @@ class General(commands.Cog):
 
         member_by_status = Counter(str(m.status) for m in guild.members)
 
-        e = Embed(
+        embed = Embed(
             ctx,
             title=guild.name,
             description=f"**ID**: {guild.id}\n**Owner**: {guild.owner}",
             thumbnail=guild.icon_url,
         )
-        e.description = f"**ID**: {guild.id}\n**Owner**: {guild.owner}"
+        embed.description = f"**ID**: {guild.id}\n**Owner**: {guild.owner}"
         if guild.icon:
-            e.set_thumbnail(url=guild.icon_url)
+            embed.set_thumbnail(url=guild.icon_url)
 
         channel_info = []
         key_to_emoji = {
@@ -138,9 +138,9 @@ class General(commands.Cog):
                 info.append(f"{ctx.tick(True)}: {label}")
 
         if info:
-            e.add_field(name="Features", value="\n".join(info))
+            embed.add_field(name="Features", value="\n".join(info))
 
-        e.add_field(name="Channels", value="\n".join(channel_info))
+        embed.add_field(name="Channels", value="\n".join(channel_info))
 
         if guild.premium_tier != 0:
             boosts = (
@@ -151,7 +151,7 @@ class General(commands.Cog):
             )
             if last_boost.premium_since is not None:
                 boosts = f"{boosts}\nLast Boost: {last_boost} ({time.human_timedelta(last_boost.premium_since, accuracy=2)})"
-            e.add_field(name="Boosts", value=boosts, inline=False)
+            embed.add_field(name="Boosts", value=boosts, inline=False)
 
         bots = sum(m.bot for m in guild.members)
         fmt = (
@@ -162,8 +162,8 @@ class General(commands.Cog):
             f"Total: {guild.member_count} ({formats.plural(bots):bot})"
         )
 
-        e.add_field(name="Members", value=fmt, inline=False)
-        e.add_field(
+        embed.add_field(name="Members", value=fmt, inline=False)
+        embed.add_field(
             name="Roles",
             value=", ".join(roles) if len(roles) < 10 else f"{len(roles)} roles",
         )
@@ -185,8 +185,8 @@ class General(commands.Cog):
             fmt = f'{fmt}Disabled: {emoji_stats["disabled"]} regular, {emoji_stats["animated_disabled"]} animated\n'
 
         fmt = f"{fmt}Total Emoji: {len(guild.emojis)}/{guild.emoji_limit*2}"
-        e.add_field(name="Emoji", value=fmt, inline=False)
-        e.add_field(name="Created:", value=guild.created_at)
+        embed.add_field(name="Emoji", value=fmt, inline=False)
+        embed.add_field(name="Created:", value=guild.created_at)
         await ctx.send(embed=e)
 
     @commands.command()

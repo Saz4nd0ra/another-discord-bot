@@ -1,9 +1,9 @@
 import discord
 import logging
 from discord.ext import commands
-from ...utils import checks
-from ...utils.context import Context
-from ...utils.embed import Embed
+from .utils import checks
+from .utils.context import Context
+from .utils.embed import Embed
 
 log = logging.getLogger(__name__)
 
