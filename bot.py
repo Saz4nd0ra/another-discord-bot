@@ -11,8 +11,6 @@ import traceback
 import sys
 from collections import deque, defaultdict
 
-CONFIG = Config()
-
 DESCRIPTION = """
 another-discord-bot
 """
@@ -21,7 +19,6 @@ log = logging.getLogger(__name__)
 
 
 initial_extensions = (
-    "cogs.admin",
     "cogs.general",
     "cogs.mod",
     "cogs.music",
@@ -31,18 +28,16 @@ initial_extensions = (
 
 
 class ADB(commands.AutoShardedBot):
-    def __init__(self):
+    def __init__(self, config=Config()):
         super().__init__(
-            command_prefix=CONFIG.prefix,
+            command_prefix=config,
             description=DESCRIPTION,
             fetch_offline_members=False,
             heartbeat_timeout=150.0,
             help_command=HelpCommand(),
         )
-
+        self.config = config
         self.session = aiohttp.ClientSession(loop=self.loop)
-
-        self.config = CONFIG
 
         self._prev_events = deque(maxlen=10)
 
@@ -55,7 +50,7 @@ class ADB(commands.AutoShardedBot):
             try:
                 self.load_extension(extension)
             except Exception as e:
-                print(f'Failed to load extension {extension}.', file=sys.stderr)
+                print(f"Failed to load extension {extension}.", file=sys.stderr)
                 traceback.print_exc()
 
     async def on_ready(self):  # maybe I should do it even fancier
@@ -101,14 +96,4 @@ class ADB(commands.AutoShardedBot):
         await self.session.close()
 
     def run(self):
-        try:
-            super().run(self.config.login_token, reconnect=True)
-        finally:
-            with open("logs/prev_events.log", "w", encoding="utf-8") as fp:
-                for data in self._prev_events:
-                    try:
-                        x = json.dumps(data, ensure_ascii=True, indent=4)
-                    except:
-                        fp.write(f"{data}\n")
-                    else:
-                        fp.write(f"{x}\n")
+        super().run(self.config.login_token, reconnect=True)

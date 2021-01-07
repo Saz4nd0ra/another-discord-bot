@@ -1,3 +1,6 @@
+import logging
+
+
 class ADBExcpetion(Exception):
     def __init__(self, ctx, message, *, expire_in=0):
         super().__init__(ctx, message)
@@ -41,4 +44,7 @@ class CommandNotAvailable(ADBExcpetion):
 class PermissionsError(CommandError):
     @property
     def message(self):
-        return "You don't have permission to use that command.\nAdditional Info: " + self._message
+        return (
+            "You don't have permission to use that command.\nAdditional Info: "
+            + self._message
+        )

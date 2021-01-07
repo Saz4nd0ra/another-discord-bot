@@ -52,7 +52,7 @@ class General(commands.Cog):
             ("Roles:", f"{show_roles}"),
         )
 
-        await ctx.send(embed=e)
+        await ctx.send(embed=embed)
 
     @commands.command()
     @commands.guild_only()
@@ -187,7 +187,7 @@ class General(commands.Cog):
         fmt = f"{fmt}Total Emoji: {len(guild.emojis)}/{guild.emoji_limit*2}"
         embed.add_field(name="Emoji", value=fmt, inline=False)
         embed.add_field(name="Created:", value=guild.created_at)
-        await ctx.send(embed=e)
+        await ctx.send(embed=embed)
 
     @commands.command()
     async def charinfo(self, ctx, *, characters: str):
@@ -286,7 +286,9 @@ class General(commands.Cog):
 
         owner = await self.bot.get_user_info(owner_id)
 
-        await self.bot.send_message(owner, f"{ctx.message.author} ran into an error. Used command: {command}.")
+        await self.bot.send_message(
+            owner, f"{ctx.message.author} ran into an error. Used command: {command}."
+        )
         await ctx.embed("Thank you, the message has been sent.")
 
 

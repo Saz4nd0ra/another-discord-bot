@@ -31,7 +31,7 @@ class Reddit(commands.Cog):
         VIDEO_URL = "v.redd.it"
 
         if VIDEO_URL in submission.url:
-            if hasattr(submission, 'preview'):
+            if hasattr(submission, "preview"):
                 preview_image_link = submission.preview["images"][0]["source"]["url"]
                 embed = Embed(ctx, title=submission.title, thumbnail=preview_image_link)
             else:
@@ -77,7 +77,9 @@ class Reddit(commands.Cog):
             - Dank
             - NGE
         """
-        if category is None:  # if user doesn't provide a subreddit r/memes is the fallback subreddit
+        if (
+            category is None
+        ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
             submission = await self.api.get_submission(subreddit="memes", sorting="hot")
             await self.send_embed(ctx, submission)
 
@@ -91,7 +93,9 @@ class Reddit(commands.Cog):
                 # TODO implement more subreddits
             }
 
-            submission = await self.api.get_submission(switcher.get(category.lower()), "hot")
+            submission = await self.api.get_submission(
+                switcher.get(category.lower()), "hot"
+            )
             await self.send_embed(ctx, submission)
 
     @commands.command()
