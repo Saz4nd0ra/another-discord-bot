@@ -3,7 +3,6 @@ from discord.ext import commands
 import asyncio
 from .utils.embed import Embed
 from collections import Counter
-from .utils.exceptions import MemberNotFound
 from .utils import checks
 import shlex
 import argparse
@@ -21,11 +20,11 @@ async def resolve_member(
     member = guild.get_member(member_id)
     if member is None:
         if guild.chunked:
-            raise MemberNotFound()
+            pass
         try:
             member = await guild.fetch_member(member_id)
         except discord.NotFound:
-            raise MemberNotFound() from None
+            pass
     return member
 
 
@@ -51,7 +50,7 @@ class MemberID(commands.Converter):
                 raise commands.BadArgument(
                     f"{argument} is not a valid member or member ID."
                 ) from None
-            except MemberNotFound:
+            except Exception as e:
                 # hackban case
                 return type(
                     "_Hackban",
