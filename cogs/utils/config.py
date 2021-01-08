@@ -41,9 +41,6 @@ class Config:
         self.enable_msg_logging = config.getboolean("Bot", "EnableMSGLogging")
         self.msg_logging_channel = config.get("Bot", "LoggingChannel")
         self.blacklisted_ids = config.getint("Bot", "BlacklistedIDs")
-        self.debug_level = config.get("Bot", "DebugLevel")
-        self.debug_level_str = self.debug_level
-        self.debug_mode = False
 
         self.ll_host = config.get("Music", "LavalinkHost")
         self.ll_port = config.get("Music", "LavalinkPort")
