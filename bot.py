@@ -30,7 +30,7 @@ initial_extensions = (
 class ADB(commands.AutoShardedBot):
     def __init__(self, config=Config()):
         super().__init__(
-            command_prefix=config,
+            command_prefix=config.prefix,
             description=DESCRIPTION,
             fetch_offline_members=False,
             heartbeat_timeout=150.0,
