@@ -135,7 +135,7 @@ class General(commands.Cog):
 
         for feature, label in all_features.items():
             if feature in features:
-                info.append(f"{ctx.tick(True)}: {label}")
+                info.append(f"<:yes:795341028458627122>: {label}")
 
         if info:
             embed.add_field(name="Features", value="\n".join(info))
@@ -241,7 +241,7 @@ class General(commands.Cog):
     async def choice(self, ctx, *options):
         """Chooses between multiple options"""
         if not len(options) > 0:
-            await ctx.error("You will have to give me a couple different options.")
+            await ctx.error("No options given.")
         else:
             await ctx.send(f"**{random.choice(options)}**")
 

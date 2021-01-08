@@ -10,7 +10,6 @@ import re
 import typing
 import wavelink
 import logging
-from .utils.exceptions import NoChannelProvided
 from .utils.embed import Embed
 from .utils.context import Context
 from .utils.paginator import ADBPages, QueuePaginator
@@ -426,8 +425,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         channel = getattr(ctx.author.voice, "channel", channel)
-        if channel is None:
-            raise NoChannelProvided
 
         await player.connect(channel.id)
 

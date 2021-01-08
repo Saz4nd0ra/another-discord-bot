@@ -34,10 +34,8 @@ class NSFW(commands.Cog):
             embed.add_field(
                 name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
             )
-        except:
-            pass
-
-        await ctx.send(embed=embed)
+        finally:
+            await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
     @commands.command()
@@ -65,10 +63,8 @@ class NSFW(commands.Cog):
             embed.add_field(
                 name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
             )
-        except:
-            pass
-
-        await ctx.send(embed=embed)
+        finally:
+            await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
     @commands.command(aliases=["sauce"])
@@ -89,8 +85,7 @@ class NSFW(commands.Cog):
                 pass
             await ctx.send(embed=embed)
         except Exception as e:
-            print(e)
-            await ctx.error("Something went wrong with the API.")
+            await ctx.error("Something went wrong with the API.", 10)
 
 
 def setup(bot):
