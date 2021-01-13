@@ -21,6 +21,14 @@ URL_REG = re.compile(r"https?://(?:www\.)?.+")
 log = logging.getLogger(__name__)
 
 
+class QueueExtension(asyncio.Queue):
+    def shuffle(self):
+        random.shuffle(self._queue)
+
+    def list(self):
+        return list(self._queue)
+
+
 class Track(wavelink.Track):
     """Wavelink Track object with a requester attribute."""
 
@@ -650,11 +658,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             guild_id=ctx.guild.id, cls=Player, context=ctx
         )
 
-        if not player.is_connected:
-            return
-
-        if not self.is_privileged(ctx):
-            return await ctx.error("Only the DJ or admins may change the equalizer.")
+ change the equalizer.")
 
         eqs = {
             "flat": wavelink.Equalizer.flat(),
