@@ -38,7 +38,7 @@ class Player(wavelink.Player):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.context: commands.Context = kwargs.get('context', None)
+        self.context: commands.Context = kwargs.get("context", None)
 
         self.queue = QueueExtension()
         self.controller = None
@@ -74,11 +74,13 @@ class Player(wavelink.Player):
             # No music has been played for 3 minutes, cleanup and disconnect...
             await self.teardown()
             if self.context:
-                await self.context.send("No music enqueued in the last 3 minutes, disconnecting...")
+                await self.context.send(
+                    "No music enqueued in the last 3 minutes, disconnecting..."
+                )
             return
 
         if isinstance(track, SimplifiedSpotifyTrack):
-            results = await self.node.get_tracks(f'ytsearch:{track.desc}')
+            results = await self.node.get_tracks(f"ytsearch:{track.desc}")
             if not results:
                 return await self.do_next()
             yt_track = results[0]
@@ -99,7 +101,9 @@ class Player(wavelink.Player):
         self.updating = True
 
         if not self.controller:
-            self.controller = InteractiveController(embed=self.build_embed(), player=self)
+            self.controller = InteractiveController(
+                embed=self.build_embed(), player=self
+            )
             await self.controller.start(self.context)
 
         elif not await self.is_position_fresh():
@@ -110,7 +114,9 @@ class Player(wavelink.Player):
 
             self.controller.stop()
 
-            self.controller = InteractiveController(embed=self.build_embed(), player=self)
+            self.controller = InteractiveController(
+                embed=self.build_embed(), player=self
+            )
             await self.controller.start(self.context)
 
         else:
@@ -406,7 +412,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             if player.context.channel != ctx.channel:
                 await ctx.error(
                     f"**{ctx.author}**, you must be in {player.context.channel} for this session.",
-                    10
+                    10,
                 )
 
         if ctx.command.name == "connect" and not player.context:
@@ -425,7 +431,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             if ctx.author not in channel.members:
                 await ctx.error(
                     f"**{ctx.author}**, you must be in `{channel.name}` to use voice commands.",
-                    10
+                    10,
                 )
 
     def required(self, ctx):
@@ -666,16 +672,15 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         await ctx.embed(f"Successfully changed equalizer to {equalizer}.")
         await player.set_eq(eq)
 
-
     @commands.command(aliases=["m"])
-    async def move(self, ctx, entry: int, new_position: int)
+    async def move(self, ctx, entry: int, new_position: int):
         """Move a queue entry to a new position."""
 
         player = self.bot.wavelink.get_player(ctx.guild_id, cls=Player, context=ctx)
 
         if not player.is_connected:
             return
-        
+
         if player.queue.qsize() == 0:
             return await ctx.error("There are no songs in the queue...")
 
@@ -721,7 +726,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     @commands.command(aliases=["loop"])
     async def repeat(self, ctx):
         """Repeats the current queue until the command is invoked again."""
-        player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
 
         if not player.is_connected:
             return

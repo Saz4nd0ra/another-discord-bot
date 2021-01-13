@@ -28,8 +28,7 @@ class General(commands.Cog):
             ", ".join(
                 [
                     "<@&%s>" % x.id
-                    for x in sorted(user.roles, key=lambda x: x.position,
-                                    reverse=True)
+                    for x in sorted(user.roles, key=lambda x: x.position, reverse=True)
                     if x.id != ctx.guild.default_role.id
                 ]
             )
@@ -37,8 +36,7 @@ class General(commands.Cog):
             else "None"
         )
 
-        embed = Embed(ctx, title=f"User: {user.name}",
-                      thumbnail=user.avatar_url)
+        embed = Embed(ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
 
         if hasattr(user, "nick"):
             nick = user.nick
