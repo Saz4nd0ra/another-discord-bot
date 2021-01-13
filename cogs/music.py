@@ -10,7 +10,6 @@ import re
 import typing
 import wavelink
 import logging
-from .utils.exceptions import NoChannelProvided
 from .utils.embed import Embed
 from .utils.context import Context
 from .utils.paginator import ADBPages, QueuePaginator
@@ -358,7 +357,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def cog_check(self, ctx):
         """Cog wide check, which disallows commands in DMs."""
         if not ctx.guild:
-            await ctx.error("Music commands are not available in Private Messages.", 10)
+            await ctx.error("Music commands are not available in Private Messages.")
             return False
 
         return True
@@ -427,7 +426,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         channel = getattr(ctx.author.voice, "channel", channel)
         if channel is None:
-            raise NoChannelProvided
+            return await ctx.error("No channel provided!")
 
         await player.connect(channel.id)
 
@@ -464,7 +463,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             )
         else:
             track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
-            await ctx.embed(f"`Added {track.title} to the Queue\n`", 15)
+            await ctx.embed(f"`Added {track.title} to the Queue\n`")
             await player.queue.put(track)
 
         if not player.is_playing:
@@ -480,7 +479,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.is_paused or not player.is_connected:
             return
 
-        await ctx.embed(f"**{ctx.author}** has resumed the player.", 15)
+        await ctx.embed(f"**{ctx.author}** has resumed the player.")
         await player.set_pause(True)
 
     @commands.command()
@@ -493,7 +492,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_paused or not player.is_connected:
             return
 
-        await ctx.embed(f"**{ctx.author}** has resumed the player.", 15)
+        await ctx.embed(f"**{ctx.author}** has resumed the player.")
         return await player.set_pause(False)
 
     @commands.command()
@@ -507,13 +506,13 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if self.is_privileged(ctx):
-            await ctx.embed("A priviliged user skipped the song.", 10)
+            await ctx.embed("A priviliged user skipped the song.")
             player.skip_votes.clear()
 
             return await player.stop()
 
         if ctx.author == player.current.requester:
-            await ctx.embed("The song requester has skipped the song.", 10)
+            await ctx.embed("The song requester has skipped the song.")
             player.skip_votes.clear()
 
             return await player.stop()
@@ -522,7 +521,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         player.skip_votes.add(ctx.author)
 
         if len(player.skip_votes) >= required:
-            await ctx.embed("Vote to skip passed. Skipping song.", 10)
+            await ctx.embed("Vote to skip passed. Skipping song.")
             player.skip_votes.clear()
             await player.stop()
         else:
@@ -538,7 +537,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
 
-        await ctx.embed(f"**{ctx.author}** stopped the player.", 10)
+        await ctx.embed(f"**{ctx.author}** stopped the player.")
         return await player.teardown()
 
     @commands.command(aliases=["v", "vol"])
@@ -558,7 +557,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return await ctx.error("Please enter a value between 1 and 100.")
 
         await player.set_volume(vol)
-        await ctx.embed(f"Set the volume to **{vol}**%.", 7)
+        await ctx.embed(f"Set the volume to **{vol}**%.")
 
     @commands.command(aliases=["mix"])
     async def shuffle(self, ctx):
@@ -571,9 +570,9 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.queue.qsize() < 3:
-            return await ctx.error("Add more songs to the queue before shuffling.", 15)
+            return await ctx.error("Add more songs to the queue before shuffling.")
 
-        await ctx.embed(f"**{ctx.author}** has shuffled the playlist.", 10)
+        await ctx.embed(f"**{ctx.author}** has shuffled the playlist.")
         return random.shuffle(player.queue._queue)
 
     @commands.command(hidden=True)
@@ -590,7 +589,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         if vol > 100:
             vol = 100
-            await ctx.error("Maximum volume reached", 7)
+            await ctx.error("Maximum volume reached")
 
         await player.set_volume(vol)
 
@@ -608,7 +607,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         if vol < 0:
             vol = 0
-            await ctx.error("Player is currently muted.", 10)
+            await ctx.error("Player is currently muted.")
 
         await player.set_volume(vol)
 
@@ -661,7 +660,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             joined = "\n".join(eqs.keys())
             return await ctx.error(f"Invalid EQ provided. Valid EQs:\n\n{joined}")
 
-        await ctx.embed(f"Successfully changed equalizer to {equalizer}.", 15)
+        await ctx.embed(f"Successfully changed equalizer to {equalizer}.")
         await player.set_eq(eq)
 
     @commands.command(aliases=["q"])
@@ -674,7 +673,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if player.queue.qsize() == 0:
-            return await ctx.embed("There are no more songs in the queue...", 10)
+            return await ctx.embed("There are no more songs in the queue...")
 
         channel = self.bot.get_channel(int(player.channel_id))
         # noinspection PyProtectedMember
@@ -715,20 +714,20 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         if not self.is_privileged(ctx):
-            return await ctx.error("Only admins and the DJ may use this command.", 15)
+            return await ctx.error("Only admins and the DJ may use this command.")
 
         members = self.bot.get_channel(int(player.channel_id)).members
 
         if member and member not in members:
             return await ctx.error(
-                f"{member} != currently in voice, so can not be a DJ.", 15
+                f"{member} != currently in voice, so can not be a DJ."
             )
 
         if member and member == player.dj:
-            return await ctx.error(f"**{member}** is already the DJ.", 15)
+            return await ctx.error(f"**{member}** is already the DJ.")
 
         if len(members) <= 2:
-            return await ctx.error("There are no other members to swap DJ to.", 15)
+            return await ctx.error("There are no other members to swap DJ to.")
 
         if member:
             player.dj = member
