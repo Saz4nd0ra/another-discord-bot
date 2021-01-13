@@ -666,7 +666,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             guild_id=ctx.guild.id, cls=Player, context=ctx
         )
 
- change the equalizer.")
+        if not player.is_connected:
+            return
+
+        if not self.is_privileged(ctx):
+            return await ctx.error("Only the DJ or admins may change the equalizer.")
 
         eqs = {
             "flat": wavelink.Equalizer.flat(),
@@ -734,20 +738,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         paginator = ADBPages(pages)
 
         await paginator.start(ctx)
-
-    @commands.command(aliases=["loop"])
-    async def repeat(self, ctx):
-        """Repeats the current queue until the command is invoked again."""
-        player = self.bot.wavelink.get_player(
-            guild_id=ctx.guild.id, cls=Player, context=ctx
-        )
-
-        if not player.is_connected:
-            return
-
-        player.repeat = not player.repeat
-        repeat_status = "enabled" if player.repeat else "disabled"
-        await ctx.embed(f"Repeat **{repeat_status}**.")
 
     @commands.command(aliases=["np", "now_playing", "current"])
     async def nowplaying(self, ctx):
