@@ -33,10 +33,12 @@ class Reddit(commands.Cog):
         if VIDEO_URL in submission.url:
             if hasattr(submission, "preview"):
                 preview_image_link = submission.preview["images"][0]["source"]["url"]
-                embed = Embed(ctx, title=submission.title, thumbnail=preview_image_link)
+                embed = Embed(ctx, title=submission.title,
+                              thumbnail=preview_image_link)
             else:
                 preview_image_link = "https://imgur.com/MKnguLq.png"
-            embed = Embed(ctx, title=submission.title, thumbnail=preview_image_link)
+            embed = Embed(ctx, title=submission.title,
+                          thumbnail=preview_image_link)
         else:
             embed = Embed(ctx, title=submission.title, image=submission.url)
 
@@ -80,7 +82,8 @@ class Reddit(commands.Cog):
         if (
             category is None
         ):  # if user doesn't provide a subreddit r/memes is the fallback subreddit
-            submission = await self.api.get_submission(subreddit="memes", sorting="hot")
+            submission = await self.api.get_submission(subreddit="memes",
+                                                       sorting="hot")
             await self.send_embed(ctx, submission)
 
         else:  # use userprovided subreddit

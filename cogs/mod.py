@@ -214,7 +214,6 @@ class Mod(commands.Cog):
                 await channel.set_permissions(member, connect=None)
         await ctx.embed(f"**{member}** has been unmuted from the guild.")
 
-    # TODO: rework the un/mute command
     @checks.is_mod()
     @commands.command()
     async def unmute(self, ctx, member: MemberID):

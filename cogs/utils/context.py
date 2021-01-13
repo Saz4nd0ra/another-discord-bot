@@ -38,7 +38,7 @@ class Context(commands.Context):
         """Triggers our Error embed to send the error message needed."""
         embed = Embed.error(
             ctx=self,
-            title="Something went wrong.",
+            title="An error occurred.",
             description=message,
             colour=0xE82243,
             delete_after=auto_delete if auto_delete else auto_delete is None,

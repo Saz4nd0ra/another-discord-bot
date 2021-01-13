@@ -41,6 +41,8 @@ def is_mod():
     async def predicate(ctx):
         if await check_guild_permissions(ctx, {"manage_guild": True}):
             return True
+        elif is_admin():
+            return True
         elif is_owner():  # again, bypass for owner
             log.info("Owner used mod command.")
             return True

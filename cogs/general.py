@@ -28,7 +28,8 @@ class General(commands.Cog):
             ", ".join(
                 [
                     "<@&%s>" % x.id
-                    for x in sorted(user.roles, key=lambda x: x.position, reverse=True)
+                    for x in sorted(user.roles, key=lambda x: x.position,
+                                    reverse=True)
                     if x.id != ctx.guild.default_role.id
                 ]
             )
@@ -36,7 +37,8 @@ class General(commands.Cog):
             else "None"
         )
 
-        embed = Embed(ctx, title=f"User: {user.name}", thumbnail=user.avatar_url)
+        embed = Embed(ctx, title=f"User: {user.name}",
+                      thumbnail=user.avatar_url)
 
         if hasattr(user, "nick"):
             nick = user.nick
@@ -45,7 +47,7 @@ class General(commands.Cog):
 
         embed.add_fields(
             ("Username:", f"{user}"),
-            ("Nickname:", f"{user.nick}"),
+            ("Nickname:", f"{nick}"),
             ("ID:", f"{user.id}"),
             ("Created:", f"{humanize.naturaldate(user.created_at)}"),
             ("Joined:", f"{humanize.naturaldate(user.joined_at)}"),
@@ -62,7 +64,7 @@ class General(commands.Cog):
         if guild_id is not None and await self.bot.is_owner(ctx.author):
             guild = self.bot.get_guild(guild_id)
             if guild is None:
-                return await ctx.send(f"Invalid Guild ID given.")
+                return await ctx.error("Invalid Guild ID given.")
         else:
             guild = ctx.guild
 
@@ -209,22 +211,20 @@ class General(commands.Cog):
         """Displays my full source code or for a specific command."""
         source_url = "https://github.com/Saz4nd0ra/another-discord-bot"
         branch = "dev"
-        if command == None:
+        if command is None:
             return await ctx.send(source_url)
 
         if command == "help":
             src = type(self.bot.help_command)
-            module = src.__module__
             filename = inspect.getsourcefile(src)
         else:
             obj = self.bot.get_command(command.replace(".", " "))
-            if obj == None:
+            if obj is None:
                 return await ctx.error("Could not find command.")
 
             # since we found the command we're looking for, presumably anyway, let's
             # try to access the code itself
             src = obj.callback.__code__
-            module = obj.callback.__module__
             filename = src.co_filename
 
         lines, firstlineno = inspect.getsourcelines(src)
