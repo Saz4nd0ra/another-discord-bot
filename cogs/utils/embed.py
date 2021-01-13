@@ -20,7 +20,7 @@ class Embed(discord.Embed):
 
         self.set_footer(
             text="Saz4nd0ra/another-discord-bot",
-            icon_url=ctx.bot.user.avatar_url,
+            icon_url="https://cdn3.iconfinder.com/data/icons/popular-services-brands/512/github-512.png",
         )
 
         if kwargs.get("image"):

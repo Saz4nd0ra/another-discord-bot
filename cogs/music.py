@@ -456,6 +456,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         return required
 
+    def is_privileged(self, ctx):
+        """Check whether the user is an Admin or DJ."""
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+
+        return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
+
     @commands.command()
     async def connect(self, ctx, *, channel=None):
         """Connect to a voice channel."""
@@ -763,7 +771,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             return
 
-        if not checks.is_mod() or (ctx.author == player.dj):
+        if not is_privileged(ctx):
             return await ctx.error("Only admins and the DJ may use this command.")
 
         members = self.bot.get_channel(int(player.channel_id)).members
