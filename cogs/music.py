@@ -48,6 +48,8 @@ class Player(wavelink.Player):
 
         self.context: commands.Context = kwargs.get("context", None)
 
+        if self.context:
+            self.dj = self.context.author
         self.queue = QueueExtension()
         self.controller = None
 
