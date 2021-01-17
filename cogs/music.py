@@ -12,7 +12,6 @@ import wavelink
 import logging
 from .utils.embed import Embed
 from .utils.context import Context
-from .utils.paginator import ADBPages, QueuePaginator
 from discord.ext import commands, menus
 
 # URL matching REGEX...
@@ -447,8 +446,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         tracks = await self.bot.wavelink.get_tracks(query)
         if not tracks:
             return await ctx.error(
-                "No songs were found with that query. Please try again.",
-                15,
+                "No songs were found with that query. Please try again."
             )
 
         if isinstance(tracks, wavelink.TrackPlaylist):
@@ -458,8 +456,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
             await ctx.embed(
                 f'`Added the playlist {tracks.data["playlistInfo"]["name"]}'
-                f" with {len(tracks.tracks)} songs to the queue.\n`",
-                15,
+                f" with {len(tracks.tracks)} songs to the queue.\n`"
             )
         else:
             track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
@@ -479,7 +476,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.is_paused or not player.is_connected:
             return
 
-        await ctx.embed(f"**{ctx.author}** has resumed the player.")
+        await ctx.embed(f"**{ctx.author}** has paused the player.")
         await player.set_pause(True)
 
     @commands.command()
@@ -615,7 +612,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def move(self, ctx, entry: int, new_position: int):
         """Move a queue entry to a new position."""
 
-        player = self.bot.wavelink.get_player(ctx.guild_id, cls=Player, context=ctx)
+        player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
 
         if not player.is_connected:
             return
@@ -632,7 +629,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         player.queue._queue[entry - 1] = tmp
 
-        ctx.embed("Song successfully moved.")
+        await ctx.embed("Song successfully moved.")
 
     @commands.command(aliases=["eq"])
     async def equalizer(self, ctx, *, equalizer):
@@ -675,21 +672,31 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.queue.qsize() == 0:
             return await ctx.embed("There are no more songs in the queue...")
 
-        channel = self.bot.get_channel(int(player.channel_id))
-        # noinspection PyProtectedMember
-        entries = [track.title for track in player.queue._queue]
-        requester = [track.requester.name for track in player.queue._queue]
-        string_list1 = [f"`{x} " for x in entries]
-        string_list2 = [f"requested by {x}`" for x in requester]
-        final_string = []
-        for i in range(0, len(string_list1)):
-            final_string.append(string_list1[i] + string_list2[i])
-        pages = QueuePaginator(
-            final_string, per_page=10, title=f"Queue for {channel.name}"
-        )
-        paginator = ADBPages(pages)
+        track = player.current
 
-        await paginator.start(ctx)
+        final_string = []
+        titles = [track.title for track in player.queue._queue]
+        uris = [track.uri for track in player.queue._queue]
+        requester = [track.requester.name for track in player.queue._queue]
+
+        if len(titles) <= 10:
+            upper_limit = len(titles)
+        else:
+            upper_limit = 10
+
+        for i in range(0, upper_limit):
+            final_string.append(f"{i + 1}. [{titles[i]}]({uris[i]}) | Requested by: {requester[i]}\n")
+
+        embed = Embed(ctx, title=f"Queue for {ctx.channel.name}")
+        embed.add_field (name="Now Playing:\n", value=f"[{track.title}]({track.uri}) | Requested by: {track.requester.name}\n", inline=False)
+
+        embed.add_field(name="Up next:\n", value="\n".join(
+            f"{string}" for string in final_string), inline=False)
+
+        # embed.add_field(name=f"{len(player.queue._queue)} songs in queue.", value="\u200b")
+        await ctx.send(embed=embed)
+
+
 
     @commands.command(aliases=["np", "now_playing", "current"])
     async def nowplaying(self, ctx):
