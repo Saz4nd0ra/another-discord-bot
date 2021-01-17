@@ -1,7 +1,6 @@
 from discord.ext import commands
 import discord
 from cogs.utils import context
-from cogs.utils.help import HelpCommand
 from cogs.utils.config import Config
 import datetime
 import json
@@ -33,8 +32,7 @@ class ADB(commands.AutoShardedBot):
             command_prefix=config.prefix,
             description=DESCRIPTION,
             fetch_offline_members=False,
-            heartbeat_timeout=150.0,
-            help_command=HelpCommand(),
+            heartbeat_timeout=150.0
         )
         self.config = config
         self.session = aiohttp.ClientSession(loop=self.loop)
