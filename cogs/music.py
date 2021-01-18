@@ -276,7 +276,7 @@ class InteractiveMessage(menus.Menu):
 
 
 class Music(commands.Cog, wavelink.WavelinkMixin):
-    """Listen to Music with friends."""
+    """The obligatory Music cog."""
 
     def __init__(self, bot):
         self.bot = bot

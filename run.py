@@ -3,12 +3,9 @@ import contextlib
 import logging
 import os
 
-import click
-
 from bot import ADB
 
 
-@contextlib.contextmanager
 def setup_logging():
     try:
         # __enter__
@@ -49,14 +46,10 @@ def run_bot():
     bot.run()
 
 
-@click.group(invoke_without_command=True, options_metavar="[options]")
-@click.pass_context
-def main(ctx):
+def main():
     """Launches the bot."""
-    if ctx.invoked_subcommand is None:
-        loop = asyncio.get_event_loop()
-        with setup_logging():
-            run_bot()
+    setup_logging()
+    run_bot()
 
 
 if __name__ == "__main__":

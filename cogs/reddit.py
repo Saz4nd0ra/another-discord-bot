@@ -10,7 +10,7 @@ REDDIT_DOMAINS = [
 
 
 class Reddit(commands.Cog):
-    """Browse reddit with those commands."""
+    """Browse reddit. There isn't really a lot to it."""
 
     def __init__(self, bot):
         self.bot = bot

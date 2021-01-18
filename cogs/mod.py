@@ -104,7 +104,7 @@ class BannedMember(commands.Converter):
 
 
 class Mod(commands.Cog):
-    """Commands for moderators in a guild."""
+    """Commands for moderators only."""
 
     def __init__(self, bot):
         self.bot = bot
