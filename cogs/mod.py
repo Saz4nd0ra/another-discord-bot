@@ -1,10 +1,9 @@
 import discord
 from discord.ext import commands
 import asyncio
-from ...utils.embed import Embed
+from .utils.embed import Embed
 from collections import Counter
-from ...utils.exceptions import MemberNotFound
-from ...utils import checks
+from .utils import checks
 import shlex
 import argparse
 import re
@@ -21,11 +20,11 @@ async def resolve_member(
     member = guild.get_member(member_id)
     if member is None:
         if guild.chunked:
-            raise MemberNotFound()
+            pass
         try:
             member = await guild.fetch_member(member_id)
         except discord.NotFound:
-            raise MemberNotFound() from None
+            pass
     return member
 
 
@@ -51,7 +50,7 @@ class MemberID(commands.Converter):
                 raise commands.BadArgument(
                     f"{argument} is not a valid member or member ID."
                 ) from None
-            except MemberNotFound:
+            except Exception as e:
                 # hackban case
                 return type(
                     "_Hackban",
@@ -105,7 +104,7 @@ class BannedMember(commands.Converter):
 
 
 class Mod(commands.Cog):
-    """Commands for moderators in a guild."""
+    """Commands for moderators only."""
 
     def __init__(self, bot):
         self.bot = bot
@@ -215,7 +214,6 @@ class Mod(commands.Cog):
                 await channel.set_permissions(member, connect=None)
         await ctx.embed(f"**{member}** has been unmuted from the guild.")
 
-    # TODO: rework the un/mute command
     @checks.is_mod()
     @commands.command()
     async def unmute(self, ctx, member: MemberID):

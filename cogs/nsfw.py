@@ -1,15 +1,11 @@
-import discord
-from saucenao_api.saucenao_api import SauceNao
-from .api import Rule34API, DanbooruAPI, SauceNaoAPI
-from ...utils import checks
-import asyncio
-import random
-from ...utils.exceptions import *
-from ...utils.embed import Embed
 from discord.ext import commands
+from .utils import checks
+from .utils.api import Rule34API, DanbooruAPI, SauceNaoAPI
+from .utils.embed import Embed
 
 
 class NSFW(commands.Cog):
+    """Commands for degenerates. Please stick to the rules."""
     def __init__(self, bot):
         self.bot = bot
         self.config = self.bot.config
@@ -19,27 +15,28 @@ class NSFW(commands.Cog):
 
     # TODO work on a blacklist system and user configs (yikes)
     @checks.is_nsfw_channel()
-    @commands.command()
-    async def r34(self, ctx, *, search):
+    @commands.command(aliases=["r34"])
+    async def rule34(self, ctx, *, search):
         """Browse rule34.xxx. Only available in NSFW channels."""
 
         file, is_video, has_source = await self.rule34.get_random_r34(search)
-        # TODO work on filtering videos, so we can actually send them
         if is_video:
             embed = Embed(ctx, title="Video found.", thumbnail=file.preview_url)
         else:
             embed = Embed(ctx, title="Image found.", image=file.file_url)
         if has_source:
-            embed.add_field(name="Sauce from Rule34:", value=f"[Click Here!]({file.source})")
-        sauce = self.saucenao.get_sauce_from_url(file.file_url)
+            embed.add_field(
+                name="Sauce from Rule34:", value=f"[Click Here!]({file.source})"
+            )
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file.file_url})")
 
         try:
-            embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
-        except IndexError:
-            pass
-
-        await ctx.send(embed=embed)
+            sauce = self.saucenao.get_sauce_from_url(file.file_url)
+            embed.add_field(
+                name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
+            )
+        finally:
+            await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
     @commands.command()
@@ -57,35 +54,40 @@ class NSFW(commands.Cog):
         else:
             embed = Embed(ctx, title="Image found.", image=file_url)
         if has_source:
-            embed.add_field(name="Sauce from Danbooru:", value=f"[Click Here!]({file_source})")
-        sauce = self.saucenao.get_sauce_from_url(file_url)
+            embed.add_field(
+                name="Sauce from Danbooru:", value=f"[Click Here!]({file_source})"
+            )
         embed.add_field(name="Image/Video:", value=f"[Click Here!]({file_url})")
 
         try:
-            embed.add_field(name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})")
-        except IndexError:
-            pass
-
-        await ctx.send(embed=embed)
+            sauce = self.saucenao.get_sauce_from_url(file.file_url)
+            embed.add_field(
+                name="Sauce from SauceNao:", value=f"[Click Here!]({sauce.urls[0]})"
+            )
+        finally:
+            await ctx.send(embed=embed)
 
     @checks.is_nsfw_channel()
-    @commands.command()
+    @commands.command(aliases=["sauce"])
     async def saucenao(self, ctx, *, url):
         """Get the sauce from pictures via an URL or file. Only available in NSFW channels."""
-        sauce = self.saucenao.get_sauce_from_url(url)
-
-        embed = Embed(ctx, title="Sauce found.", image=url)
-        embed.add_fields(("Author:", f"{sauce.author}"),
-                         ("Similarity:", f"{round(sauce.similarity)}%"))
 
         try:
+            sauce = self.saucenao.get_sauce_from_url(url)
+            embed = Embed(ctx, title="Sauce found.", image=url)
+            embed.add_fields(
+                ("Author:", f"{sauce.author}"),
+                ("Similarity:", f"{round(sauce.similarity)}%"),
+            )
             embed.add_field(name="Link:", value=f"[Click Here!]({sauce.urls[0]})")
-        except IndexError:
-            pass
+            try:
+                await ctx.message.delete()
+            except:
+                pass
+            await ctx.send(embed=embed)
+        except Exception as e:
+            await ctx.error("Something went wrong with the API.", 10)
 
-        await ctx.send(embed=embed)
-
-        await ctx.message.delete()
 
 def setup(bot):
     bot.add_cog(NSFW(bot))
