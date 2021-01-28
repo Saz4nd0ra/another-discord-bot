@@ -608,29 +608,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         await player.set_volume(vol)
 
-    @commands.command(aliases=["m"])
-    async def move(self, ctx, entry: int, new_position: int):
-        """Move a queue entry to a new position."""
-
-        player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
-
-        if not player.is_connected:
-            return
-
-        if player.queue.qsize() == 0:
-            return await ctx.error("There are no songs in the queue...")
-
-        if not player.queue._queue[entry - 1]:
-            return await ctx.error("This entry doesn't exists...")
-
-        tmp = player.queue._queue[new_position - 1]
-
-        player.queue._queue[new_position - 1] = player.queue._queue[entry - 1]
-
-        player.queue._queue[entry - 1] = tmp
-
-        await ctx.embed("Song successfully moved.")
-
     @commands.command(aliases=["eq"])
     async def equalizer(self, ctx, *, equalizer):
         """Change the players equalizer."""
@@ -660,11 +637,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         await ctx.embed(f"Successfully changed equalizer to {equalizer}.")
         await player.set_eq(eq)
 
-    @commands.command(aliases=["q"])
+    @commands.group(name="queue", invoke_without_command=True)
     async def queue(self, ctx):
         """Displays the current songs that are queued."""
 
-        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
+        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
 
         if not player.is_connected:
             return
@@ -696,7 +673,41 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         # embed.add_field(name=f"{len(player.queue._queue)} songs in queue.", value="\u200b")
         await ctx.send(embed=embed)
 
+    @queue.command(aliases=["m"])
+    async def move(self, ctx, entry: int, new_position: int):
+        """Move a queue entry to a new position."""
 
+        player = self.bot.wavelink.get_player(guild_id=ctx.guild.id, cls=Player, context=ctx)
+
+        if not player.is_connected:
+            return
+
+        if player.queue.qsize() == 0:
+            return await ctx.error("There are no songs in the queue...")
+
+        if not player.queue._queue[entry - 1]:
+            return await ctx.error("This entry doesn't exists...")
+
+        tmp = player.queue._queue[new_position - 1]
+
+        player.queue._queue[new_position - 1] = player.queue._queue[entry - 1]
+
+        player.queue._queue[entry - 1] = tmp
+
+        await ctx.embed("Song successfully moved.")
+
+    @queue.command()
+    async def clear(self, ctx):
+        """Clear the queue."""
+
+        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
+
+        if player.queue.qsize() == 0:
+            return await ctx.error("There are no songs in the queue...")
+
+        player.queue._queue = []
+
+        await ctx.embed("Queue successfully cleared.")
 
     @commands.command(aliases=["np", "now_playing", "current"])
     async def nowplaying(self, ctx):
