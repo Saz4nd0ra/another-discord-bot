@@ -49,6 +49,10 @@ class Player(wavelink.Player):
 
         self.skip_votes = set()
 
+    @property
+    def entries(self):
+        return list(self.queue._queue)
+
     async def do_next(self):
         if self.is_playing or self.waiting:
             return
@@ -58,10 +62,9 @@ class Player(wavelink.Player):
 
         try:
             self.waiting = True
-            with async_timeout.timeout(60):
+            with async_timeout.timeout(350):
                 track = await self.queue.get()
         except asyncio.TimeoutError:
-            # No music has been played for 5 minutes, cleanup and disconnect...
             return await self.teardown()
 
         await self.play(track)
@@ -244,6 +247,16 @@ class InteractiveMessage(menus.Menu):
 
         await self.bot.invoke(ctx)
 
+    @menus.button(emoji="\U0001F501")
+    async def repeat_command(self, payload):
+        """Shuffle button."""
+        ctx = self.update_context(payload)
+
+        command = self.bot.get_command("repeat")
+        ctx.command = command
+
+        await self.bot.invoke(ctx)
+
     @menus.button(emoji="\u2795")
     async def volup_command(self, payload):
         """Volume up button"""
@@ -331,7 +344,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if member.bot:
             return
 
-        player: Player = self.bot.wavelink.get_player(member.guild.id, cls=Player)
+        player = self.bot.wavelink.get_player(member.guild.id, cls=Player)
 
         if not player.channel_id or not player.context:
             player.node.players.pop(member.guild.id)
@@ -413,6 +426,41 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
 
+    async def do_vote(self, ctx, player, command):
+        attr = getattr(player, command + "s", None)
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+
+        if ctx.author.id in attr:
+            await ctx.embed(f"{ctx.author.mention}, you have already voted to {command}!", 10)
+        elif await self.vote_check(ctx, command):
+            await ctx.embed(f"Vote request for {command} passed!", 10)
+            to_do = getattr(self, f"do_{command}")
+            await to_do(ctx)
+        else:
+            await ctx.embed(f"{ctx.author.mention}, has voted to {command} the song!"
+                           f" **{self.required(player, ctx.invoked_with) - len(attr)}** more votes needed!", 10)
+
+    async def do_skip(self, ctx):
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+
+        await player.stop()
+
+    async def do_repeat(self, ctx):
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+
+        if not player.entries:
+            await player.queue.put(player.current)
+        else:
+            player.queue._queue.appendleft(player.current)
+
+        player.update = True
+
     @commands.command()
     async def connect(self, ctx, *, channel=None):
         """Connect to a voice channel."""
@@ -455,7 +503,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
                 await player.queue.put(track)
 
             await ctx.embed(
-                f'`Added the playlist {tracks.data["playlistInfo"]["name"]}'
+                f"`Added the playlist {tracks.data['playlistInfo']['name']}"
                 f" with {len(tracks.tracks)} songs to the queue.\n`"
             )
         else:
@@ -494,35 +542,23 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
     @commands.command()
     async def skip(self, ctx):
-        """Skip the currently playing song."""
+        """Skip the current song."""
         player = self.bot.wavelink.get_player(
             guild_id=ctx.guild.id, cls=Player, context=ctx
         )
 
         if not player.is_connected:
-            return
+            return await ctx.error("I am not currently connected to voice!", 10)
 
         if self.is_privileged(ctx):
-            await ctx.embed("A priviliged user skipped the song.")
-            player.skip_votes.clear()
+            await ctx.embed(f"{ctx.author.mention} has skipped the song as an admin or DJ.", 10)
+            return await self.do_skip(ctx)
 
-            return await player.stop()
+        if player.current.requester.id == ctx.author.id:
+            await ctx.embed(f"The requester {ctx.author.mention} has skipped the song.", 10)
+            return await self.do_skip(ctx)
 
-        if ctx.author == player.current.requester:
-            await ctx.embed("The song requester has skipped the song.")
-            player.skip_votes.clear()
-
-            return await player.stop()
-
-        required = self.required(ctx)
-        player.skip_votes.add(ctx.author)
-
-        if len(player.skip_votes) >= required:
-            await ctx.embed("Vote to skip passed. Skipping song.")
-            player.skip_votes.clear()
-            await player.stop()
-        else:
-            await ctx.embed(f"**{ctx.author}** has voted to skip the song.")
+        await self.do_vote(ctx, player, "skip")
 
     @commands.command()
     async def stop(self, ctx):
@@ -641,7 +677,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def queue(self, ctx):
         """Displays the current songs that are queued."""
 
-        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
+        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
 
         if not player.is_connected:
             return
@@ -700,7 +736,7 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def clear(self, ctx):
         """Clear the queue."""
 
-        player: Player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
+        player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player, context=ctx)
 
         if player.queue.qsize() == 0:
             return await ctx.error("There are no songs in the queue...")
@@ -720,6 +756,23 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             return
 
         await player.invoke_controller()
+
+
+    @commands.command(aliases=["r"])
+    async def repeat(self, ctx):
+        """Repeat the currently playing song."""
+        player = self.bot.wavelink.get_player(
+            guild_id=ctx.guild.id, cls=Player, context=ctx
+        )
+
+        if not player.is_connected:
+            return
+
+        if self.is_privileged(ctx):
+            await ctx.embed(f"{ctx.author.mention} has repeated the song as an admin or DJ.", 10)
+            return await self.do_repeat(ctx)
+
+        await self.do_vote(ctx, player, "repeat")
 
     @commands.command(aliases=["swap"])
     async def swapdj(self, ctx, *, member=None):
@@ -761,10 +814,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     @commands.command(name="wavelinkinfo", aliases=["wvi"])
     async def wavelinkinfo(self, ctx):
         """Retrieve various Music / WaveLink information."""
-        try:
-            await ctx.message.delete()
-        except discord.HTTPException:
-            pass
         player = self.bot.wavelink.get_player(ctx.guild.id, cls=Player)
         node = player.node
 
