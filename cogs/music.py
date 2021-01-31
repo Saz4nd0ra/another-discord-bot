@@ -148,52 +148,20 @@ class Player(wavelink.Player):
             raise NoTracksFound
 
         if isinstance(tracks, wavelink.TrackPlaylist):
-            self.queue.add(*tracks.tracks)
-        elif len(tracks) == 1:
-            self.queue.add(tracks[0])
-            await ctx.embed(f"Added {tracks[0].title} to the queue.")
+            for track in tracks.tracks:
+                track = Track(track.id, track.info, requester=ctx.author)
+                await player.queue.put(track)
+                await ctx.embed(
+                f'`Added the playlist {tracks.data["playlistInfo"]["name"]}'
+                f" with {len(tracks.tracks)} songs to the queue.\n`"
+            )
         else:
-            if (track := await self.choose_track(ctx, tracks)) is not None:
-                self.queue.add(track)
-                await ctx.embed(f"Added {track.title} to the queue.")
+            track = Track(tracks[0].id, tracks[0].info, requester=ctx.author)
+            self.queue.add(track)
+            await ctx.embed(f"Added {track.title} to the queue.")
 
         if not self.is_playing and not self.queue.is_empty:
             await self.start_playback()
-
-    async def choose_track(self, ctx, tracks):
-        def _check(r, u):
-            return (
-                r.emoji in OPTIONS.keys()
-                and u == ctx.author
-                and r.message.id == msg.id
-            )
-
-        embed = discord.Embed(
-            title="Choose a song",
-            description=(
-                "\n".join(
-                    f"**{i+1}.** {t.title} ({t.length//60000}:{str(t.length%60).zfill(2)})"
-                    for i, t in enumerate(tracks[:5])
-                )
-            ),
-            colour=ctx.author.colour,
-            timestamp=datetime.datetime.utcnow()
-        )
-        embed.set_author(name="Query Results")
-        embed.set_footer(text=f"Invoked by {ctx.author.display_name}", icon_url=ctx.author.avatar_url)
-
-        msg = await ctx.send(embed=embed)
-        for emoji in list(OPTIONS.keys())[:min(len(tracks), len(OPTIONS))]:
-            await msg.add_reaction(emoji)
-
-        try:
-            reaction, _ = await self.bot.wait_for("reaction_add", timeout=60.0, check=_check)
-        except asyncio.TimeoutError:
-            await msg.delete()
-            await ctx.message.delete()
-        else:
-            await msg.delete()
-            return tracks[OPTIONS[reaction.emoji]]
 
     async def start_playback(self):
         await self.play(self.queue.current_track)
@@ -261,24 +229,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
 
         return True
 
-    def required(self, ctx):
-        """Method which returns required votes based on amount of members in a channel."""
-        player = self.get_player(ctx)
-        channel = self.bot.get_channel(int(player.channel_id))
-        required = math.ceil((len(channel.members) - 1) / 2.5)
-
-        if ctx.command.name == "stop":
-            if len(channel.members) - 1 == 2:
-                required = 2
-
-        return required
-
-    def is_privileged(self, ctx):
-        """Check whether the user is an Admin or DJ."""
-        player = self.get_player(ctx)
-
-        return player.dj == ctx.author or ctx.author.guild_permissions.kick_members
-
     def get_player(self, obj):
         if isinstance(obj, commands.Context):
             return self.wavelink.get_player(obj.guild.id, cls=Player, context=obj)
@@ -307,19 +257,11 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if not player.is_connected:
             await player.connect(ctx)
 
-        if query is None:
-            if player.queue.is_empty:
-                raise QueueIsEmpty
-
-            await player.set_pause(False)
-            await ctx.send("Playback resumed.")
-
-        else:
-            query = query.strip("<>")
-            if not re.match(URL_REGEX, query):
-                query = f"ytsearch:{query}"
-
-            await player.add_tracks(ctx, await self.wavelink.get_tracks(query))
+        
+        query = query.strip("<>")
+        if not re.match(URL_REGEX, query):
+            query = f"ytsearch:{query}"
+        await player.add_tracks(ctx, await self.wavelink.get_tracks(query))
 
     @commands.command()
     async def pause(self, ctx):
@@ -348,41 +290,45 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         """Skip the currently playing song."""
         player = self.get_player(ctx)
 
-        if not player.is_connected:
-            return
+        if not player.queue.upcoming:
+            raise NoMoreTracks
 
-        if self.is_privileged(ctx):
-            await ctx.embed("A priviliged user skipped the song.")
-            player.skip_votes.clear()
+        await player.stop()
+        await ctx.send("Skipping...")
 
-            return await player.stop()
+    @commands.command()
+    async def previous(self, ctx):
+        """Play the previously played song."""
+        player = self.get_player(ctx)
 
-        if ctx.author == player.queue.current_track.requester:
-            await ctx.embed("The song requester has skipped the song.")
-            player.skip_votes.clear()
+        if not player.queue.history:
+            raise NoPreviousTracks
 
-            return await player.stop()
-
-        required = self.required(ctx)
-        player.skip_votes.add(ctx.author)
-
-        if len(player.skip_votes) >= required:
-            await ctx.embed("Vote to skip passed. Skipping song.")
-            player.skip_votes.clear()
-            await player.stop()
-        else:
-            await ctx.embed(f"**{ctx.author}** has voted to skip the song.")
+        player.queue.position -= 2
+        await player.stop()
+        await ctx.embed("Playing previous track in queue.")
 
     @commands.command()
     async def stop(self, ctx):
         """Stop the player and clear all internal states."""
         player = self.get_player(ctx)
+        player.queue.empty()
+        await player.stop()
+        await ctx.embed("Player stopped.")
 
-        if not player.is_connected:
-            return
+    @commands.command(aliases=["leave"])
+    async def disconnect(self, ctx):
+        player = self.get_player(ctx)
+        await player.teardown()
+        await ctx.embed("Disconnected.")
 
-        await ctx.embed(f"**{ctx.author}** stopped the player.")
-        return await player.teardown()
+    @commands.command(name="repeat")
+    async def repeat(self, ctx, mode: str):
+        """Set the repeat to none, 1 and all."""
+
+        player = self.get_player(ctx)
+        player.queue.set_repeat_mode(mode)
+        await ctx.embed(f"The repeat mode has been set to {mode}.")
 
     @commands.command(aliases=["v", "vol"])
     async def volume(self, ctx, *, vol):
@@ -405,84 +351,46 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
     async def shuffle(self, ctx):
         """Shuffle the players queue."""
         player = self.get_player(ctx)
+        player.queue.shuffle()
+        await ctx.embed("Queue shuffled.")
+
+    @commands.group(name="queue", aliases=["q"], invoke_without_command=True)
+    async def queue(self, ctx, show: int = 10):
+        """Displays the current songs that are queued."""
+
+        player = self.get_player(ctx)
 
         if not player.is_connected:
             return
 
-        if player.queue.qsize() < 3:
-            return await ctx.error("Add more songs to the queue before shuffling.", 10)
+        if player.queue.length == 0:
+            return await ctx.embed("There are no more songs in the queue...")
 
-        await ctx.embed(f"**{ctx.author}** has shuffled the playlist.")
-        return random.shuffle(player.queue._queue)
+        track = player.queue.current_track
 
-    @commands.command(hidden=True)
-    async def vol_up(self, ctx):
-        """Command used for volume up button."""
-        player = self.get_player(ctx)
+        final_string = []
+        titles = [track.title for track in player.queue.upcoming[:show]]
+        uris = [track.uri for track in player.queue.upcoming[:show]]
+        requester = [track.requester.name for track in player.queue.upcoming[:show]]
 
-        if not player.is_connected or not self.is_privileged(ctx):
-            return
+        if len(titles) <= 10:
+            upper_limit = len(titles)
+        else:
+            upper_limit = 10
 
-        vol = int(math.ceil((player.volume + 10) / 10)) * 10
+        for i in range(0, upper_limit):
+            final_string.append(f"{i + 1}. [{titles[i]}]({uris[i]}) | Requested by: {requester[i]}\n")
 
-        if vol > 100:
-            vol = 100
-            await ctx.error("Maximum volume reached", 10)
+        embed = Embed(ctx, title=f"Queue for {ctx.channel.name}")
+        embed.add_field (name="Now Playing:\n", value=f"[{track.title}]({track.uri}) | Requested by: {track.requester.name}\n", inline=False)
 
-        await player.set_volume(vol)
-
-    @commands.command(hidden=True)
-    async def vol_down(self, ctx):
-        """Command used for volume down button."""
-        player = self.get_player(ctx)
-
-        if not player.is_connected or not self.is_privileged(ctx):
-            return
-
-        vol = int(math.ceil((player.volume - 10) / 10)) * 10
-
-        if vol < 0:
-            vol = 0
-            await ctx.error("Player is currently muted.", 10)
-
-        await player.set_volume(vol)
-
-    @commands.group(aliases=["q"])
-    async def queue(self, ctx, show: int = 10):
-        """Displays the current songs that are queued."""
-
-        if ctx.
-            player = self.get_player(ctx)
-
-            if not player.is_connected:
-                return
-
-            if player.queue.length == 0:
-                return await ctx.embed("There are no more songs in the queue...")
-
-            final_string = []
-            titles = [track.title for track in player.queue.upcoming[:show]]
-            uris = [track.uri for track in player.queue.upcoming[:show]]
-            requester = [track.requester.name for track in player.queue.upcoming[:show]]
-
-            if len(titles) <= 10:
-                upper_limit = len(titles)
-            else:
-                upper_limit = 10
-
-            for i in range(0, upper_limit):
-                final_string.append(f"{i + 1}. [{titles[i]}]({uris[i]}) | Requested by: {requester[i]}\n")
-
-            embed = Embed(ctx, title=f"Queue for {ctx.channel.name}")
-            embed.add_field (name="Now Playing:\n", value=f"[{track.title}]({track.uri}) | Requested by: {track.requester.name}\n", inline=False)
-
-            embed.add_field(name="Up next:\n", value="\n".join(
-                f"{string}" for string in final_string), inline=False)
+        embed.add_field(name="Up next:\n", value="\n".join(
+            f"{string}" for string in final_string), inline=False)
 
             # embed.add_field(name=f"{len(player.queue._queue)} songs in queue.", value="\u200b")
-            await ctx.send(embed=embed)
+        await ctx.send(embed=embed)
 
-    @commands.command(aliases=["m"])
+    @queue.command(aliases=["m"])
     async def move(self, ctx, entry: int, new_position: int):
         """Move a queue entry to a new position."""
 
@@ -494,14 +402,14 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
         if player.queue.qsize() == 0:
             return await ctx.error("There are no songs in the queue...", 10)
 
-        if not player.queue._queue[entry - 1]:
+        if not player.queue.upcoming[entry - 1]:
             return await ctx.error("This entry doesn't exists...", 10)
 
-        tmp = player.queue._queue[new_position - 1]
+        tmp = player.queue.upcoming[new_position - 1]
 
-        player.queue._queue[new_position - 1] = player.queue._queue[entry - 1]
+        player.queue.upcoming[new_position - 1] = player.queue.upcoming[entry - 1]
 
-        player.queue._queue[entry - 1] = tmp
+        player.queue.upcoming[entry - 1] = tmp
 
         await ctx.embed("Song successfully moved.")
 
@@ -564,7 +472,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             ("Queue Length:", str(player.queue.length)),
             ("Volume:", str(player.volume)),
             ("Requested by:", track.requester.name),
-            ("Current DJ:", player.dj.name),
             ("Video URL:", f"[Click Here!]({track.uri})"),
         )
 
@@ -604,8 +511,6 @@ class Music(commands.Cog, wavelink.WavelinkMixin):
             else:
                 player.dj = m
                 return await ctx.embed(f"**{member}** is now the DJ.")
-
-    
 
     @commands.command(name="wavelinkinfo", aliases=["wvi"])
     async def wavelinkinfo(self, ctx):
