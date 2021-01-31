@@ -45,7 +45,7 @@ class Context(commands.Context):
         )
         await self.send(embed=embed)
 
-    async def embed(self, message: str, auto_delete: int = None):
+    async def embed(self, message: str):
         """Sends a quick embed."""
         embed = Embed(
             ctx=self,
@@ -53,6 +53,5 @@ class Context(commands.Context):
             description=message,
         )
         await self.send(
-            embed=embed,
-            delete_after=auto_delete if auto_delete else auto_delete is None,
+            embed=embed
         )
